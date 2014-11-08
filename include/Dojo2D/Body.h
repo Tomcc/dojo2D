@@ -14,8 +14,6 @@ namespace Phys {
 
 		virtual ~Body();
 
-		virtual float getMass() const;
-
 		b2Fixture& addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor = false);
 		b2Fixture& addPolyShape(const Material& material, const std::vector<b2Vec2>& points, bool sensor = false);
 		b2Fixture& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
@@ -39,6 +37,10 @@ namespace Phys {
 		void applyForceAtLocalPoint(const Vector& force, const Vector& localPoint);
 
 		void applyTorque(float t);
+		
+		void forceRotation(float angle);
+
+		virtual float getMass() const;
 
 		Vector getPosition() const;
 

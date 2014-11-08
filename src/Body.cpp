@@ -190,10 +190,17 @@ void Body::applyTorque(float t) {
 	body->ApplyTorque(t, true);
 }
 
-void Body::setFixedRotation(bool enable) {
+void Phys::Body::setFixedRotation(bool enable) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
 	body->SetFixedRotation(enable);
+}
+
+void Phys::Body::forceRotation(float angle) {
+	DEBUG_ASSERT(body, "Call initPhysics first");
+
+	auto t = body->GetTransform();
+	body->SetTransform(t.p, angle);
 }
 
 float Body::getMass() const {

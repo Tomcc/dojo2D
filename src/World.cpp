@@ -82,14 +82,23 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 	const b2Body& bodyA = *contact->GetFixtureA()->GetBody();
 	const b2Body& bodyB = *contact->GetFixtureB()->GetBody();
 
-	b2Vec2 point = (worldManifold.points[0] + worldManifold.points[1]) * 0.5f;
+	b2Vec2 point;
+	if (contact->GetManifold()->pointCount == 1)
+		point = worldManifold.points[0];
+	else
+		point = (worldManifold.points[0] + worldManifold.points[1]) * 0.5f;
 
-	b2Vec2 vA = bodyA.GetLinearVelocityFromWorldPoint(point) * phA.getMass();
-	b2Vec2 vB = bodyB.GetLinearVelocityFromWorldPoint(point) * phB.getMass();
+	b2Vec2 A = bodyA.GetLinearVelocityFromWorldPoint(point);
+	b2Vec2 B = bodyB.GetLinearVelocityFromWorldPoint(point);
+	b2Vec2 relativeSpeed = A - B;
 
-	float32 force = b2Dot(vB - vA, worldManifold.normal);
+	DEBUG_ASSERT(phA.isStatic() || phA.getMass() > 0, "HM");
+	DEBUG_ASSERT(phB.isStatic() || phB.getMass() > 0, "HM");
 
-	deferredCollisions.emplace_back(phA, phB, force, point);
+	float force = (relativeSpeed * phA.getMass() + relativeSpeed * phB.getMass()).Length();
+
+	if (force > 0.1f)
+		deferredCollisions.emplace_back(phA, phB, force, point);
 }
 
 RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup /* = 0 */)
