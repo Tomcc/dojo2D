@@ -2,7 +2,7 @@
 
 #include "LiquidBody.h"
 
-#include "PhysMaterial.h"
+#include "Material.h"
 #include "PhysUtil.h"
 #include "World.h"
 

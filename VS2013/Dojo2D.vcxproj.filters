@@ -33,9 +33,6 @@
     <ClInclude Include="..\include\Dojo2D\LiquidBody.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Dojo2D\PhysMaterial.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Dojo2D\PhysUtil.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -43,6 +40,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\World.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\Material.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

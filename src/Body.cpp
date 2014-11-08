@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "Body.h"
-#include "PhysMaterial.h"
+#include "Material.h"
 #include "PhysUtil.h"
 #include "World.h"
 
