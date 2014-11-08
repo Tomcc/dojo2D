@@ -1,0 +1,17 @@
+VC2012/Debug
+VC2012/FrontierWorlds.sdf
+VC2012/FrontierWorlds.v12.suo
+VC2012/FrontierWorlds.opensdf
+VC2012/ipch
+VC2012/Release/
+VC2012/SUPERDRONE.opensdf
+VC2012/SUPERDRONE.sdf
+VS2013/Debug/
+VS2013/Scavenger.sdf
+VS2013/ipch/
+VS2013/Scavenger.opensdf
+VS2013/Release/
+dependencies/win32/hqx/Release/
+dependencies/win32/hqx/Debug/
+*.sdf
+*.opensdf
