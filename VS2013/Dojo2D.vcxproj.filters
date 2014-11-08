@@ -5,9 +5,6 @@
     <ClCompile Include="..\src\Body.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\LiquidBody.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\RayResult.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -21,6 +18,9 @@
     <ClCompile Include="..\src\ConvexDecomposition\b2Triangle.cpp">
       <Filter>src\ConvexDecomposition</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ParticleSystem.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -28,9 +28,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\common_header.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Dojo2D\LiquidBody.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\PhysUtil.h">
@@ -43,6 +40,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\Material.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\ParticleSystem.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "LiquidBody.h"
+#include "ParticleSystem.h"
 
 #include "Material.h"
 #include "PhysUtil.h"
@@ -9,8 +9,9 @@
 using namespace Phys;
 using namespace Dojo;
 
-LiquidBody::LiquidBody(World& world, Dojo::Object& parent, const Material& material) : 
+ParticleSystem::ParticleSystem(World& world, Dojo::Object& parent, const Material& material, float damping) : 
 Dojo::Renderable(&parent, Vector::ZERO),
+damping(damping),
 _mesh(new Mesh()) {
 	mesh = _mesh.get();
 
@@ -25,7 +26,7 @@ _mesh(new Mesh()) {
 	particleSystem = world.getBox2D().CreateParticleSystem(&particleSystemDef);
 }
 
-void Phys::LiquidBody::addParticle(const Vector& pos, const Vector& velocity, const Color& color, float lifetime) {
+void Phys::ParticleSystem::addParticle(const Vector& pos, const Vector& velocity, const Color& color, float lifetime) {
 	DEBUG_ASSERT(lifetime > 0, "Invalid lifetime");
 
 	b2ParticleDef particle;
@@ -38,7 +39,7 @@ void Phys::LiquidBody::addParticle(const Vector& pos, const Vector& velocity, co
 	particleSystem->CreateParticle(particle);
 }
 
-void LiquidBody::onAction(float dt) {
+void ParticleSystem::onAction(float dt) {
 	Object::onAction(dt);
 
 	setVisible(particleSystem->GetParticleCount() > 0);
@@ -46,8 +47,6 @@ void LiquidBody::onAction(float dt) {
 	if(isVisible()) {
 
 		const float r = 0.07f;
-		const float jitter = 0.005f;
-		const float damping = 0.15f;
 
 		mesh->begin(particleSystem->GetParticleCount());
 
@@ -74,8 +73,6 @@ void LiquidBody::onAction(float dt) {
 			mesh->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
 
 			*velocity *= (1.f - damping);
-			velocity->x += Math::rangeRandom(-jitter, jitter);
-			velocity->y += Math::rangeRandom(-jitter, jitter);
 		}
 
 		mesh->end();

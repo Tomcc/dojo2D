@@ -6,10 +6,13 @@ namespace Phys {
 	class Material;
 	class World;
 
-	class LiquidBody : public Dojo::Renderable
+	///TODO decouple from rendering
+	class ParticleSystem : public Dojo::Renderable
 	{
 	public:
-		LiquidBody(World& world, Object& parent, const Material& material);
+		const float damping;
+
+		ParticleSystem(World& world, Object& parent, const Material& material, float damping = 0);
 			
 		void addParticle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);
 

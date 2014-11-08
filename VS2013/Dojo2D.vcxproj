@@ -17,7 +17,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\Dojo2D\Body.h" />
     <ClInclude Include="..\include\Dojo2D\common_header.h" />
-    <ClInclude Include="..\include\Dojo2D\LiquidBody.h" />
+    <ClInclude Include="..\include\Dojo2D\ParticleSystem.h" />
     <ClInclude Include="..\include\Dojo2D\Material.h" />
     <ClInclude Include="..\include\Dojo2D\PhysUtil.h" />
     <ClInclude Include="..\include\Dojo2D\RayResult.h" />
@@ -37,7 +37,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\src\LiquidBody.cpp" />
+    <ClCompile Include="..\src\ParticleSystem.cpp" />
     <ClCompile Include="..\src\RayResult.cpp" />
     <ClCompile Include="..\src\World.cpp" />
     <ClCompile Include="stdafx.cpp">
