@@ -108,7 +108,7 @@ void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Phys::Group grou
 	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
 
 	bodyDef.position = { obj.position.x, obj.position.y };
-	bodyDef.angle = obj.getRoll() * Dojo::Math::EULER_TO_RADIANS;
+	bodyDef.angle = obj.getRoll();
 
 	if (staticShape) {
 		bodyDef.awake = false;
