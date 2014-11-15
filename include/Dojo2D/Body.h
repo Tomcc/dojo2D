@@ -9,7 +9,7 @@ namespace Phys {
 
 	class Body
 	{
-	public:			
+	public:
 		Body(World& world);
 
 		virtual ~Body();
@@ -37,7 +37,7 @@ namespace Phys {
 		void applyForceAtLocalPoint(const Vector& force, const Vector& localPoint);
 
 		void applyTorque(float t);
-		
+
 		void forceRotation(float angle);
 
 		virtual float getMass() const;
@@ -51,7 +51,7 @@ namespace Phys {
 		Vector getVelocityAtLocalPoint(const Vector& localPoint) const;
 
 		Group getGroup() const {
-			return group;
+				return group;
 		}
 
 		b2Body* getB2Body() const {
@@ -67,8 +67,7 @@ namespace Phys {
 		}
 
 		virtual void onCollision(Body& other, float force, const Vector& point) {}
-
-		virtual void onGhostCollision(Body& other) {}
+		virtual void onSensorCollision(Body& other, b2Fixture& sensor) {};
 
 		void updateGraphics();
 

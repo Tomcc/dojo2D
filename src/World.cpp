@@ -46,11 +46,24 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	auto cm = getContactModeFor(phA->getGroup(), phB->getGroup());
 
 	if (cm != ContactMode::Normal) {
-		if (cm == ContactMode::Ghost)
-			deferredGhostCollisions.emplace_back(*phA, *phB, 0.f, asB2Vec(Vector::ZERO));
+		//a "ghost collision" acts like a two-way sensor
+		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
+			deferredSensorCollisions.emplace_back(*phB, *fixtureA);
+			deferredSensorCollisions.emplace_back(*phA, *fixtureB);
+		}
 
 		return false;
 	}
+
+	//check if the sensors should collide
+	if (fixtureA->IsSensor())
+		deferredSensorCollisions.emplace_back(*phB, *fixtureA);
+		
+	if (fixtureB->IsSensor())
+		deferredSensorCollisions.emplace_back(*phA, *fixtureB);
+
+	if (fixtureA->IsSensor() && fixtureB->IsSensor())
+		return false;
 
 	bool odcA = phA->isParticle();
 	bool odcB = phB->isParticle();
@@ -117,36 +130,40 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, FixtureList& result) {
+void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result) {
+
+	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
+	
+	auto report = [&](b2Fixture* fixture){
+		auto& body = getBodyForFixture(fixture);
+		auto contactMode = getContactModeFor(group, body.getGroup());
+		if (contactMode == ContactMode::Normal) {
+			result.push_back(&body);
+		}
+	};
+	
 	class Query : public b2QueryCallback
 	{
 	public:
-		b2AABB screen;
-		FixtureList& fixtures;
-
-		Query(const Vector& min, const Vector& max, FixtureList& fixtures) :
-			fixtures(fixtures) {
-			screen.lowerBound = { min.x, min.y };
-			screen.upperBound = { max.x, max.y };
-		}
-
-		void run(b2World& box2D) {
-			box2D.QueryAABB(this, screen);
-		}
+		decltype(report)& func;
+		Query(const decltype(func)& f) : func(f) {}
 
 		virtual bool ReportFixture(b2Fixture* fixture) {
-			fixtures.push_back(fixture);
+			func(fixture);
 			return true;
 		}
 	};
 
-	Query q(min, max, result);
-	q.run(*box2D);
-
+	b2AABB bb;
+	bb.lowerBound = asB2Vec(min);
+	bb.upperBound = asB2Vec(max);
+	
+	Query q = report;
+	box2D->QueryAABB(&q, bb);
 }
 
-void World::AABBQuery(const Dojo::Object& bounds, FixtureList& result) {
-	AABBQuery(bounds.getWorldMin(), bounds.getWorldMax(), result);
+void World::AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result) {
+	AABBQuery(bounds.getWorldMin(), bounds.getWorldMax(), group, result);
 }
 
 Vector World::getGravity() const {
@@ -154,20 +171,46 @@ Vector World::getGravity() const {
 }
 
 void World::update(float dt) {
-	deferredCollisions.clear();
-	deferredGhostCollisions.clear();
-
+	
 	box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
 	//play back all collisions
-	for (auto& c : deferredCollisions) {
-		Vector p(c.point.x, c.point.y);
-		c.A.onCollision(c.B, c.force, p);
-		c.B.onCollision(c.A, c.force, p);
+	for (size_t i = 0; i < deferredCollisions.size(); ++i) {
+		auto& c = deferredCollisions[i];
+		Vector p = asVec(c.point);
+		c.A->onCollision(*c.B, c.force, p);
+		c.B->onCollision(*c.A, c.force, p);
+	}
+	deferredCollisions.clear();
+	
+	for (size_t i = 0; i < deferredSensorCollisions.size(); ++i) {
+		auto& c = deferredSensorCollisions[i];
+		getBodyForFixture(c.sensor).onSensorCollision(*c.other, *c.sensor); //sensor collisions are not bidirectional
 	}
 
-	for (auto& c : deferredGhostCollisions) {
-		c.A.onGhostCollision(c.B);
-		c.B.onGhostCollision(c.A);
+	deferredSensorCollisions.clear();
+}
+
+void Phys::World::_notifyDestroyed(Body& body) {
+	//remove from the collision queues if any
+	{
+		for (size_t i = 0; i < deferredCollisions.size(); ++i) {
+			auto& c = deferredCollisions[i];
+			if (&body == c.A || &body == c.B) {
+				deferredCollisions.erase(deferredCollisions.begin() + i);
+				--i;
+			}
+		}
 	}
+
+	{
+		for (size_t i = 0; i < deferredSensorCollisions.size(); ++i) {
+			auto& c = deferredSensorCollisions[i];
+			if (&body == c.other) {
+				deferredSensorCollisions.erase(deferredSensorCollisions.begin() + i);
+				--i;
+			}
+		}
+	}
+
 }

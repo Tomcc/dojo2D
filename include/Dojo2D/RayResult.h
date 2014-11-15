@@ -10,7 +10,7 @@ namespace Phys {
 		bool hit = false;
 		Vector position;
 		Vector normal;
-		Body *hitActor = nullptr;
+		Body *hitBody = nullptr;
 		Group group = 0;
 
 		RayResult(World& world) :

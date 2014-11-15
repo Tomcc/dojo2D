@@ -5,11 +5,13 @@
 #include "RayResult.h"
 
 namespace Phys {
+	class Body;
+
 	class World :
 		public b2ContactListener,
 		public b2ContactFilter {
 	public:
-		typedef std::vector<b2Fixture*> FixtureList;
+		typedef std::vector<Body*> BodyList;
 
 		enum class ContactMode {
 			None,
@@ -37,10 +39,12 @@ namespace Phys {
 
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0);
 
-		void AABBQuery(const Vector& min, const Vector& max, FixtureList& result);
-		void AABBQuery(const Dojo::Object& bounds, FixtureList& result);
+		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result);
+		void AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result);
 
 		void update(float dt);
+
+		void _notifyDestroyed(Body& body);
 
 		virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse);
 		virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB);
@@ -48,22 +52,33 @@ namespace Phys {
 	protected:
 
 		struct DeferredCollision {
-			Phys::Body& A, &B;
+			Body* A, *B;
 			float force;
 			b2Vec2 point;
 
-			DeferredCollision(Phys::Body& A, Phys::Body& B, float force, const b2Vec2& point) :
-				A(A),
-				B(B),
+			DeferredCollision(Body& A, Body& B, float force, const b2Vec2& point) :
+				A(&A),
+				B(&B),
 				force(force),
 				point(point) {
 
 			}
 		};
 
+		struct DeferredSensorCollision {
+			Body* other;
+			b2Fixture* sensor;
+			DeferredSensorCollision(Body& other, b2Fixture& sensor) :
+				other(&other),
+				sensor(&sensor) {
+
+			}
+		};
+		
 		Unique<b2World> box2D;
 
-		std::vector<DeferredCollision> deferredCollisions, deferredGhostCollisions;
+		std::vector<DeferredCollision> deferredCollisions;
+		std::vector<DeferredSensorCollision> deferredSensorCollisions;
 
 		static const int GROUP_COUNT = 256; //HACK
 		ContactMode collideMode[GROUP_COUNT][GROUP_COUNT];

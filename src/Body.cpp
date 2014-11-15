@@ -56,10 +56,10 @@ b2Fixture& Body::addBoxShape(const Material& material, const Vector& dimensions,
 	Vector max = center + dimensions * 0.5f;
 
 	const b2Vec2 points[4] = {
-		b2Vec2(min.x, min.y),
-		b2Vec2(min.x, max.y),
-		b2Vec2(max.x, max.y),
-		b2Vec2(max.x, min.y)
+			{ min.x, min.y },
+			{ min.x, max.y },
+			{ max.x, max.y },
+			{ max.x, min.y }
 	};
 
 	return addPolyShape(material, points, 4, sensor);
@@ -90,6 +90,8 @@ void Body::destroyPhysics() {
 	
 	graphics = nullptr;
 	if (body) {
+		world._notifyDestroyed(*this);
+
 		body->GetWorld()->DestroyBody(body);
 		body = nullptr;
 	}
