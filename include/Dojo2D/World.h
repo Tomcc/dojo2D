@@ -66,10 +66,11 @@ namespace Phys {
 		};
 
 		struct DeferredSensorCollision {
-			Body* other;
+			Body* other, *me;
 			b2Fixture* sensor;
-			DeferredSensorCollision(Body& other, b2Fixture& sensor) :
+			DeferredSensorCollision(Body& other, Body& me, b2Fixture& sensor) :
 				other(&other),
+				me(&me),
 				sensor(&sensor) {
 
 			}

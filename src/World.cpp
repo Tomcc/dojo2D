@@ -48,8 +48,8 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
 		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
-			deferredSensorCollisions.emplace_back(*phB, *fixtureA);
-			deferredSensorCollisions.emplace_back(*phA, *fixtureB);
+			deferredSensorCollisions.emplace_back(*phB, *phA, *fixtureA);
+			deferredSensorCollisions.emplace_back(*phA, *phB, *fixtureB);
 		}
 
 		return false;
@@ -57,10 +57,10 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
 	//check if the sensors should collide
 	if (fixtureA->IsSensor())
-		deferredSensorCollisions.emplace_back(*phB, *fixtureA);
+		deferredSensorCollisions.emplace_back(*phB, *phA, *fixtureA);
 		
 	if (fixtureB->IsSensor())
-		deferredSensorCollisions.emplace_back(*phA, *fixtureB);
+		deferredSensorCollisions.emplace_back(*phA, *phB, *fixtureB);
 
 	if (fixtureA->IsSensor() && fixtureB->IsSensor())
 		return false;
@@ -135,10 +135,11 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 	
 	auto report = [&](b2Fixture* fixture){
-		auto& body = getBodyForFixture(fixture);
-		auto contactMode = getContactModeFor(group, body.getGroup());
-		if (contactMode == ContactMode::Normal) {
-			result.push_back(&body);
+		if (!fixture->IsSensor()) {
+			auto& body = getBodyForFixture(fixture);
+			auto contactMode = getContactModeFor(group, body.getGroup());
+			if (contactMode == ContactMode::Normal)
+				result.push_back(&body);
 		}
 	};
 	
@@ -206,7 +207,7 @@ void Phys::World::_notifyDestroyed(Body& body) {
 	{
 		for (size_t i = 0; i < deferredSensorCollisions.size(); ++i) {
 			auto& c = deferredSensorCollisions[i];
-			if (&body == c.other) {
+			if (&body == c.other || &body == c.me) {
 				deferredSensorCollisions.erase(deferredSensorCollisions.begin() + i);
 				--i;
 			}
