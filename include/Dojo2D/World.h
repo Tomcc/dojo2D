@@ -42,8 +42,10 @@ namespace Phys {
 
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0);
 
-		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false);
+		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false, bool any = false);
 		void AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result, bool precise = false);
+
+		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false);
 
 		void update(float dt);
 

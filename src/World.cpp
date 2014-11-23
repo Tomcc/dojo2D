@@ -141,7 +141,7 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise) {
+void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise, bool emptyCheckOnly) {
 
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
@@ -158,10 +158,16 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 			auto contactMode = getContactModeFor(group, body.getGroup());
 			if (contactMode == ContactMode::Normal) {
 
-				if (!precise || shapesOverlap(aabbShape, *fixture))
+				if (!precise || shapesOverlap(aabbShape, *fixture)) {
 					result.push_back(&body);
+
+					if (emptyCheckOnly)
+						return false; //stop search
+				}
 			}
 		}
+
+		return true;
 	};
 	
 	class Query : public b2QueryCallback
@@ -171,8 +177,7 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 		Query(const decltype(func)& f) : func(f) {}
 
 		virtual bool ReportFixture(b2Fixture* fixture) {
-			func(fixture);
-			return true;
+			return func(fixture);
 		}
 	};
 
@@ -187,6 +192,14 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 void World::AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result, bool precise) {
 	AABBQuery(bounds.getWorldMin(), bounds.getWorldMax(), group, result, precise);
 }
+
+bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) {
+	static BodyList list;
+	list.clear();
+	AABBQuery(min, max, group, list, precise, true);
+	return list.empty();
+}
+
 
 Vector World::getGravity() const {
 	return asVec(box2D->GetGravity());
