@@ -26,6 +26,9 @@ namespace Phys {
 			positionIterations,
 			particleIterations;
 
+		static bool shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2);
+		static bool shapesOverlap(const b2Shape& shape, const b2Fixture& fixture);
+
 		World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations);
 
 		void setContactMode(Phys::Group A, Phys::Group B, ContactMode mode);
@@ -39,8 +42,8 @@ namespace Phys {
 
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0);
 
-		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result);
-		void AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result);
+		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false);
+		void AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result, bool precise = false);
 
 		void update(float dt);
 

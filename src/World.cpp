@@ -6,6 +6,17 @@
 
 using namespace Phys;
 
+const static b2Transform B2_IDENTITY = { b2Vec2(0.f, 0.f), b2Rot(0.f) };
+
+bool Phys::World::shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2) {
+	return b2TestOverlap(&s1, 0, &s2, 0, t1, t2);
+}
+
+bool World::shapesOverlap(const b2Shape& shape, const b2Fixture& fixture) {
+	return shapesOverlap(shape, B2_IDENTITY, *fixture.GetShape(), fixture.GetBody()->GetTransform());
+}
+
+
 World::World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations) :
 timeStep(timeStep),
 velocityIterations(velocityIterations),
@@ -130,16 +141,26 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result) {
+void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise) {
 
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
-	
+
+	b2PolygonShape aabbShape;
+	if (precise) {
+		Vector dim = max - min;
+		Vector center = (max + min) * 0.5f;
+		aabbShape.SetAsBox(dim.x, dim.y, asB2Vec(center), 0);
+	}
+
 	auto report = [&](b2Fixture* fixture){
 		if (!fixture->IsSensor()) {
 			auto& body = getBodyForFixture(fixture);
 			auto contactMode = getContactModeFor(group, body.getGroup());
-			if (contactMode == ContactMode::Normal)
-				result.push_back(&body);
+			if (contactMode == ContactMode::Normal) {
+
+				if (!precise || shapesOverlap(aabbShape, *fixture))
+					result.push_back(&body);
+			}
 		}
 	};
 	
@@ -163,8 +184,8 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 	box2D->QueryAABB(&q, bb);
 }
 
-void World::AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result) {
-	AABBQuery(bounds.getWorldMin(), bounds.getWorldMax(), group, result);
+void World::AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result, bool precise) {
+	AABBQuery(bounds.getWorldMin(), bounds.getWorldMax(), group, result, precise);
 }
 
 Vector World::getGravity() const {
