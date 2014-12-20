@@ -46,7 +46,7 @@ void ParticleSystem::onAction(float dt) {
 
 	if(isVisible()) {
 
-		const float r = 0.07f;
+		const float r = 0.1f;
 
 		mesh->begin(particleSystem->GetParticleCount());
 

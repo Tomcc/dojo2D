@@ -207,7 +207,7 @@ Vector World::getGravity() const {
 
 void World::update(float dt) {
 	
-	box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
+	box2D->Step(dt, velocityIterations, positionIterations, particleIterations);
 
 	//play back all collisions
 	for (size_t i = 0; i < deferredCollisions.size(); ++i) {
