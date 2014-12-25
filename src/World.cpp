@@ -111,16 +111,17 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 		point = worldManifold.points[0];
 	else
 		point = (worldManifold.points[0] + worldManifold.points[1]) * 0.5f;
-
-	b2Vec2 A = bodyA.GetLinearVelocityFromWorldPoint(point);
-	b2Vec2 B = bodyB.GetLinearVelocityFromWorldPoint(point);
-	b2Vec2 relativeSpeed = A - B;
-
+	
 	DEBUG_ASSERT(phA.isStatic() || phA.getMass() > 0, "HM");
 	DEBUG_ASSERT(phB.isStatic() || phB.getMass() > 0, "HM");
 
-	float force = (relativeSpeed * phA.getMass() + relativeSpeed * phB.getMass()).Length();
+	auto& N = worldManifold.normal;
+//	b2Vec2 T = { N.y, -N.x };
+	b2Vec2 F = { 0, 0 };
+	for (int i = 0; i < impulse->count; ++i)
+		F += impulse->normalImpulses[i] * N;
 
+	float force = F.Length();
 	if (force > 0.1f)
 		deferredCollisions.emplace_back(phA, phB, force, point);
 }
@@ -193,11 +194,11 @@ void World::AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result,
 	AABBQuery(bounds.getWorldMin(), bounds.getWorldMax(), group, result, precise);
 }
 
-bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) {
+bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/, const Body* except /*= nullptr*/) {
 	static BodyList list;
 	list.clear();
 	AABBQuery(min, max, group, list, precise, true);
-	return list.empty();
+	return list.empty() || (except && list.size() == 1 && list.back() == except);
 }
 
 
