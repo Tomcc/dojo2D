@@ -17,7 +17,10 @@ _mesh(new Mesh()) {
 
 	mesh->setDynamic(true);
 	mesh->setTriangleMode(TriangleMode::TriangleList);
-	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color });
+	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
+
+	//HACK
+	setTexture(parent.getGameState()->getTexture("particle"));
 
 	//LIQUIDTHING
 	b2ParticleSystemDef particleSystemDef;
@@ -63,12 +66,16 @@ void ParticleSystem::onAction(float dt) {
 
 			mesh->vertex(position->x - r, position->y - r);
 			mesh->color(c);
+			mesh->uv(0, 0);
 			mesh->vertex(position->x + r, position->y - r);
 			mesh->color(c);
+			mesh->uv(1, 0);
 			mesh->vertex(position->x - r, position->y + r);
 			mesh->color(c);
+			mesh->uv(0, 1);
 			mesh->vertex(position->x + r, position->y + r);
 			mesh->color(c);
+			mesh->uv(1, 1);
 
 			mesh->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
 

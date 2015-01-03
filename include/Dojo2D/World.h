@@ -11,7 +11,7 @@ namespace Phys {
 		public b2ContactListener,
 		public b2ContactFilter {
 	public:
-		typedef std::vector<Body*> BodyList;
+		typedef std::unordered_set<const Body*> BodyList;
 
 		enum class ContactMode {
 			None,

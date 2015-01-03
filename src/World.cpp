@@ -160,7 +160,7 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 			if (contactMode == ContactMode::Normal) {
 
 				if (!precise || shapesOverlap(aabbShape, *fixture)) {
-					result.push_back(&body);
+					result.insert(&body);
 
 					if (emptyCheckOnly)
 						return false; //stop search
@@ -198,7 +198,9 @@ bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group gro
 	static BodyList list;
 	list.clear();
 	AABBQuery(min, max, group, list, precise, true);
-	return list.empty() || (except && list.size() == 1 && list.back() == except);
+
+	auto count = list.size() - (except ? list.count(except) : 0);
+	return count == 0;
 }
 
 

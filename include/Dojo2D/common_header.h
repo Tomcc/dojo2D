@@ -3,6 +3,7 @@
 #include <Dojo.h>
 
 #include <Box2D/Box2D.h>
+#include <unordered_set>
 
 #define DLLX __declspec(dllimport)
 
