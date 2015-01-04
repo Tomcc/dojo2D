@@ -10,9 +10,9 @@ namespace Phys {
 	class ParticleSystem : public Dojo::Renderable
 	{
 	public:
-		const float damping;
+		const float damping, particleRadius;
 
-		ParticleSystem(World& world, Object& parent, const Material& material, float damping = 0);
+		ParticleSystem(World& world, Object& parent, const Material& material, float particleSize, float damping = 0);
 			
 		void addParticle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);
 
@@ -27,6 +27,8 @@ namespace Phys {
 		Unique<Dojo::Mesh> _mesh;
 
 		b2ParticleSystem* particleSystem;
+
+		uintptr_t counter = 0;
 	private:
 	};
 }
