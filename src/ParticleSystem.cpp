@@ -61,8 +61,7 @@ void ParticleSystem::onAction(float dt) {
 
 		for (int i = 0; i < particleSystem->GetParticleCount(); ++i, ++position, ++color, ++velocity, ++userData) {
 			b2Color c1 = color->GetColor();
-			//Color c(c1.r, c1.g, c1.b, 1.f);
-			auto& c = Color::RED;
+			Color c(c1.r, c1.g, c1.b, 1.f);
 
 			auto baseIdx = mesh->getVertexCount();
 
