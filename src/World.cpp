@@ -190,10 +190,6 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 	box2D->QueryAABB(&q, bb);
 }
 
-void World::AABBQuery(const Dojo::Object& bounds, Group group, BodyList& result, bool precise) {
-	AABBQuery(bounds.getWorldMin(), bounds.getWorldMax(), group, result, precise);
-}
-
 bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/, const Body* except /*= nullptr*/) {
 	static BodyList list;
 	list.clear();
