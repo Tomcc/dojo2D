@@ -71,6 +71,10 @@ namespace Phys {
 
 		void updateGraphics();
 
+		const World& getWorld() const {
+			return world;
+		}
+
 	protected:
 
 		World& world;

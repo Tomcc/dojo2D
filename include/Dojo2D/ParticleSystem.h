@@ -11,7 +11,7 @@ namespace Phys {
 	{
 	public:
 		const float damping, particleRadius;
-
+		
 		ParticleSystem(World& world, Object& parent, const Material& material, float particleSize, float damping = 0);
 			
 		void addParticle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);

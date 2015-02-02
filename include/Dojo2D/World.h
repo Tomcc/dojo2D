@@ -12,6 +12,7 @@ namespace Phys {
 		public b2ContactFilter {
 	public:
 		typedef std::unordered_set<const Body*> BodyList;
+		typedef std::vector<const b2Fixture*> FixtureList;
 
 		enum class ContactMode {
 			None,
@@ -40,11 +41,14 @@ namespace Phys {
 
 		Vector getGravity() const;
 
-		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0);
+		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 
-		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false, bool any = false);
-		
-		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false, const Body* except = nullptr);
+		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false);
+
+		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false);
+		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false);
+
+		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false);
 
 		void update(float dt);
 

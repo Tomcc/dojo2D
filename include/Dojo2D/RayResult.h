@@ -13,8 +13,8 @@ namespace Phys {
 		Body *hitBody = nullptr;
 		Group group = 0;
 
-		RayResult(World& world) :
-			world(world) {
+		RayResult(const World& world) :
+			world(&world) {
 
 		}
 			
@@ -25,7 +25,7 @@ namespace Phys {
 		}
 
 	protected:
-		World& world;
+		const World* world;
 	};
 }
 

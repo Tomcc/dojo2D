@@ -126,7 +126,7 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 		deferredCollisions.emplace_back(phA, phB, force, point);
 }
 
-RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup /* = 0 */)
+RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup /* = 0 */) const
 {
 	RayResult result(*this);
 	result.group = rayBelongsToGroup;
@@ -142,10 +142,11 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise, bool emptyCheckOnly) {
-
+bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise /*= false*/)
+{
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
+	bool foundSomething = false;
 	b2PolygonShape aabbShape;
 	if (precise) {
 		Vector dim = max - min;
@@ -160,17 +161,22 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 			if (contactMode == ContactMode::Normal) {
 
 				if (!precise || shapesOverlap(aabbShape, *fixture)) {
-					result.insert(&body);
+					foundSomething = true;
 
-					if (emptyCheckOnly)
-						return false; //stop search
+					if (resultBody)
+						resultBody->insert(&body);
+
+					else if (resultFixture)
+						resultFixture->push_back(fixture);
+					else
+						return false; //stop search immediately
 				}
 			}
 		}
 
 		return true;
 	};
-	
+
 	class Query : public b2QueryCallback
 	{
 	public:
@@ -185,18 +191,24 @@ void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyLis
 	b2AABB bb;
 	bb.lowerBound = asB2Vec(min);
 	bb.upperBound = asB2Vec(max);
-	
+
 	Query q = report;
 	box2D->QueryAABB(&q, bb);
+
+	return foundSomething;
 }
 
-bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/, const Body* except /*= nullptr*/) {
-	static BodyList list;
-	list.clear();
-	AABBQuery(min, max, group, list, precise, true);
+void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise) {
+	_AABBQuery(min, max, group, &result, nullptr, precise);
+}
 
-	auto count = list.size() - (except ? list.count(except) : 0);
-	return count == 0;
+void Phys::World::AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise /*= false*/) {
+	_AABBQuery(min, max, group, nullptr, &result, precise);
+}
+
+
+bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) {
+	return _AABBQuery(min, max, group, nullptr, nullptr, precise);
 }
 
 

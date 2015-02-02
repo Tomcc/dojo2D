@@ -6,16 +6,16 @@ namespace Phys {
 	class Body;
 
 	//make a copy of the b2vec 
-	inline Vector asVec(const b2Vec2& v) {
-		return Vector(v.x, v.y);
+	inline Dojo::Vector asVec(const b2Vec2& v) {
+		return{ v.x, v.y };
 	}
 
 	//transmute the reference to a b2vec2 reference
-	inline b2Vec2& asB2Vec(Vector& v) {
+	inline b2Vec2& asB2Vec(Dojo::Vector& v) {
 		return *(b2Vec2*)(&v);
 	}
 
-	inline const b2Vec2& asB2Vec(const Vector& v) {
+	inline const b2Vec2& asB2Vec(const Dojo::Vector& v) {
 		return *(b2Vec2*)(&v);
 	}
 
@@ -29,7 +29,7 @@ namespace Phys {
 		return getBodyForFixture(*f);
 	}
 
-	std::vector<b2PolygonShape> decomposeConvex(const std::vector<Vector>& points);
+	std::vector<b2PolygonShape> decomposeConvex(const std::vector<Dojo::Vector>& points);
 }
 
 

@@ -14,7 +14,7 @@ float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Ve
 
 	hitBody = (Body*)fixture->GetUserData();
 
-	if (world.getContactModeFor(hitBody->getGroup(), group) != World::ContactMode::Normal)
+	if (world->getContactModeFor(hitBody->getGroup(), group) != World::ContactMode::Normal)
 		return -1; //ignore as these two groups can't see each other
 
 	position = asVec(P);

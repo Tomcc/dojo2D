@@ -21,14 +21,16 @@ _mesh(new Mesh()) {
 	mesh->setDynamic(true);
 	mesh->setTriangleMode(TriangleMode::TriangleList);
 	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
-
-	//HACK
-	setTexture(parent.getGameState()->getTexture("particle"));
+	mesh->setIndexByteSize(4);
 
 	//LIQUIDTHING
 	b2ParticleSystemDef particleSystemDef;
-	particleSystemDef.radius = 0.05f;
-	particleSystemDef.destroyByAge = false;
+	particleSystemDef.radius = particleRadius;
+	particleSystemDef.destroyByAge = true;
+
+ 	particleSystemDef.pressureStrength = 0;
+
+	particleSystemDef.dampingStrength = -10.f;
 	particleSystem = world.getBox2D().CreateParticleSystem(&particleSystemDef);
 }
 
@@ -67,9 +69,9 @@ void ParticleSystem::onAction(float dt) {
 
 			int hash = ((*userData * 0x1f1f1f1f) >> 1) & 0xf;
 			
-			float r = particleRadius;
-			if (hash < 5 && hash > 0)
-				r -= 0.01f * hash;
+			float r = particleRadius * 1.5f;
+// 			if (hash < 5 && hash > 0)
+// 				r -= 0.03f * hash;
 
 			mesh->vertex(position->x - r, position->y - r);
 			mesh->color(c);
@@ -91,4 +93,8 @@ void ParticleSystem::onAction(float dt) {
 
 		mesh->end();
 	}
+
+	//rest of important stuff
+	worldBB = transformAABB(mesh->getMin(), mesh->getMax());
+	advanceFade(dt);
 }
