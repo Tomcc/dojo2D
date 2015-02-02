@@ -12,6 +12,7 @@ namespace Phys {
 		Vector normal;
 		Body *hitBody = nullptr;
 		Group group = 0;
+		float dist;
 
 		RayResult(const World& world) :
 			world(&world) {

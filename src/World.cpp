@@ -139,6 +139,8 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	if (!result.hit)
 		result.position = end;
 
+	result.dist = start.distance(result.position);
+
 	return result;
 }
 
