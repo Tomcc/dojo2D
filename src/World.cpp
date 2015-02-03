@@ -198,11 +198,11 @@ bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, 
 	return empty;
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise) {
+void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise) const {
 	_AABBQuery(min, max, group, &result, nullptr, precise);
 }
 
-void Phys::World::AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise /*= false*/) {
+void Phys::World::AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise /*= false*/) const {
 	_AABBQuery(min, max, group, nullptr, &result, precise);
 }
 

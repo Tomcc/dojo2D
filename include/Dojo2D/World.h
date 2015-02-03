@@ -45,8 +45,8 @@ namespace Phys {
 
 		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false) const;
 
-		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false);
-		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false);
+		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false) const;
+		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false) const;
 
 		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false) const;
 

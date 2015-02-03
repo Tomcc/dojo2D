@@ -218,6 +218,25 @@ void Phys::Body::forceVelocity(const Vector& velocity) {
 	body->SetLinearVelocity(asB2Vec(velocity));
 }
 
+void Phys::Body::setDamping(float linear, float angular) {
+	DEBUG_ASSERT(body, "Call initPhysics first");
+
+	body->SetLinearDamping(linear);
+	body->SetAngularDamping(angular);
+}
+
+float Phys::Body::getLinearDamping() const {
+	DEBUG_ASSERT(body, "Call initPhysics first");
+
+	return body->GetLinearDamping();
+}
+
+float Phys::Body::getAngularDamping() const {
+	DEBUG_ASSERT(body, "Call initPhysics first");
+
+	return body->GetAngularDamping();
+}
+
 float Body::getMass() const {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 

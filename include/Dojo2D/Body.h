@@ -52,6 +52,11 @@ namespace Phys {
 		Vector getVelocity() const;
 		Vector getVelocityAtLocalPoint(const Vector& localPoint) const;
 
+		float getLinearDamping() const;
+		float getAngularDamping() const;
+
+		void setDamping(float linear, float angular);
+
 		void setTransform(const Vector& position, float angle);
 
 		Group getGroup() const {
