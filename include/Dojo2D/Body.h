@@ -38,6 +38,8 @@ namespace Phys {
 
 		void applyTorque(float t);
 
+		void forcePosition(const Vector& position);
+		void forceVelocity(const Vector& velocity);
 		void forceRotation(float angle);
 
 		virtual float getMass() const;
@@ -49,6 +51,8 @@ namespace Phys {
 
 		Vector getVelocity() const;
 		Vector getVelocityAtLocalPoint(const Vector& localPoint) const;
+
+		void setTransform(const Vector& position, float angle);
 
 		Group getGroup() const {
 				return group;
@@ -87,7 +91,6 @@ namespace Phys {
 		b2Fixture& _addShape(b2Shape& shape, const Material& material, bool sensor);
 
 		void _init(Dojo::Object& box2D, Dojo::Renderable* graphics, Group group, bool staticShape = false);
-
 	private:
 		bool particleCollisionModel = false;
 	};

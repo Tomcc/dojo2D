@@ -144,11 +144,11 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise /*= false*/)
+bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise /*= false*/) const
 {
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
-	bool foundSomething = false;
+	bool empty = true;
 	b2PolygonShape aabbShape;
 	if (precise) {
 		Vector dim = max - min;
@@ -163,7 +163,7 @@ bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, 
 			if (contactMode == ContactMode::Normal) {
 
 				if (!precise || shapesOverlap(aabbShape, *fixture)) {
-					foundSomething = true;
+					empty = false;
 
 					if (resultBody)
 						resultBody->insert(&body);
@@ -197,7 +197,7 @@ bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, 
 	Query q = report;
 	box2D->QueryAABB(&q, bb);
 
-	return foundSomething;
+	return empty;
 }
 
 void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise) {
@@ -209,7 +209,7 @@ void Phys::World::AABBQuery(const Vector& min, const Vector& max, Group group, F
 }
 
 
-bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) {
+bool Phys::World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) const {
 	return _AABBQuery(min, max, group, nullptr, nullptr, precise);
 }
 

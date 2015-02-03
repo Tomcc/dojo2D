@@ -198,11 +198,24 @@ void Phys::Body::setFixedRotation(bool enable) {
 	body->SetFixedRotation(enable);
 }
 
+void Phys::Body::forcePosition(const Vector& position) {
+	auto t = body->GetTransform();
+	body->SetTransform(asB2Vec(position), t.q.GetAngle());
+}
+
 void Phys::Body::forceRotation(float angle) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
 	auto t = body->GetTransform();
 	body->SetTransform(t.p, angle);
+}
+
+void Phys::Body::setTransform(const Vector& position, float angle) {
+	body->SetTransform(asB2Vec(position), angle);
+}
+
+void Phys::Body::forceVelocity(const Vector& velocity) {
+	body->SetLinearVelocity(asB2Vec(velocity));
 }
 
 float Body::getMass() const {

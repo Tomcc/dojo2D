@@ -43,12 +43,12 @@ namespace Phys {
 
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 
-		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false);
+		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false) const;
 
 		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false);
 		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false);
 
-		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false);
+		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false) const;
 
 		void update(float dt);
 
