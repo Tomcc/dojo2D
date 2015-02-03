@@ -49,8 +49,8 @@ World::ContactMode World::getContactModeFor(Group A, Group B) const {
 
 bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
-	auto phA = (Body*)fixtureA->GetUserData();
-	auto phB = (Body*)fixtureB->GetUserData();
+	auto phA = (Body*)fixtureA->GetBody()->GetUserData();
+	auto phB = (Body*)fixtureB->GetBody()->GetUserData();
 
 	DEBUG_ASSERT(phA && phB, "Do not create Box2D objects manually");
 
@@ -95,8 +95,6 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 {
 	b2WorldManifold worldManifold;
-
-	DEBUG_ASSERT(contact->GetFixtureA()->GetUserData() && contact->GetFixtureB()->GetUserData(), "there is a (badly) manually-created box2D object in the world!");
 
 	auto& phA = getBodyForFixture(contact->GetFixtureA());
 	auto& phB = getBodyForFixture(contact->GetFixtureB());

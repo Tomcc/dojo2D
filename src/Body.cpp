@@ -28,7 +28,7 @@ b2Fixture& Body::_addShape(b2Shape& shape, const Material& material, bool sensor
 	fixtureDef.filter.groupIndex = group;
 	fixtureDef.isSensor = sensor;
 
-	fixtureDef.userData = this;
+	fixtureDef.userData = (void*)&material;
 
 	return *body->CreateFixture(&fixtureDef);
 }

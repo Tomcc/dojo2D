@@ -12,9 +12,9 @@ float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Ve
 	if (fixture->IsSensor())
 		return -1; //ignore
 
-	hitBody = (Body*)fixture->GetUserData();
+	hitFixture = fixture;
 
-	if (world->getContactModeFor(hitBody->getGroup(), group) != World::ContactMode::Normal)
+	if (world->getContactModeFor(getBodyForFixture(fixture).getGroup(), group) != World::ContactMode::Normal)
 		return -1; //ignore as these two groups can't see each other
 
 	position = asVec(P);
@@ -22,5 +22,13 @@ float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Ve
 	hit = true;
 
 	return fraction; //stop
+}
+
+Body* Phys::RayResult::getHitBody() const {
+	return hitFixture ? &getBodyForFixture(hitFixture) : nullptr;
+}
+
+const Material* Phys::RayResult::getHitMaterial() const {
+	return hitFixture ? &getMaterialForFixture(hitFixture) : nullptr;
 }
 
