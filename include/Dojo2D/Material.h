@@ -9,6 +9,7 @@ namespace Phys {
 
 		//fluid parameters
 		float viscosity = 1.f;
+		float pressure = 0.05f;
 
 		//solid parameters
 		float friction = 0.5f;

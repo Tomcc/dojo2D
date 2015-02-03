@@ -28,10 +28,13 @@ _mesh(new Mesh()) {
 	particleSystemDef.radius = particleRadius;
 	particleSystemDef.destroyByAge = true;
 
- 	particleSystemDef.pressureStrength = 0;
+	particleSystemDef.density = material.density;
+  	particleSystemDef.pressureStrength = material.pressure;
+	particleSystemDef.dampingStrength = material.friction;
 
-	particleSystemDef.dampingStrength = -10.f;
 	particleSystem = world.getBox2D().CreateParticleSystem(&particleSystemDef);
+
+	particleSystem->SetDamping(damping);
 }
 
 void Phys::ParticleSystem::addParticle(const Vector& pos, const Vector& velocity, const Color& color, float lifetime) {
@@ -69,7 +72,7 @@ void ParticleSystem::onAction(float dt) {
 
 			int hash = ((*userData * 0x1f1f1f1f) >> 1) & 0xf;
 			
-			float r = particleRadius * 1.5f;
+			float r = particleRadius*1.5f;
 // 			if (hash < 5 && hash > 0)
 // 				r -= 0.03f * hash;
 
@@ -87,8 +90,6 @@ void ParticleSystem::onAction(float dt) {
 			mesh->uv(1, 1);
 
 			mesh->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
-
-			*velocity *= (1.f - damping);
 		}
 
 		mesh->end();
