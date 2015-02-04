@@ -3,6 +3,7 @@
 #include "common_header.h"
 
 #include "RayResult.h"
+#include "ContactMode.h"
 
 namespace Phys {
 	class Body;
@@ -13,12 +14,6 @@ namespace Phys {
 	public:
 		typedef std::unordered_set<const Body*> BodyList;
 		typedef std::vector<const b2Fixture*> FixtureList;
-
-		enum class ContactMode {
-			None,
-			Normal,
-			Ghost
-		};
 
 		const float timeStep;
 
@@ -54,8 +49,9 @@ namespace Phys {
 
 		void _notifyDestroyed(Body& body);
 
-		virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse);
-		virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB);
+		virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override;
+		virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) override;
+		virtual bool ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex) override;
 
 	protected:
 

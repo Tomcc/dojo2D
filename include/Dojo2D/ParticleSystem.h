@@ -10,9 +10,14 @@ namespace Phys {
 	class ParticleSystem : public Dojo::Renderable
 	{
 	public:
+		const Group group;
+		bool autoDeactivate = true;
+
+		static const ParticleSystem& getFor(b2ParticleSystem* ps);
+
 		const float damping, particleRadius;
 		
-		ParticleSystem(World& world, Object& parent, const Material& material, float particleSize, float damping = 0);
+		ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleSize, float damping = 0);
 			
 		void addParticle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);
 
@@ -23,8 +28,11 @@ namespace Phys {
 		virtual void onAction(float dt) override;
 
 	protected:
+		const Material& material;
 			
 		Unique<Dojo::Mesh> _mesh;
+
+		AABB activityAABB;
 
 		b2ParticleSystem* particleSystem;
 

@@ -45,6 +45,7 @@
     <ClInclude Include="..\include\Dojo2D\ParticleSystem.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\ContactMode.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">

@@ -3,6 +3,7 @@
 #include "World.h"
 #include "Body.h"
 #include "PhysUtil.h"
+#include "ParticleSystem.h"
 
 using namespace Phys;
 
@@ -40,7 +41,7 @@ void World::setContactMode(Group A, Group B, ContactMode mode) {
 	collideMode[A][B] = collideMode[B][A] = mode;
 }
 
-World::ContactMode World::getContactModeFor(Group A, Group B) const {
+ContactMode World::getContactModeFor(Group A, Group B) const {
 	auto modeA = collideMode[A][B];
 	auto modeB = collideMode[B][A];
 
@@ -49,18 +50,16 @@ World::ContactMode World::getContactModeFor(Group A, Group B) const {
 
 bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
-	auto phA = (Body*)fixtureA->GetBody()->GetUserData();
-	auto phB = (Body*)fixtureB->GetBody()->GetUserData();
+	auto& phA = getBodyForFixture(fixtureA);
+	auto& phB = getBodyForFixture(fixtureB);
 
-	DEBUG_ASSERT(phA && phB, "Do not create Box2D objects manually");
-
-	auto cm = getContactModeFor(phA->getGroup(), phB->getGroup());
+	auto cm = getContactModeFor(phA.getGroup(), phB.getGroup());
 
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
 		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
-			deferredSensorCollisions.emplace_back(*phB, *phA, *fixtureA);
-			deferredSensorCollisions.emplace_back(*phA, *phB, *fixtureB);
+			deferredSensorCollisions.emplace_back(phB, phA, *fixtureA);
+			deferredSensorCollisions.emplace_back(phA, phB, *fixtureB);
 		}
 
 		return false;
@@ -68,16 +67,16 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
 	//check if the sensors should collide
 	if (fixtureA->IsSensor())
-		deferredSensorCollisions.emplace_back(*phB, *phA, *fixtureA);
+		deferredSensorCollisions.emplace_back(phB, phA, *fixtureA);
 		
 	if (fixtureB->IsSensor())
-		deferredSensorCollisions.emplace_back(*phA, *phB, *fixtureB);
+		deferredSensorCollisions.emplace_back(phA, phB, *fixtureB);
 
 	if (fixtureA->IsSensor() && fixtureB->IsSensor())
 		return false;
 
-	bool odcA = phA->isParticle();
-	bool odcB = phB->isParticle();
+	bool odcA = phA.isParticle();
+	bool odcB = phB.isParticle();
 
 	if (odcA != odcB) { //only one!
 
@@ -90,6 +89,18 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	}
 
 	return b2ContactFilter::ShouldCollide(fixtureA, fixtureB);
+}
+
+bool Phys::World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex)
+{
+	auto& body = getBodyForFixture(fixture);
+	auto& ps = ParticleSystem::getFor(particleSystem);
+
+	if (getContactModeFor(body.getGroup(), ps.group) != ContactMode::Normal)
+		return false;
+	else {
+		return b2ContactFilter::ShouldCollide(fixture, particleSystem, particleIndex);
+	}
 }
 
 void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)

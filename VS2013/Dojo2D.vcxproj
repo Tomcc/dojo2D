@@ -17,6 +17,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\Dojo2D\Body.h" />
     <ClInclude Include="..\include\Dojo2D\common_header.h" />
+    <ClInclude Include="..\include\Dojo2D\ContactMode.h" />
     <ClInclude Include="..\include\Dojo2D\ParticleSystem.h" />
     <ClInclude Include="..\include\Dojo2D\Material.h" />
     <ClInclude Include="..\include\Dojo2D\PhysUtil.h" />
