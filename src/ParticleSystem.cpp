@@ -75,7 +75,8 @@ void ParticleSystem::onAction(float dt) {
 	auto& viewport = *getGameState()->getViewport();
 
 	//suspend the particlesystem when it's too far from the player
-	bool active = (!autoDeactivate) || (viewport.isInViewRect(activityAABB));
+	warmupTime -= dt;
+	bool active = (!autoDeactivate) || (viewport.isInViewRect(activityAABB)) || (warmupTime > 0);
 	particleSystem->SetPaused(!active);
 
 	//only show when active, visible and has particles
