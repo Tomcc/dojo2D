@@ -30,7 +30,11 @@ b2Fixture& Body::_addShape(b2Shape& shape, const Material& material, bool sensor
 
 	fixtureDef.userData = (void*)&material;
 
-	return *body->CreateFixture(&fixtureDef);
+	b2Fixture* fixture;
+	world.syncCommand([&](){
+		fixture = body->CreateFixture(&fixtureDef);
+	});
+	return *fixture;
 }
 
 b2Fixture& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor /*= false*/) {
@@ -124,7 +128,7 @@ void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Phys::Group grou
 
 	bodyDef.userData = this;
 
-	body = world.getBox2D().CreateBody(&bodyDef);
+	body = world.createBody(bodyDef);
 }
 
 void Body::initPhysics(Dojo::Renderable& g, Phys::Group group, bool staticShape) {
@@ -170,59 +174,79 @@ void Body::applyForce(const Vector& force)
 {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
-	body->ApplyForceToCenter(asB2Vec(force), true);
+	world.asyncCommand([=](){
+		body->ApplyForceToCenter(asB2Vec(force), true);
+	});
 }
 
 void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
-	body->ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
+	world.asyncCommand([=](){
+		body->ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
+	});
 }
 
 void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
-	b2Vec2 worldPoint = body->GetWorldPoint(asB2Vec(localPoint));
-	body->ApplyForce(asB2Vec(force), worldPoint, true);
+	world.asyncCommand([=](){
+		b2Vec2 worldPoint = body->GetWorldPoint(asB2Vec(localPoint));
+		body->ApplyForce(asB2Vec(force), worldPoint, true);
+	});
 }
 
 void Body::applyTorque(float t) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
-	body->ApplyTorque(t, true);
+	world.asyncCommand([=](){
+		body->ApplyTorque(t, true);
+	});
 }
 
 void Phys::Body::setFixedRotation(bool enable) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
-	body->SetFixedRotation(enable);
+	world.asyncCommand([=](){
+		body->SetFixedRotation(enable);
+	});
 }
 
 void Phys::Body::forcePosition(const Vector& position) {
-	auto t = body->GetTransform();
-	body->SetTransform(asB2Vec(position), t.q.GetAngle());
+	world.asyncCommand([=](){
+		auto t = body->GetTransform();
+		body->SetTransform(asB2Vec(position), t.q.GetAngle());
+	});
 }
 
 void Phys::Body::forceRotation(float angle) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
-	auto t = body->GetTransform();
-	body->SetTransform(t.p, angle);
+	world.asyncCommand([=](){
+		auto t = body->GetTransform();
+		body->SetTransform(t.p, angle);
+	});
 }
 
 void Phys::Body::setTransform(const Vector& position, float angle) {
-	body->SetTransform(asB2Vec(position), angle);
+	world.asyncCommand([=](){
+		body->SetTransform(asB2Vec(position), angle);
+	});
 }
 
 void Phys::Body::forceVelocity(const Vector& velocity) {
-	body->SetLinearVelocity(asB2Vec(velocity));
+	world.asyncCommand([=](){
+		body->SetLinearVelocity(asB2Vec(velocity));
+	});
 }
 
 void Phys::Body::setDamping(float linear, float angular) {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
-	body->SetLinearDamping(linear);
-	body->SetAngularDamping(angular);
+	world.asyncCommand([=](){
+		body->SetLinearDamping(linear);
+		body->SetAngularDamping(angular);
+	});
 }
 
 float Phys::Body::getLinearDamping() const {
@@ -237,16 +261,17 @@ float Phys::Body::getAngularDamping() const {
 	return body->GetAngularDamping();
 }
 
+const Vector& Phys::Body::getPosition() const
+{
+	DEBUG_ASSERT(graphics, "meh, shouldn't be needed");
+
+	return graphics->position;
+}
+
 float Body::getMass() const {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
 	return body->GetMass();
-}
-
-Vector Body::getPosition() const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
-	auto b2p = body->GetWorldCenter();
-	return Vector(b2p.x, b2p.y);
 }
 
 Vector Body::getLocalPoint(const Vector& worldPosition) const {

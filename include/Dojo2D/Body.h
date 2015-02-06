@@ -44,13 +44,13 @@ namespace Phys {
 
 		virtual float getMass() const;
 
-		Vector getPosition() const;
-
 		Vector getLocalPoint(const Vector& worldPosition) const;
 		Vector getWorldPoint(const Vector& localPosition) const;
 
 		Vector getVelocity() const;
 		Vector getVelocityAtLocalPoint(const Vector& localPoint) const;
+
+		const Vector& getPosition() const;
 
 		float getLinearDamping() const;
 		float getAngularDamping() const;

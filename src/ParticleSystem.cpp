@@ -22,6 +22,7 @@ Dojo::Renderable(&parent, Vector::ZERO),
 material(material),
 damping(damping),
 particleRadius(particleRadius),
+world(world),
 group(group),
 _mesh(new Mesh()) {
 	DEBUG_ASSERT(particleRadius > 0, "Invalid particle size");
@@ -42,7 +43,7 @@ _mesh(new Mesh()) {
   	particleSystemDef.pressureStrength = material.pressure;
 	particleSystemDef.dampingStrength = material.friction;
 
-	particleSystem = world.getBox2D().CreateParticleSystem(&particleSystemDef);
+	particleSystem = world.createParticleSystem(particleSystemDef);
 
 	particleSystem->SetDamping(damping);
 }
@@ -58,7 +59,9 @@ void Phys::ParticleSystem::addParticle(const Vector& pos, const Vector& velocity
 	particle.lifetime = lifetime;
 	particle.userData = this;
 
-	particleSystem->CreateParticle(particle);
+	world.syncCommand([&](){
+		particleSystem->CreateParticle(particle);
+	});
 }
 
 void ParticleSystem::onAction(float dt) {
@@ -83,44 +86,47 @@ void ParticleSystem::onAction(float dt) {
 	setVisible(active && viewport.isInViewRect(*this) && particleSystem->GetParticleCount() > 0);
 
 	if (isVisible()) {
-		mesh->begin(particleSystem->GetParticleCount());
+		world.asyncCommand([&](){
+			mesh->begin(particleSystem->GetParticleCount());
 
-		auto position = particleSystem->GetPositionBuffer();
-		auto color = particleSystem->GetColorBuffer();
-		//auto userData = (uintptr_t*)particleSystem->GetUserDataBuffer();
-		auto velocity = particleSystem->GetVelocityBuffer();
+			auto position = particleSystem->GetPositionBuffer();
+			auto color = particleSystem->GetColorBuffer();
+			//auto userData = (uintptr_t*)particleSystem->GetUserDataBuffer();
+			auto velocity = particleSystem->GetVelocityBuffer();
 
-		for (int i = 0; i < particleSystem->GetParticleCount(); ++i, ++position, ++color, ++velocity) {
-			//int hash = ((*userData * 0x1f1f1f1f) >> 1) & 0xf;
+			for (int i = 0; i < particleSystem->GetParticleCount(); ++i, ++position, ++color, ++velocity) {
+				//int hash = ((*userData * 0x1f1f1f1f) >> 1) & 0xf;
 
-			if (viewport.isInViewRect(Vector{ position->x, position->y })) {	
-				b2Color c1 = color->GetColor();
-				Color c(c1.r, c1.g, c1.b, 1.f);
+				if (viewport.isInViewRect(Vector{ position->x, position->y })) {
+					b2Color c1 = color->GetColor();
+					Color c(c1.r, c1.g, c1.b, 1.f);
 
-				auto baseIdx = mesh->getVertexCount();
+					auto baseIdx = mesh->getVertexCount();
 
-				float r = particleRadius*1.5f;
-				// 			if (hash < 5 && hash > 0)
-				// 				r -= 0.03f * hash;
+					float r = particleRadius*1.5f;
+					// 			if (hash < 5 && hash > 0)
+					// 				r -= 0.03f * hash;
 
-				mesh->vertex(position->x - r, position->y - r);
-				mesh->color(c);
-				mesh->uv(0, 0);
-				mesh->vertex(position->x + r, position->y - r);
-				mesh->color(c);
-				mesh->uv(1, 0);
-				mesh->vertex(position->x - r, position->y + r);
-				mesh->color(c);
-				mesh->uv(0, 1);
-				mesh->vertex(position->x + r, position->y + r);
-				mesh->color(c);
-				mesh->uv(1, 1);
+					mesh->vertex(position->x - r, position->y - r);
+					mesh->color(c);
+					mesh->uv(0, 0);
+					mesh->vertex(position->x + r, position->y - r);
+					mesh->color(c);
+					mesh->uv(1, 0);
+					mesh->vertex(position->x - r, position->y + r);
+					mesh->color(c);
+					mesh->uv(0, 1);
+					mesh->vertex(position->x + r, position->y + r);
+					mesh->color(c);
+					mesh->uv(1, 1);
 
-				mesh->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
+					mesh->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
+				}
 			}
-		}
-
-		mesh->end();
+		},
+		[this](){
+			mesh->end();
+		});
 	}
 
 	advanceFade(dt);

@@ -28,6 +28,9 @@ namespace Phys {
 		virtual void onAction(float dt) override;
 
 	protected:
+		World& world;
+
+		float warmupTime = 0.f;
 		const Material& material;
 			
 		Unique<Dojo::Mesh> _mesh;

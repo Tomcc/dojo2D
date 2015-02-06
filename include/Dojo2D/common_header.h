@@ -4,6 +4,7 @@
 
 #include <Box2D/Box2D.h>
 #include <unordered_set>
+#include <mutex>
 
 #define DLLX __declspec(dllimport)
 
@@ -12,4 +13,6 @@
 namespace Phys {
 	typedef uint32_t Group;
 	using Vector = Dojo::Vector;
+
+	typedef std::lock_guard<std::mutex> ScopedLock;
 }

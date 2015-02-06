@@ -12,32 +12,30 @@ namespace Phys {
 		public b2ContactListener,
 		public b2ContactFilter {
 	public:
+		typedef std::function<void()> Command;
+
 		typedef std::unordered_set<const Body*> BodyList;
 		typedef std::vector<const b2Fixture*> FixtureList;
 
 		const float timeStep;
-
-		const int32 
-			velocityIterations,
-			positionIterations,
-			particleIterations;
 
 		static bool shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2);
 		static bool shapesOverlap(const b2Shape& shape, const b2Fixture& fixture);
 
 		World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations);
 
+		virtual ~World();
+
+		b2Body* createBody(const b2BodyDef& def);
+		b2ParticleSystem* createParticleSystem(const b2ParticleSystemDef& def);
+
 		void setContactMode(Phys::Group A, Phys::Group B, ContactMode mode);
 		ContactMode getContactModeFor(Phys::Group A, Phys::Group B) const;
-
-		b2World& getBox2D() {
-			return *box2D;
-		}
 
 		Vector getGravity() const;
 
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
-
+		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result) const;
 		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false) const;
 
 		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false) const;
@@ -53,13 +51,18 @@ namespace Phys {
 		virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) override;
 		virtual bool ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex) override;
 
+		void sync() const;
+
+		void syncCommand(const Command& command) const;
+		void asyncCommand(const Command& command, const Command& callback = Command()) const;
+		bool isWorkerThread() const;
 	protected:
 
 		struct DeferredCollision {
 			Body* A, *B;
 			float force;
 			b2Vec2 point;
-
+			DeferredCollision() {}
 			DeferredCollision(Body& A, Body& B, float force, const b2Vec2& point) :
 				A(&A),
 				B(&B),
@@ -72,6 +75,7 @@ namespace Phys {
 		struct DeferredSensorCollision {
 			Body* other, *me;
 			b2Fixture* sensor;
+			DeferredSensorCollision() {}
 			DeferredSensorCollision(Body& other, Body& me, b2Fixture& sensor) :
 				other(&other),
 				me(&me),
@@ -79,11 +83,21 @@ namespace Phys {
 
 			}
 		};
-		
+
+		struct Job {
+			Command command, callback;
+		};
+
+		std::thread thread;
+
+		bool running = true;
+			
 		Unique<b2World> box2D;
 
-		std::vector<DeferredCollision> deferredCollisions;
-		std::vector<DeferredSensorCollision> deferredSensorCollisions;
+		Unique<Dojo::Pipe<Job>> commands;
+		Unique<Dojo::Pipe<Command>> callbacks;
+		Unique<Dojo::Pipe<DeferredCollision>> deferredCollisions;
+		Unique<Dojo::Pipe<DeferredSensorCollision>> deferredSensorCollisions;
 
 		static const int GROUP_COUNT = 256; //HACK
 		ContactMode collideMode[GROUP_COUNT][GROUP_COUNT];
