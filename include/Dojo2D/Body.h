@@ -20,8 +20,8 @@ namespace Phys {
 		b2Fixture& addCircleShape(const Material& material, float radius, const Vector& center = Vector::ZERO, bool sensor = false);
 		b2Fixture& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
 
-		void initPhysics(Dojo::Renderable& graphics, Group group, bool staticShape = false);
-		void initPhysics(Dojo::Object& level, Group group, bool staticShape = false);
+		void initPhysics(Dojo::Renderable& graphics, Group group, bool staticShape = false, bool inactive = false);
+		void initPhysics(Dojo::Object& level, Group group, bool staticShape = false, bool inactive = false);
 
 		///Removes physical behaviors from this object
 		void destroyPhysics();
@@ -41,6 +41,8 @@ namespace Phys {
 		void forcePosition(const Vector& position);
 		void forceVelocity(const Vector& velocity);
 		void forceRotation(float angle);
+
+		void setActive();
 
 		virtual float getMass() const;
 
@@ -95,7 +97,9 @@ namespace Phys {
 
 		b2Fixture& _addShape(b2Shape& shape, const Material& material, bool sensor);
 
-		void _init(Dojo::Object& box2D, Dojo::Renderable* graphics, Group group, bool staticShape = false);
+		void _init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, bool staticShape, bool inactive);
+		void _bodyCommandAsync(const std::function<void()>& c);
+		void _bodyCommand(const std::function<void()>& c);
 	private:
 		bool particleCollisionModel = false;
 	};

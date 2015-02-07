@@ -44,15 +44,14 @@ timeStep(timeStep) {
 		while (running) {
 
 			//process all available commands
-			while (timer.getElapsedTime() < timeStep && commands->try_dequeue(job)) {
+			while ((simulationPaused || timer.getElapsedTime() < timeStep) && commands->try_dequeue(job)) {
 				job.command();
 
 				if (job.callback)
 					callbacks->enqueue(std::move(job.callback));
 			}
 
-
-			if (timer.getElapsedTime() > timeStep)
+			if (!simulationPaused && timer.getElapsedTime() > timeStep)
 			{
 				timer.reset();
 				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
@@ -136,14 +135,6 @@ void World::sync() const
 void World::syncCommand(const Command& command) const {
 	asyncCommand(command);
 	sync();
-}
-
-b2Body* World::createBody(const b2BodyDef& def) {
-	b2Body* res;
-	syncCommand([&](){
-		res = box2D->CreateBody(&def);
-	});
-	return res;
 }
 
 b2ParticleSystem* World::createParticleSystem(const b2ParticleSystemDef& def) {
@@ -394,4 +385,5 @@ void World::_notifyDestroyed(Body& body) {
 // 	}
 
 }
+
 

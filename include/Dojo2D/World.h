@@ -19,6 +19,7 @@ namespace Phys {
 		typedef std::vector<const b2Fixture*> FixtureList;
 
 		const float timeStep;
+		bool simulationPaused = false;
 
 		static bool shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2);
 		static bool shapesOverlap(const b2Shape& shape, const b2Fixture& fixture);
@@ -30,7 +31,6 @@ namespace Phys {
 		void addListener(WorldListener& listener);
 		void removeListener(WorldListener& listener);
 
-		b2Body* createBody(const b2BodyDef& def);
 		b2ParticleSystem* createParticleSystem(const b2ParticleSystemDef& def);
 
 		void setContactMode(Phys::Group A, Phys::Group B, ContactMode mode);
@@ -61,6 +61,11 @@ namespace Phys {
 		void asyncCommand(const Command& command, const Command& callback = Command()) const;
 		void asyncCallback(const Command& callback) const;
 		bool isWorkerThread() const;
+
+		b2World& getBox2D() {
+			return *box2D;
+		}
+
 	protected:
 
 		struct DeferredCollision {
