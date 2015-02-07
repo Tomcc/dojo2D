@@ -56,15 +56,19 @@ timeStep(timeStep) {
 				timer.reset();
 				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
-				for (int i = 0; i < box2D->GetBodyCount(); ++i) {
-					auto& body = box2D->GetBodyList()[i];
-
-					if (body.IsAwake() && body.IsActive())
-						((Body*)body.GetUserData())->updateGraphics();
-				}
+				for (auto&& b : bodies)
+					if (b->getB2Body()->IsAwake() && b->getB2Body()->IsActive())
+						b->updateGraphics();
 
 				for (auto&& listener : listeners)
 					listener->onPostSimulationStep();
+
+				//tell to cleanup the deleted bodies
+				if (deletedBodies.size() > 0) {
+					asyncCallback([&](){
+						deletedBodies.clear();
+					});
+				}
 			}
 
 			std::this_thread::yield();
@@ -348,42 +352,41 @@ void World::update(float dt) {
 
 	//play back all collisions
 	while (deferredCollisions->try_dequeue(c)) {
+		if (deletedBodies.contains(c.A) || deletedBodies.contains(c.B))
+			continue;
+
 		Vector p = asVec(c.point);
 		c.A->onCollision(*c.B, c.force, p);
 		c.B->onCollision(*c.A, c.force, p);
 	}
 
-	while (deferredSensorCollisions->try_dequeue(sc))
-		getBodyForFixture(sc.sensor).onSensorCollision(*sc.other, *sc.sensor); //sensor collisions are not bidirectional
+	while (deferredSensorCollisions->try_dequeue(sc)) {
+		auto& body = getBodyForFixture(sc.sensor);
+		if (deletedBodies.contains(&body))
+			continue;
+		
+		body.onSensorCollision(*sc.other, *sc.sensor); //sensor collisions are not bidirectional
+	}
 
 	while (callbacks->try_dequeue(callback))
 		callback();
+
+
 }
 
 void World::_notifyDestroyed(Body& body) {
-	//remove from the collision queues if any
+	deletedBodies.emplace(&body);
+}
 
-	//TODO
-// 	{
-// 		for (size_t i = 0; i < deferredCollisions.size(); ++i) {
-// 			auto& c = deferredCollisions[i];
-// 			if (&body == c.A || &body == c.B) {
-// 				deferredCollisions.erase(deferredCollisions.begin() + i);
-// 				--i;
-// 			}
-// 		}
-// 	}
-// 
-// 	{
-// 		for (size_t i = 0; i < deferredSensorCollisions.size(); ++i) {
-// 			auto& c = deferredSensorCollisions[i];
-// 			if (&body == c.other || &body == c.me) {
-// 				deferredSensorCollisions.erase(deferredSensorCollisions.begin() + i);
-// 				--i;
-// 			}
-// 		}
-// 	}
+void World::addBody(Body& body)
+{
+	bodies.emplace(&body);
+}
 
+void Phys::World::destroyBody(Body& body)
+{
+	bodies.erase(&body);
+	box2D->DestroyBody(body.getB2Body());
 }
 
 

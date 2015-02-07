@@ -91,18 +91,18 @@ b2Fixture& Body::addCapsuleShape(const Material& material, const Vector& dimensi
 }
 
 void Body::destroyPhysics() {
-	
-	graphics = nullptr;
-	if (body) {
-		world._notifyDestroyed(*this);
+	world._notifyDestroyed(*this);
 
-		body->GetWorld()->DestroyBody(body);
-		body = nullptr;
-	}
-
-	staticShape = false;
-	group = 0;
-	particleCollisionModel = false;
+	world.syncCommand([&](){
+		if (body) {
+			world.destroyBody(*this);
+			body = nullptr;
+		}
+		graphics = nullptr;
+		staticShape = false;
+		group = 0;
+		particleCollisionModel = false;
+	});
 }
 
 void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, bool staticShape, bool inactive) {
@@ -133,6 +133,7 @@ void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, boo
 
 	world.syncCommand([&](){
 		body = world.getBox2D().CreateBody(&bodyDef);
+		world.addBody(*this);
 	});
 }
 

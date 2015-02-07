@@ -65,7 +65,8 @@ namespace Phys {
 		b2World& getBox2D() {
 			return *box2D;
 		}
-
+		void addBody(Body& body);
+		void destroyBody(Body& body);
 	protected:
 
 		struct DeferredCollision {
@@ -116,6 +117,8 @@ namespace Phys {
 		Unique<Dojo::Pipe<Command>> callbacks;
 		Unique<Dojo::Pipe<DeferredCollision>> deferredCollisions;
 		Unique<Dojo::Pipe<DeferredSensorCollision>> deferredSensorCollisions;
+
+		Dojo::SmallSet<Body*> bodies, deletedBodies;
 
 		static const int GROUP_COUNT = 256; //HACK
 		ContactMode collideMode[GROUP_COUNT][GROUP_COUNT];

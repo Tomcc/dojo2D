@@ -32,7 +32,7 @@ _mesh(new Mesh()) {
 	mesh->setDynamic(true);
 	mesh->setTriangleMode(TriangleMode::TriangleList);
 	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
-	mesh->setIndexByteSize(4);
+	//mesh->setIndexByteSize(4);
 
 	//LIQUIDTHING
 	b2ParticleSystemDef particleSystemDef;
@@ -95,7 +95,7 @@ void ParticleSystem::onPostSimulationStep()
 	//only show when active, visible and has particles
 	setVisible(active && viewport.isInViewRect(*this) && particleSystem->GetParticleCount() > 0);
 
-	if (isVisible()) {
+	if (isVisible() && !mesh->isEditing()) {
 		mesh->begin(particleSystem->GetParticleCount());
 
 		auto position = particleSystem->GetPositionBuffer();
