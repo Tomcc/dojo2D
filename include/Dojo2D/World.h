@@ -4,6 +4,7 @@
 
 #include "RayResult.h"
 #include "ContactMode.h"
+#include "WorldListener.h"
 
 namespace Phys {
 	class Body;
@@ -25,6 +26,9 @@ namespace Phys {
 		World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations);
 
 		virtual ~World();
+
+		void addListener(WorldListener& listener);
+		void removeListener(WorldListener& listener);
 
 		b2Body* createBody(const b2BodyDef& def);
 		b2ParticleSystem* createParticleSystem(const b2ParticleSystemDef& def);
@@ -55,6 +59,7 @@ namespace Phys {
 
 		void syncCommand(const Command& command) const;
 		void asyncCommand(const Command& command, const Command& callback = Command()) const;
+		void asyncCallback(const Command& callback) const;
 		bool isWorkerThread() const;
 	protected:
 
@@ -86,12 +91,20 @@ namespace Phys {
 
 		struct Job {
 			Command command, callback;
+			Job() {}
+			Job(const Command& command, const Command& callback) :
+				command(command),
+				callback(callback) {
+
+			}
 		};
 
 		std::thread thread;
 
 		bool running = true;
 			
+		Dojo::SmallSet<WorldListener*> listeners;
+
 		Unique<b2World> box2D;
 
 		Unique<Dojo::Pipe<Job>> commands;

@@ -2,12 +2,16 @@
 
 #include "common_header.h"
 
+#include "WorldListener.h"
+
 namespace Phys {
 	class Material;
 	class World;
 
 	///TODO decouple from rendering
-	class ParticleSystem : public Dojo::Renderable
+	class ParticleSystem : 
+		public Dojo::Renderable,
+		public WorldListener
 	{
 	public:
 		const Group group;
@@ -18,7 +22,8 @@ namespace Phys {
 		const float damping, particleRadius;
 		
 		ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleSize, float damping = 0);
-			
+		virtual ~ParticleSystem();
+
 		void addParticle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);
 
 		b2ParticleSystem& getParticleSystem() {
@@ -27,10 +32,11 @@ namespace Phys {
 
 		virtual void onAction(float dt) override;
 
+		virtual void onPostSimulationStep() override;
+
 	protected:
 		World& world;
 
-		float warmupTime = 0.f;
 		const Material& material;
 			
 		Unique<Dojo::Mesh> _mesh;

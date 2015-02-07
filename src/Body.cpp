@@ -12,7 +12,6 @@ world(world) {
 
 }
 
-
 Body::~Body() {
 	destroyPhysics();
 }
@@ -30,7 +29,7 @@ b2Fixture& Body::_addShape(b2Shape& shape, const Material& material, bool sensor
 
 	fixtureDef.userData = (void*)&material;
 
-	b2Fixture* fixture;
+	b2Fixture* fixture = nullptr;
 	world.syncCommand([&](){
 		fixture = body->CreateFixture(&fixtureDef);
 	});
@@ -151,6 +150,7 @@ void Body::initPhysics(Dojo::Object& obj, Phys::Group group, bool staticShape) {
 // }
 
 void Body::updateGraphics() {
+
 	if (graphics) {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 

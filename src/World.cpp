@@ -48,7 +48,7 @@ timeStep(timeStep) {
 				job.command();
 
 				if (job.callback)
-					callbacks->enqueue(job.callback);
+					callbacks->enqueue(std::move(job.callback));
 			}
 
 
@@ -63,6 +63,9 @@ timeStep(timeStep) {
 					if (body.IsAwake() && body.IsActive())
 						((Body*)body.GetUserData())->updateGraphics();
 				}
+
+				for (auto&& listener : listeners)
+					listener->onPostSimulationStep();
 			}
 
 			std::this_thread::yield();
@@ -73,6 +76,18 @@ timeStep(timeStep) {
 World::~World() {
 	running = false;
 	thread.join();
+}
+
+void World::addListener(WorldListener& listener) {
+	asyncCommand([&](){
+		listeners.emplace(&listener);
+	});
+}
+
+void World::removeListener(WorldListener& listener) {
+	syncCommand([&](){
+		listeners.erase(&listener);
+	});
 }
 
 void World::setContactMode(Group A, Group B, ContactMode mode) {
@@ -87,10 +102,23 @@ ContactMode World::getContactModeFor(Group A, Group B) const {
 }
 
 void World::asyncCommand(const Command& command, const Command& callback /*= Command()*/) const {
-	if (isWorkerThread())
+	DEBUG_ASSERT(command, "Command can't be a NOP");
+
+	if (isWorkerThread()) {
 		command();
+		if (callback)
+			callbacks->enqueue(callback);
+	} 
 	else
-		commands->enqueue({ command, callback });
+		commands->enqueue(command, callback);
+}
+
+void World::asyncCallback(const Command& callback) const {
+	DEBUG_ASSERT(callback, "Command can't be a NOP");
+	if (isWorkerThread())
+		callbacks->enqueue(callback);
+	else
+		callback();
 }
 
 void World::sync() const
@@ -115,7 +143,6 @@ b2Body* World::createBody(const b2BodyDef& def) {
 	syncCommand([&](){
 		res = box2D->CreateBody(&def);
 	});
-
 	return res;
 }
 
@@ -137,8 +164,8 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
 		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
-			deferredSensorCollisions->enqueue({ phB, phA, *fixtureA });
-			deferredSensorCollisions->enqueue({ phA, phB, *fixtureB });
+			deferredSensorCollisions->enqueue( phB, phA, *fixtureA );
+			deferredSensorCollisions->enqueue( phA, phB, *fixtureB );
 		}
 
 		return false;
@@ -146,11 +173,11 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
 	//check if the sensors should collide
 	if (fixtureA->IsSensor()) {
-		deferredSensorCollisions->enqueue({ phB, phA, *fixtureA });
+		deferredSensorCollisions->enqueue( phB, phA, *fixtureA );
 	}
 		
 	if (fixtureB->IsSensor()) {
-		deferredSensorCollisions->enqueue({ phA, phB, *fixtureB });
+		deferredSensorCollisions->enqueue( phA, phB, *fixtureB );
 	}
 
 	if (fixtureA->IsSensor() && fixtureB->IsSensor())
@@ -213,7 +240,7 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 
 	float force = F.Length();
 	if (force > 0.1f) {
-		deferredCollisions->enqueue({ phA, phB, force, point });
+		deferredCollisions->enqueue( phA, phB, force, point );
 	}
 }
 
@@ -367,3 +394,4 @@ void World::_notifyDestroyed(Body& body) {
 // 	}
 
 }
+

@@ -46,6 +46,7 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\ContactMode.h" />
+    <ClInclude Include="..\include\Dojo2D\WorldListener.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
