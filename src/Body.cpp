@@ -122,7 +122,7 @@ void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, boo
 	b2BodyDef bodyDef;
 	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
 
-	bodyDef.position = { obj.position.x, obj.position.y };
+	bodyDef.position = asB2Vec(obj.position);
 	bodyDef.angle = obj.getRoll();
 
 	if (staticShape) {
@@ -186,8 +186,8 @@ void Body::updateGraphics() {
 	}
 }
 
-void Body::applyForce(const Vector& force)
-{
+void Body::applyForce(const Vector& force) {
+	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
 	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForceToCenter(asB2Vec(force), true);
@@ -195,6 +195,7 @@ void Body::applyForce(const Vector& force)
 }
 
 void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint) {
+	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
 	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
@@ -202,6 +203,7 @@ void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint)
 }
 
 void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint) {
+	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
 	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		b2Vec2 worldPoint = body->GetWorldPoint(asB2Vec(localPoint));
@@ -273,11 +275,11 @@ float Body::getAngularDamping() const {
 	return body->GetAngularDamping();
 }
 
-const Vector& Body::getPosition() const
+Dojo::Vector Phys::Body::getPosition() const
 {
-	DEBUG_ASSERT(graphics, "meh, shouldn't be needed");
+	DEBUG_ASSERT(body, "meh, shouldn't be needed");
 
-	return graphics->position;
+	return asVec(body->GetPosition());
 }
 
 void Body::setActive() {
