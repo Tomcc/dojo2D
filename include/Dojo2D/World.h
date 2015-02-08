@@ -31,8 +31,6 @@ namespace Phys {
 		void addListener(WorldListener& listener);
 		void removeListener(WorldListener& listener);
 
-		b2ParticleSystem* createParticleSystem(const b2ParticleSystemDef& def);
-
 		void setContactMode(Phys::Group A, Phys::Group B, ContactMode mode);
 		ContactMode getContactModeFor(Phys::Group A, Phys::Group B) const;
 
@@ -57,7 +55,6 @@ namespace Phys {
 
 		void sync() const;
 
-		void syncCommand(const Command& command) const;
 		void asyncCommand(const Command& command, const Command& callback = Command()) const;
 		void asyncCallback(const Command& callback) const;
 		bool isWorkerThread() const;

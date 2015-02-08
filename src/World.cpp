@@ -88,7 +88,7 @@ void World::addListener(WorldListener& listener) {
 }
 
 void World::removeListener(WorldListener& listener) {
-	syncCommand([&](){
+	asyncCommand([&](){
 		listeners.erase(&listener);
 	});
 }
@@ -134,19 +134,6 @@ void World::sync() const
 
 		while (!done);
 	}
-}
-
-void World::syncCommand(const Command& command) const {
-	asyncCommand(command);
-	sync();
-}
-
-b2ParticleSystem* World::createParticleSystem(const b2ParticleSystemDef& def) {
-	b2ParticleSystem* res;
-	syncCommand([&](){
-		res = box2D->CreateParticleSystem(&def);
-	});
-	return res;
 }
 
 bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
@@ -273,7 +260,7 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
 	bool empty = true;
-	syncCommand([&](){
+	asyncCommand([&](){
 		b2PolygonShape aabbShape;
 		if (precise) {
 			Vector dim = max - min;
@@ -322,6 +309,7 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 		Query q = report;
 		box2D->QueryAABB(&q, bb);
 	});
+	sync(); //TODO it would make sense to have a async version
 
 	return empty;
 }

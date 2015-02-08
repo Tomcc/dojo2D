@@ -34,24 +34,24 @@ _mesh(new Mesh()) {
 	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
 	//mesh->setIndexByteSize(4);
 
-	//LIQUIDTHING
-	b2ParticleSystemDef particleSystemDef;
-	particleSystemDef.radius = particleRadius; 
-	particleSystemDef.destroyByAge = true;
+	world.asyncCommand([this, damping, particleRadius, &material, &world]() {
+		b2ParticleSystemDef particleSystemDef;
+		particleSystemDef.radius = particleRadius;
+		particleSystemDef.destroyByAge = true;
 
-	particleSystemDef.density = material.density;
-  	particleSystemDef.pressureStrength = material.pressure;
-	particleSystemDef.dampingStrength = material.friction;
+		particleSystemDef.density = material.density;
+		particleSystemDef.pressureStrength = material.pressure;
+		particleSystemDef.dampingStrength = material.friction;
 
-	particleSystem = world.createParticleSystem(particleSystemDef);
-
-	particleSystem->SetDamping(damping);
-
-	world.addListener(*this);
+		particleSystem = world.getBox2D().CreateParticleSystem(&particleSystemDef);
+		particleSystem->SetDamping(damping);
+		world.addListener(*this);
+	});
 }
 
 ParticleSystem::~ParticleSystem() {
 	world.removeListener(*this);
+	world.sync();
 }
 
 void ParticleSystem::addParticle(const Dojo::Vector& pos, const Dojo::Vector& velocity, const Color& color, float lifetime) {

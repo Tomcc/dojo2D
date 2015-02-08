@@ -101,8 +101,6 @@ namespace Phys {
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
 
 		void _init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, bool staticShape, bool inactive);
-		void _bodyCommandAsync(const std::function<void()>& c);
-		void _bodyCommand(const std::function<void()>& c);
 	private:
 		bool particleCollisionModel = false;
 	};

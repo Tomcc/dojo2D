@@ -15,6 +15,8 @@ world(world) {
 
 Body::~Body() {
 	destroyPhysics();
+	world.sync(); //cannot let the body be destroyed before the physics :(
+	//TODO find a way to give the body back to world?
 }
 
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
@@ -23,7 +25,7 @@ BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material,
 	auto part = new BodyPart(material);
 	parts.emplace_back(part);
 
-	_bodyCommandAsync([this, part, &material, sensor, shape](){
+	world.asyncCommand([this, part, &material, sensor, shape](){
 
 		b2FixtureDef fixtureDef;
 
@@ -99,15 +101,16 @@ BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensio
 void Body::destroyPhysics() {
 	world._notifyDestroyed(*this);
 
-	world.syncCommand([&](){
+	graphics = nullptr;
+	staticShape = false;
+	group = 0;
+	particleCollisionModel = false;
+
+	world.asyncCommand([&](){
 		if (body) {
 			world.destroyBody(*this);
 			body = nullptr;
 		}
-		graphics = nullptr;
-		staticShape = false;
-		group = 0;
-		particleCollisionModel = false;
 	});
 }
 
@@ -183,39 +186,23 @@ void Body::updateGraphics() {
 	}
 }
 
-void Body::_bodyCommandAsync(const World::Command& c) {
-//	if (!body ||body->IsActive() && !world.simulationPaused)
-		world.asyncCommand(c);
-// 	else
-// 		c(); //just run this on this thread as it's out of the simulation
-}
-
-void Body::_bodyCommand(const World::Command& c) {
-// 	if (!body || !body->IsActive() || world.simulationPaused)
-// 		c();
-// 	else
-		world.syncCommand(c);
-// 	else
-//		c(); //just run this on this thread as it's out of the simulation
-}
-
 void Body::applyForce(const Vector& force)
 {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForceToCenter(asB2Vec(force), true);
 	});
 }
 
 void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
 	});
 }
 
 void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		b2Vec2 worldPoint = body->GetWorldPoint(asB2Vec(localPoint));
 		body->ApplyForce(asB2Vec(force), worldPoint, true);
@@ -223,21 +210,21 @@ void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint)
 }
 
 void Body::applyTorque(float t) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyTorque(t, true);
 	});
 }
 
 void Body::setFixedRotation(bool enable) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetFixedRotation(enable);
 	});
 }
 
 void Body::forcePosition(const Vector& position) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
 		body->SetTransform(asB2Vec(position), t.q.GetAngle());
@@ -245,7 +232,7 @@ void Body::forcePosition(const Vector& position) {
 }
 
 void Body::forceRotation(float angle) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
 		body->SetTransform(t.p, angle);
@@ -253,21 +240,21 @@ void Body::forceRotation(float angle) {
 }
 
 void Body::setTransform(const Vector& position, float angle) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetTransform(asB2Vec(position), angle);
 	});
 }
 
 void Body::forceVelocity(const Vector& velocity) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetLinearVelocity(asB2Vec(velocity));
 	});
 }
 
 void Body::setDamping(float linear, float angular) {
-	_bodyCommandAsync([=](){
+	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetLinearDamping(linear);
 		body->SetAngularDamping(angular);
