@@ -4,6 +4,7 @@
 #include "Material.h"
 #include "PhysUtil.h"
 #include "World.h"
+#include "BodyPart.h"
 
 using namespace Phys;
 
@@ -16,43 +17,48 @@ Body::~Body() {
 	destroyPhysics();
 }
 
-b2Fixture& Body::_addShape(b2Shape& shape, const Material& material, bool sensor) {
-	b2FixtureDef fixtureDef;
+BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
+	//TODO use a unique pointer when capture-by-move is available
 
-	fixtureDef.shape = &shape;
-	fixtureDef.density = material.density;
-	fixtureDef.friction = material.friction;
-	fixtureDef.restitution = material.restitution;
-	fixtureDef.filter = b2Filter();
-	fixtureDef.filter.groupIndex = group;
-	fixtureDef.isSensor = sensor;
+	auto part = new BodyPart(material);
+	parts.emplace_back(part);
 
-	fixtureDef.userData = (void*)&material;
+	_bodyCommandAsync([this, part, &material, sensor, shape](){
 
-	b2Fixture* fixture = nullptr;
-	_bodyCommand([&](){
-		fixture = body->CreateFixture(&fixtureDef);
+		b2FixtureDef fixtureDef;
+
+		fixtureDef.shape = shape.get();
+		fixtureDef.density = material.density;
+		fixtureDef.friction = material.friction;
+		fixtureDef.restitution = material.restitution;
+		fixtureDef.filter = b2Filter();
+		fixtureDef.filter.groupIndex = group;
+		fixtureDef.isSensor = sensor;
+
+		fixtureDef.userData = (void*)part;
+
+		part->fixture = body->CreateFixture(&fixtureDef);
 	});
 
-	return *fixture;
+	return *part;
 }
 
-b2Fixture& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor /*= false*/) {
+BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor /*= false*/) {
 
 	DEBUG_ASSERT(count > 0, "Wrong vertex count");
 	DEBUG_ASSERT(count < b2_maxPolygonVertices, "This box shape has too many vertices!");
 
-	b2PolygonShape shape;
-	shape.Set(points, count);
+	auto shape = make_shared<b2PolygonShape>();
+	shape->Set(points, count);
 
 	return _addShape(shape, material, sensor);
 }
 
-b2Fixture& Body::addPolyShape(const Material& material, const std::vector<b2Vec2>& points /*= nullptr*/, bool sensor /*= false */) {
+BodyPart& Body::addPolyShape(const Material& material, const std::vector<b2Vec2>& points /*= nullptr*/, bool sensor /*= false */) {
 	return addPolyShape(material, points.data(), points.size(), sensor);
 }
 
-b2Fixture& Body::addBoxShape(const Material& material, const Vector& dimensions, const Vector& center /*= Vector::ZERO*/, bool sensor /*= false*/) {
+BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, const Vector& center /*= Vector::ZERO*/, bool sensor /*= false*/) {
 
 	DEBUG_ASSERT(dimensions.x >= 0 && dimensions.y >= 0, "Invalid dimensions");
 
@@ -69,18 +75,18 @@ b2Fixture& Body::addBoxShape(const Material& material, const Vector& dimensions,
 	return addPolyShape(material, points, 4, sensor);
 }
 
-b2Fixture& Body::addCircleShape(const Material& material, float radius, const Vector& center, bool sensor /*= false*/) {
+BodyPart& Body::addCircleShape(const Material& material, float radius, const Vector& center, bool sensor /*= false*/) {
 	DEBUG_ASSERT(radius > 0, "Invalid radius");
 
-	b2CircleShape circle;
-	circle.m_radius = radius;
-	circle.m_p.x = center.x;
-	circle.m_p.y = center.y;
+	auto circle = make_shared<b2CircleShape>();
+	circle->m_radius = radius;
+	circle->m_p.x = center.x;
+	circle->m_p.y = center.y;
 
 	return _addShape(circle, material, sensor);
 }
 
-b2Fixture& Body::addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center, bool sensor /*= false*/) {
+BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center, bool sensor /*= false*/) {
 
 	Vector halfSize = dimensions * 0.5f;
 	Vector offset(0, halfSize.y - halfSize.x);
@@ -131,7 +137,7 @@ void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, boo
 
 	bodyDef.userData = this;
 
-	world.syncCommand([&](){
+	world.asyncCommand([this, bodyDef](){
 		body = world.getBox2D().CreateBody(&bodyDef);
 		world.addBody(*this);
 	});
@@ -178,38 +184,39 @@ void Body::updateGraphics() {
 }
 
 void Body::_bodyCommandAsync(const World::Command& c) {
-	DEBUG_ASSERT(body, "Call initPhysics first");
-
-	if (body->IsActive() && !world.simulationPaused)
+//	if (!body ||body->IsActive() && !world.simulationPaused)
 		world.asyncCommand(c);
-	else
-		c(); //just run this on this thread as it's out of the simulation
+// 	else
+// 		c(); //just run this on this thread as it's out of the simulation
 }
 
 void Body::_bodyCommand(const World::Command& c) {
-	DEBUG_ASSERT(body, "Call initPhysics first");
-
-	if (body->IsActive() && !world.simulationPaused)
+// 	if (!body || !body->IsActive() || world.simulationPaused)
+// 		c();
+// 	else
 		world.syncCommand(c);
-	else
-		c(); //just run this on this thread as it's out of the simulation
+// 	else
+//		c(); //just run this on this thread as it's out of the simulation
 }
 
 void Body::applyForce(const Vector& force)
 {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForceToCenter(asB2Vec(force), true);
 	});
 }
 
 void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
 	});
 }
 
 void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		b2Vec2 worldPoint = body->GetWorldPoint(asB2Vec(localPoint));
 		body->ApplyForce(asB2Vec(force), worldPoint, true);
 	});
@@ -217,18 +224,21 @@ void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint)
 
 void Body::applyTorque(float t) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyTorque(t, true);
 	});
 }
 
 void Body::setFixedRotation(bool enable) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetFixedRotation(enable);
 	});
 }
 
 void Body::forcePosition(const Vector& position) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
 		body->SetTransform(asB2Vec(position), t.q.GetAngle());
 	});
@@ -236,6 +246,7 @@ void Body::forcePosition(const Vector& position) {
 
 void Body::forceRotation(float angle) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
 		body->SetTransform(t.p, angle);
 	});
@@ -243,18 +254,21 @@ void Body::forceRotation(float angle) {
 
 void Body::setTransform(const Vector& position, float angle) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetTransform(asB2Vec(position), angle);
 	});
 }
 
 void Body::forceVelocity(const Vector& velocity) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetLinearVelocity(asB2Vec(velocity));
 	});
 }
 
 void Body::setDamping(float linear, float angular) {
 	_bodyCommandAsync([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetLinearDamping(linear);
 		body->SetAngularDamping(angular);
 	});
@@ -283,6 +297,7 @@ void Body::setActive() {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
 	world.asyncCommand([=](){
+		DEBUG_ASSERT(body, "Call initPhysics first");
 		if (!isStatic())
 			body->SetAwake(true);
 		body->SetActive(true);

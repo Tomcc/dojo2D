@@ -345,6 +345,7 @@ Vector World::getGravity() const {
 }
 
 void World::update(float dt) {
+	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
 
 	DeferredCollision c;
 	DeferredSensorCollision sc;
@@ -375,16 +376,19 @@ void World::update(float dt) {
 }
 
 void World::_notifyDestroyed(Body& body) {
+	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
 	deletedBodies.emplace(&body);
 }
 
 void World::addBody(Body& body)
 {
+	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 	bodies.emplace(&body);
 }
 
 void Phys::World::destroyBody(Body& body)
 {
+	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 	bodies.erase(&body);
 	box2D->DestroyBody(body.getB2Body());
 }

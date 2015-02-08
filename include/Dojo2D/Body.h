@@ -6,6 +6,7 @@ namespace Phys {
 	
 	class Material;
 	class World;
+	class BodyPart;
 
 	class Body
 	{
@@ -14,11 +15,11 @@ namespace Phys {
 
 		virtual ~Body();
 
-		b2Fixture& addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor = false);
-		b2Fixture& addPolyShape(const Material& material, const std::vector<b2Vec2>& points, bool sensor = false);
-		b2Fixture& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
-		b2Fixture& addCircleShape(const Material& material, float radius, const Vector& center = Vector::ZERO, bool sensor = false);
-		b2Fixture& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
+		BodyPart& addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor = false);
+		BodyPart& addPolyShape(const Material& material, const std::vector<b2Vec2>& points, bool sensor = false);
+		BodyPart& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
+		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::ZERO, bool sensor = false);
+		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
 
 		void initPhysics(Dojo::Renderable& graphics, Group group, bool staticShape = false, bool inactive = false);
 		void initPhysics(Dojo::Object& level, Group group, bool staticShape = false, bool inactive = false);
@@ -91,11 +92,13 @@ namespace Phys {
 		World& world;
 		Dojo::Renderable* graphics = nullptr;
 
-		b2Body* body;
+		b2Body* body = nullptr;
 		Group group;
 		bool staticShape = false;
 
-		b2Fixture& _addShape(b2Shape& shape, const Material& material, bool sensor);
+		std::vector<Unique<BodyPart>> parts;
+
+		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
 
 		void _init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, bool staticShape, bool inactive);
 		void _bodyCommandAsync(const std::function<void()>& c);

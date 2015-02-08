@@ -4,6 +4,7 @@
 #include "PhysUtil.h"
 #include "World.h"
 #include "Body.h"
+#include "BodyPart.h"
 
 using namespace Phys;
 
@@ -24,15 +25,15 @@ float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Ve
 	return fraction; //stop
 }
 
-Body* Phys::RayResult::getHitBody() const {
+Body* RayResult::getHitBody() const {
 	return hitFixture ? &getBodyForFixture(hitFixture) : nullptr;
 }
 
-const Material* Phys::RayResult::getHitMaterial() const {
-	return hitFixture ? &getMaterialForFixture(hitFixture) : nullptr;
+const Material* RayResult::getHitMaterial() const {
+	return hitFixture ? &getPartForFixture(hitFixture).material : nullptr;
 }
 
-bool Phys::RayResult::ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) {
+bool RayResult::ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) {
 	return false;
 }
 

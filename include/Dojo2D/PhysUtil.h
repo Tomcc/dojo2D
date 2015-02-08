@@ -4,7 +4,7 @@
 
 namespace Phys {
 	class Body;
-	class Material;
+	class BodyPart;
 
 	//make a copy of the b2vec 
 	inline Dojo::Vector asVec(const b2Vec2& v) {
@@ -31,14 +31,14 @@ namespace Phys {
 		return getBodyForFixture(*fixture);
 	}
 
-	inline const Material& getMaterialForFixture(const b2Fixture& fixture) {
-		return *(const Material*)fixture.GetUserData();
+	inline const BodyPart& getPartForFixture(const b2Fixture& fixture) {
+		return *(const BodyPart*)fixture.GetUserData();
 	}
 
-	inline const Material& getMaterialForFixture(const b2Fixture* fixture) {
+	inline const BodyPart& getPartForFixture(const b2Fixture* fixture) {
 		//not using a reference because b2 is old style
 		DEBUG_ASSERT(fixture, "the fixture may not be null");
-		return *(const Material*)fixture->GetUserData();
+		return *(const BodyPart*)fixture->GetUserData();
 	}
 
 	std::vector<b2PolygonShape> decomposeConvex(const std::vector<Dojo::Vector>& points);
