@@ -95,7 +95,8 @@ void ParticleSystem::onPostSimulationStep()
 	//only show when active, visible and has particles
 	setVisible(active && viewport.isInViewRect(*this) && particleSystem->GetParticleCount() > 0);
 
-	if (isVisible() && !mesh->isEditing()) {
+	if (isVisible() && !building) {
+		building = true;
 		mesh->begin(particleSystem->GetParticleCount());
 
 		auto position = particleSystem->GetPositionBuffer();
@@ -136,6 +137,8 @@ void ParticleSystem::onPostSimulationStep()
 		//fire a callback to rebuild the mesh
 		world.asyncCallback([this](){
 			mesh->end();
+			building = false;
+			setVisible(isVisible() && mesh->getVertexCount() > 0);
 		});
 	}
 

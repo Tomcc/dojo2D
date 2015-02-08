@@ -32,3 +32,7 @@ const Material* Phys::RayResult::getHitMaterial() const {
 	return hitFixture ? &getMaterialForFixture(hitFixture) : nullptr;
 }
 
+bool Phys::RayResult::ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) {
+	return false;
+}
+

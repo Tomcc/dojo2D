@@ -30,6 +30,8 @@ namespace Phys {
 
 		const Material* getHitMaterial() const;
 
+		virtual bool ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) override;
+
 	protected:
 		const World* world;
 	};

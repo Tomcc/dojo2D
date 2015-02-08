@@ -46,6 +46,7 @@ namespace Phys {
 		b2ParticleSystem* particleSystem;
 
 		uintptr_t counter = 0;
+		std::atomic<bool> building = false;
 	private:
 	};
 }
