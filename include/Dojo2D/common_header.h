@@ -13,6 +13,7 @@
 namespace Phys {
 	typedef uint32_t Group;
 	using Vector = Dojo::Vector;
+	using Radians = Dojo::Radians;
 
 	typedef std::lock_guard<std::mutex> ScopedLock;
 }

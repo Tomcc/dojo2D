@@ -15,7 +15,7 @@ namespace Phys {
 		Group group = 0;
 		float dist;
 
-		RayResult(const World& world) :
+		explicit RayResult(const World& world) :
 			world(&world) {
 
 		}

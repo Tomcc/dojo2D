@@ -19,7 +19,6 @@ namespace Phys {
 		typedef std::vector<const b2Fixture*> FixtureList;
 
 		const float timeStep;
-		bool simulationPaused = false;
 
 		static bool shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2);
 		static bool shapesOverlap(const b2Shape& shape, const b2Fixture& fixture);
@@ -37,7 +36,7 @@ namespace Phys {
 		Vector getGravity() const;
 
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
-		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result) const;
+		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result, const Command& callback = {}) const;
 		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false) const;
 
 		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false) const;
@@ -55,7 +54,7 @@ namespace Phys {
 
 		void sync() const;
 
-		void asyncCommand(const Command& command, const Command& callback = Command()) const;
+		void asyncCommand(const Command& command, const Command& callback = {}) const;
 		void asyncCallback(const Command& callback) const;
 		bool isWorkerThread() const;
 
@@ -64,6 +63,19 @@ namespace Phys {
 		}
 		void addBody(Body& body);
 		void destroyBody(Body& body);
+
+		void pause();
+
+		void resume();
+
+		bool isPaused() const {
+			return simulationPaused;
+		}
+
+		void startPhysics() {
+			resume();
+		}
+
 	protected:
 
 		struct DeferredCollision {
@@ -119,6 +131,8 @@ namespace Phys {
 
 		static const int GROUP_COUNT = 256; //HACK
 		ContactMode collideMode[GROUP_COUNT][GROUP_COUNT];
+
+		bool simulationPaused = true;
 	};
 }
 

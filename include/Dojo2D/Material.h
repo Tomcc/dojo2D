@@ -5,6 +5,7 @@
 namespace Phys {
 	class Material {
 	public:
+		const Dojo::String name;
 		float density = 1.f;
 
 		//fluid parameters
@@ -15,6 +16,11 @@ namespace Phys {
 		float friction = 0.5f;
 		float restitution = 0.f;
 
+		Material(const Dojo::String& name) :
+			name(name) {
+
+			DEBUG_ASSERT(name.size() > 0, "Invalid material name");
+		}
 	};
 }
 

@@ -41,7 +41,7 @@ namespace Phys {
 
 		void forcePosition(const Vector& position);
 		void forceVelocity(const Vector& velocity);
-		void forceRotation(float angle);
+		void forceRotation(Radians angle);
 
 		void setActive();
 
@@ -60,7 +60,7 @@ namespace Phys {
 
 		void setDamping(float linear, float angular);
 
-		void setTransform(const Vector& position, float angle);
+		void setTransform(const Vector& position, Radians angle);
 
 		Group getGroup() const {
 				return group;
@@ -80,6 +80,7 @@ namespace Phys {
 
 		virtual void onCollision(Body& other, float force, const Vector& point) {}
 		virtual void onSensorCollision(Body& other, b2Fixture& sensor) {};
+		virtual void onSimulationPaused();
 
 		void updateGraphics();
 

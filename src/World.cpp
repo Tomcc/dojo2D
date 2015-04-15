@@ -226,7 +226,7 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 	}
 }
 
-void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelongsToGroup, RayResult& result) const
+void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelongsToGroup, RayResult& result, const Command& callback) const
 {
 	result.group = rayBelongsToGroup;
 	asyncCommand([=, &result](){
@@ -239,7 +239,8 @@ void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelong
 			result.position = end;
 
 		result.dist = start.distance(result.position);
-	});
+	},
+	callback);
 }
 
 bool World::isWorkerThread() const
@@ -297,8 +298,12 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 			decltype(report)& func;
 			Query(const decltype(func)& f) : func(f) {}
 
-			virtual bool ReportFixture(b2Fixture* fixture) {
+			virtual bool ReportFixture(b2Fixture* fixture) override {
 				return func(fixture);
+			}
+
+			virtual bool ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) override {
+				return false; //stupid defaults, really
 			}
 		};
 
@@ -374,11 +379,28 @@ void World::addBody(Body& body)
 	bodies.emplace(&body);
 }
 
-void Phys::World::destroyBody(Body& body)
+void World::destroyBody(Body& body)
 {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 	bodies.erase(&body);
 	box2D->DestroyBody(body.getB2Body());
 }
 
+void World::pause() {
+	asyncCommand([this](){
+		DEBUG_ASSERT(!simulationPaused, "Already paused");
+		simulationPaused = true;
 
+		//tell all bodies they're being paused
+		for (auto&& body : bodies) {
+			body->onSimulationPaused();
+		}
+	});
+}
+
+void World::resume() {
+	asyncCommand([this](){
+		DEBUG_ASSERT(simulationPaused, "Already resumed");
+		simulationPaused = false;
+	});
+}

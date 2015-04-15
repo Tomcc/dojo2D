@@ -165,9 +165,15 @@ void Body::initPhysics(Dojo::Object& obj, Group group, bool staticShape, bool in
 // 	}
 // }
 
+void Body::onSimulationPaused() {
+	if (graphics)
+		graphics->speed = Vector::ZERO;
+}
+
+
 void Body::updateGraphics() {
 
-	if (graphics) {
+	if (graphics && !world.isPaused()) {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 
 		auto& t = body->GetTransform();
@@ -182,7 +188,7 @@ void Body::updateGraphics() {
 			body->SetTransform(t.p, graphics->getRoll());
 		}
 		else
-			graphics->setRotation(Vector(0, 0, t.q.GetAngle()));
+			graphics->setRoll(Radians(t.q.GetAngle()));
 	}
 }
 
@@ -233,7 +239,7 @@ void Body::forcePosition(const Vector& position) {
 	});
 }
 
-void Body::forceRotation(float angle) {
+void Phys::Body::forceRotation(Radians angle) {
 	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
@@ -241,7 +247,7 @@ void Body::forceRotation(float angle) {
 	});
 }
 
-void Body::setTransform(const Vector& position, float angle) {
+void Phys::Body::setTransform(const Vector& position, Radians angle) {
 	world.asyncCommand([=](){
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetTransform(asB2Vec(position), angle);
