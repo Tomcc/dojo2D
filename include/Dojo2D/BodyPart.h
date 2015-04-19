@@ -19,4 +19,3 @@ namespace Phys {
 		b2Fixture* fixture = nullptr;
 	};
 }
-

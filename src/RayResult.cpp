@@ -6,8 +6,7 @@
 
 using namespace Phys;
 
-float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Vec2& N, float32 fraction)
-{
+float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Vec2& N, float32 fraction) {
 	if (fixture->IsSensor())
 		return -1; //ignore
 
@@ -34,4 +33,3 @@ const Material* RayResult::getHitMaterial() const {
 bool RayResult::ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) {
 	return false;
 }
-

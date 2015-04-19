@@ -8,15 +8,14 @@ std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& poi
 	wholePolygon.y = new float32[points.size()];
 	wholePolygon.nVertices = points.size();
 
-	for (size_t i = 0; i < points.size(); ++i)
-	{
+	for (size_t i = 0; i < points.size(); ++i) {
 		wholePolygon.x[i] = points[i].x;
 		wholePolygon.y[i] = points[i].y;
 	}
 
 	//cannot decompose, return an empty vector
 	if (!wholePolygon.IsSimple())
-		return {};
+		return{};
 
 	const int MAX_PIECES = 100;
 
@@ -29,8 +28,7 @@ std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& poi
 
 	//use AddTo and then extract the polyshape from the fixture!
 	b2FixtureDef temp;
-	for (int i = 0; i < n; ++i)
-	{
+	for (int i = 0; i < n; ++i) {
 		polys[i].AddTo(temp);
 
 		processedPolys.emplace_back(*(b2PolygonShape*)temp.shape);

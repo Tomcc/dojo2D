@@ -5,7 +5,7 @@
 
 using namespace Phys;
 
-const static b2Transform B2_IDENTITY = { b2Vec2(0.f, 0.f), b2Rot(0.f) };
+const static b2Transform B2_IDENTITY = {b2Vec2(0.f, 0.f), b2Rot(0.f)};
 
 bool World::shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2) {
 	return b2TestOverlap(&s1, 0, &s2, 0, t1, t2);
@@ -17,7 +17,7 @@ bool World::shapesOverlap(const b2Shape& shape, const b2Fixture& fixture) {
 
 
 World::World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations) :
-timeStep(timeStep) {
+	timeStep(timeStep) {
 
 	DEBUG_ASSERT(timeStep > 0, "Invalid timestep");
 
@@ -36,7 +36,7 @@ timeStep(timeStep) {
 	deferredCollisions = make_unique<Dojo::Pipe<DeferredCollision>>();
 	deferredSensorCollisions = make_unique<Dojo::Pipe<DeferredSensorCollision>>();
 
-	thread = std::thread([=](){
+	thread = std::thread([=]() {
 		Dojo::Timer timer;
 		Job job;
 		while (running) {
@@ -49,8 +49,7 @@ timeStep(timeStep) {
 					callbacks->enqueue(std::move(job.callback));
 			}
 
-			if (!simulationPaused && timer.getElapsedTime() > timeStep)
-			{
+			if (!simulationPaused && timer.getElapsedTime() > timeStep) {
 				timer.reset();
 				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
@@ -63,7 +62,7 @@ timeStep(timeStep) {
 
 				//tell to cleanup the deleted bodies
 				if (deletedBodies.size() > 0) {
-					asyncCallback([&](){
+					asyncCallback([&]() {
 						deletedBodies.clear();
 					});
 				}
@@ -81,13 +80,13 @@ World::~World() {
 }
 
 void World::addListener(WorldListener& listener) {
-	asyncCommand([&](){
+	asyncCommand([&]() {
 		listeners.emplace(&listener);
 	});
 }
 
 void World::removeListener(WorldListener& listener) {
-	asyncCommand([&](){
+	asyncCommand([&]() {
 		listeners.erase(&listener);
 	});
 }
@@ -110,7 +109,7 @@ void World::asyncCommand(const Command& command, const Command& callback /*= Com
 		command();
 		if (callback)
 			callbacks->enqueue(callback);
-	} 
+	}
 	else
 		commands->enqueue(command, callback);
 }
@@ -123,11 +122,10 @@ void World::asyncCallback(const Command& callback) const {
 		callback();
 }
 
-void World::sync() const
-{
+void World::sync() const {
 	if (!isWorkerThread()) {
 		std::atomic<bool> done = false;
-		asyncCommand([&](){
+		asyncCommand([&]() {
 			done = true;
 		});
 
@@ -145,8 +143,8 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
 		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
-			deferredSensorCollisions->enqueue( phB, phA, *fixtureA );
-			deferredSensorCollisions->enqueue( phA, phB, *fixtureB );
+			deferredSensorCollisions->enqueue(phB, phA, *fixtureA);
+			deferredSensorCollisions->enqueue(phA, phB, *fixtureB);
 		}
 
 		return false;
@@ -154,11 +152,11 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
 	//check if the sensors should collide
 	if (fixtureA->IsSensor()) {
-		deferredSensorCollisions->enqueue( phB, phA, *fixtureA );
+		deferredSensorCollisions->enqueue(phB, phA, *fixtureA);
 	}
-		
+
 	if (fixtureB->IsSensor()) {
-		deferredSensorCollisions->enqueue( phA, phB, *fixtureB );
+		deferredSensorCollisions->enqueue(phA, phB, *fixtureB);
 	}
 
 	if (fixtureA->IsSensor() && fixtureB->IsSensor())
@@ -180,8 +178,7 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	return b2ContactFilter::ShouldCollide(fixtureA, fixtureB);
 }
 
-bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex)
-{
+bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex) {
 	auto& body = getBodyForFixture(fixture);
 	auto& ps = ParticleSystem::getFor(particleSystem);
 
@@ -192,8 +189,7 @@ bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, 
 	}
 }
 
-void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
-{
+void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	b2WorldManifold worldManifold;
 
 	auto& phA = getBodyForFixture(contact->GetFixtureA());
@@ -209,58 +205,54 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 		point = worldManifold.points[0];
 	else
 		point = (worldManifold.points[0] + worldManifold.points[1]) * 0.5f;
-	
+
 	DEBUG_ASSERT(phA.isStatic() || phA.getMass() > 0, "HM");
 	DEBUG_ASSERT(phB.isStatic() || phB.getMass() > 0, "HM");
 
 	auto& N = worldManifold.normal;
-//	b2Vec2 T = { N.y, -N.x };
-	b2Vec2 F = { 0, 0 };
+	//	b2Vec2 T = { N.y, -N.x };
+	b2Vec2 F = {0, 0};
 	for (int i = 0; i < impulse->count; ++i)
 		F += impulse->normalImpulses[i] * N;
 
 	float force = F.Length();
 	if (force > 0.1f) {
-		deferredCollisions->enqueue( phA, phB, force, point );
+		deferredCollisions->enqueue(phA, phB, force, point);
 	}
 }
 
-void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelongsToGroup, RayResult& result, const Command& callback) const
-{
+void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelongsToGroup, RayResult& result, const Command& callback) const {
 	result.group = rayBelongsToGroup;
-	asyncCommand([=, &result](){
-		box2D->RayCast(
-			&result,
-			{ start.x, start.y },
-			{ end.x, end.y });
+	asyncCommand([=, &result]() {
+					box2D->RayCast(
+						&result,
+						{start.x, start.y},
+						{end.x, end.y});
 
-		if (!result.hit)
-			result.position = end;
+					if (!result.hit)
+						result.position = end;
 
-		result.dist = start.distance(result.position);
-	},
-	callback);
+					result.dist = start.distance(result.position);
+				},
+				callback);
 }
 
-bool World::isWorkerThread() const
-{
+bool World::isWorkerThread() const {
 	return std::this_thread::get_id() == thread.get_id();
 }
 
-RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup /*= 0*/) const
-{
+RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup /*= 0*/) const {
 	RayResult result(*this);
 	asyncRaycast(start, end, rayBelongsToGroup, result);
 	sync();
 	return result;
 }
 
-bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise /*= false*/) const
-{
+bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise /*= false*/) const {
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
 	bool empty = true;
-	asyncCommand([&](){
+	asyncCommand([&]() {
 		b2PolygonShape aabbShape;
 		if (precise) {
 			Vector dim = max - min;
@@ -268,7 +260,7 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 			aabbShape.SetAsBox(dim.x, dim.y, asB2Vec(center), 0);
 		}
 
-		auto report = [&](b2Fixture* fixture){
+		auto report = [&](b2Fixture* fixture) {
 			if (!fixture->IsSensor()) {
 				auto& body = getBodyForFixture(fixture);
 				auto contactMode = getContactModeFor(group, body.getGroup());
@@ -291,11 +283,12 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 			return true;
 		};
 
-		class Query : public b2QueryCallback
-		{
+		class Query : public b2QueryCallback {
 		public:
 			decltype(report)& func;
-			Query(const decltype(func)& f) : func(f) {}
+
+			Query(const decltype(func)& f) : func(f) {
+			}
 
 			virtual bool ReportFixture(b2Fixture* fixture) override {
 				return func(fixture);
@@ -357,7 +350,7 @@ void World::update(float dt) {
 		auto& body = getBodyForFixture(sc.sensor);
 		if (deletedBodies.contains(&body))
 			continue;
-		
+
 		body.onSensorCollision(*sc.other, *sc.sensor); //sensor collisions are not bidirectional
 	}
 
@@ -372,21 +365,19 @@ void World::_notifyDestroyed(Body& body) {
 	deletedBodies.emplace(&body);
 }
 
-void World::addBody(Body& body)
-{
+void World::addBody(Body& body) {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 	bodies.emplace(&body);
 }
 
-void World::destroyBody(Body& body)
-{
+void World::destroyBody(Body& body) {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 	bodies.erase(&body);
 	box2D->DestroyBody(body.getB2Body());
 }
 
 void World::pause() {
-	asyncCommand([this](){
+	asyncCommand([this]() {
 		DEBUG_ASSERT(!simulationPaused, "Already paused");
 		simulationPaused = true;
 
@@ -398,7 +389,7 @@ void World::pause() {
 }
 
 void World::resume() {
-	asyncCommand([this](){
+	asyncCommand([this]() {
 		DEBUG_ASSERT(simulationPaused, "Already resumed");
 		simulationPaused = false;
 	});

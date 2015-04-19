@@ -1,7 +1,7 @@
 #include "BodyPart.h"
 
 Phys::BodyPart::BodyPart(const Material& material) :
-material(material) {
+	material(material) {
 
 }
 

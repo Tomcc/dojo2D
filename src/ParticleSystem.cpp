@@ -7,29 +7,28 @@
 using namespace Phys;
 using namespace Dojo;
 
-const ParticleSystem& ParticleSystem::getFor(b2ParticleSystem* ps)
-{
+const ParticleSystem& ParticleSystem::getFor(b2ParticleSystem* ps) {
 	DEBUG_ASSERT(ps, "no particle system");
 	DEBUG_ASSERT(ps->GetParticleCount() > 0, "This PS cannot collide");
 
 	return *(ParticleSystem*)ps->GetUserDataBuffer()[0];
 }
 
-ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleRadius, float damping /*= 0*/) : 
-Dojo::Renderable(&parent, Vector::ZERO),
-material(material),
-damping(damping),
-particleRadius(particleRadius),
-world(world),
-group(group),
-_mesh(new Mesh()) {
+ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleRadius, float damping /*= 0*/) :
+	Dojo::Renderable(&parent, Vector::ZERO),
+	material(material),
+	damping(damping),
+	particleRadius(particleRadius),
+	world(world),
+	group(group),
+	_mesh(new Mesh()) {
 	DEBUG_ASSERT(particleRadius > 0, "Invalid particle size");
 
 	setMesh(_mesh.get());
 
 	mesh->setDynamic(true);
 	mesh->setTriangleMode(TriangleMode::TriangleList);
-	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
+	mesh->setVertexFields({VertexField::Position2D, VertexField::Color, VertexField::UV0});
 	//mesh->setIndexByteSize(4);
 
 	world.asyncCommand([this, damping, particleRadius, &material, &world]() {
@@ -63,19 +62,18 @@ void ParticleSystem::addParticle(const Dojo::Vector& pos, const Dojo::Vector& ve
 	particle.lifetime = lifetime;
 	particle.userData = this;
 
-	world.asyncCommand([=](){
+	world.asyncCommand([=]() {
 		particleSystem->CreateParticle(particle);
 	});
 }
 
 void ParticleSystem::onAction(float dt) {
 	Object::onAction(dt);
-	
+
 	advanceFade(dt);
 }
 
-void ParticleSystem::onPostSimulationStep()
-{
+void ParticleSystem::onPostSimulationStep() {
 	b2AABB b2bb;
 	particleSystem->ComputeAABB(&b2bb);
 
@@ -102,16 +100,16 @@ void ParticleSystem::onPostSimulationStep()
 		//auto userData = (uintptr_t*)particleSystem->GetUserDataBuffer();
 		auto velocity = particleSystem->GetVelocityBuffer();
 
-		for (int i = 0; i < particleSystem->GetParticleCount(); ++i, ++position, ++color, ++velocity) {
+		for (int i = 0; i < particleSystem->GetParticleCount(); ++i , ++position , ++color , ++velocity) {
 			//int hash = ((*userData * 0x1f1f1f1f) >> 1) & 0xf;
 
-			if (viewport.isInViewRect(Vector{ position->x, position->y })) {
+			if (viewport.isInViewRect(Vector{position->x, position->y})) {
 				b2Color c1 = color->GetColor();
 				Color c(c1.r, c1.g, c1.b, 1.f);
 
 				auto baseIdx = mesh->getVertexCount();
 
-				float r = particleRadius*1.5f;
+				float r = particleRadius * 1.5f;
 				// 			if (hash < 5 && hash > 0)
 				// 				r -= 0.03f * hash;
 
@@ -133,7 +131,7 @@ void ParticleSystem::onPostSimulationStep()
 		}
 
 		//fire a callback to rebuild the mesh
-		world.asyncCallback([this](){
+		world.asyncCallback([this]() {
 			mesh->end();
 			building = false;
 			setVisible(isVisible() && mesh->getVertexCount() > 0);
