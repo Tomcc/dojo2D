@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "BodyPart.h"
 
 Phys::BodyPart::BodyPart(const Material& material) :

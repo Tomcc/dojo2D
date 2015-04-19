@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "Body.h"
 #include "Material.h"
 #include "PhysUtil.h"
@@ -178,11 +176,8 @@ void Body::updateGraphics() {
 
 		auto& t = body->GetTransform();
 
-		graphics->position.x = t.p.x;
-		graphics->position.y = t.p.y;
-
-		auto speed = body->GetLinearVelocity();
-		graphics->speed = Vector(speed.x, speed.y);
+		graphics->position = asVec(t.p);
+		graphics->speed = asVec(body->GetLinearVelocity());
 
 		if (body->IsFixedRotation()) {
 			body->SetTransform(t.p, graphics->getRoll());

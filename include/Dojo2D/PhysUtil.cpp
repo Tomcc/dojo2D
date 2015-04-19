@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "PhysUtil.h"
 
 std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& points) {

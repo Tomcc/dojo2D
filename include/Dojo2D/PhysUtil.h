@@ -12,10 +12,6 @@ namespace Phys {
 	}
 
 	//transmute the reference to a b2vec2 reference
-	inline b2Vec2& asB2Vec(Dojo::Vector& v) {
-		return *(b2Vec2*)(&v);
-	}
-
 	inline const b2Vec2& asB2Vec(const Dojo::Vector& v) {
 		return *(b2Vec2*)(&v);
 	}

@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "RayResult.h"
 #include "PhysUtil.h"
 #include "World.h"

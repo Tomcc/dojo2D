@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "World.h"
 #include "Body.h"
 #include "PhysUtil.h"
@@ -70,8 +68,9 @@ timeStep(timeStep) {
 					});
 				}
 			}
-
-			std::this_thread::yield();
+			else {
+				std::this_thread::yield();
+			}
 		}
 	});
 }
