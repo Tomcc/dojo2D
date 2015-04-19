@@ -41,7 +41,7 @@ namespace Phys {
 			
 		Unique<Dojo::Mesh> _mesh;
 
-		AABB activityAABB;
+		Dojo::AABB activityAABB;
 
 		b2ParticleSystem* particleSystem;
 

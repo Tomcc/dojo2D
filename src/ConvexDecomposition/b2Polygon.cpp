@@ -524,7 +524,7 @@ void b2Polygon::AddTo(b2FixtureDef& pd) {
 	int32 offset = 0;
 	
 	b2PolygonShape *polyShape = new b2PolygonShape;
-	int32 ind;
+	int32 ind = 0;
 	
     for (int32 i = 0; i < nVertices; ++i) {
 		
