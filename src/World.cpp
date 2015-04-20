@@ -129,7 +129,8 @@ void World::sync() const {
 			done = true;
 		});
 
-		while (!done);
+		while (!done)
+			std::this_thread::yield();
 	}
 }
 

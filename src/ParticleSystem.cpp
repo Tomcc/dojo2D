@@ -15,13 +15,13 @@ const ParticleSystem& ParticleSystem::getFor(b2ParticleSystem* ps) {
 }
 
 ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleRadius, float damping /*= 0*/) :
-	Dojo::Renderable(&parent, Vector::ZERO),
+	Dojo::Renderable(parent, Vector::ZERO),
 	material(material),
 	damping(damping),
 	particleRadius(particleRadius),
 	world(world),
 	group(group),
-	_mesh(new Mesh()) {
+	_mesh(make_unique<Mesh>()) {
 	DEBUG_ASSERT(particleRadius > 0, "Invalid particle size");
 
 	setMesh(_mesh.get());
@@ -82,7 +82,7 @@ void ParticleSystem::onPostSimulationStep() {
 
 	activityAABB = worldBB.grow(5);
 
-	auto& viewport = *getGameState()->getViewport();
+	auto& viewport = *getGameState().getViewport();
 
 	//suspend the particlesystem when it's too far from the player
 	bool active = (!autoDeactivate) || (viewport.isInViewRect(activityAABB));
