@@ -94,7 +94,7 @@ namespace Phys {
 
 		template<class T>
 		T* getUserObject() const {
-			return (T*)userPtr;
+			return (T*)userObject;
 		}
 
 	protected:
