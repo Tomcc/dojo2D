@@ -88,6 +88,15 @@ namespace Phys {
 			return world;
 		}
 
+		void setUserObject(Dojo::Object* object) {
+			userObject = object;
+		}
+
+		template<class T>
+		T* getUserObject() const {
+			return (T*)userPtr;
+		}
+
 	protected:
 
 		World& world;
@@ -96,6 +105,7 @@ namespace Phys {
 		b2Body* body = nullptr;
 		Group group;
 		bool staticShape = false;
+		Dojo::Object* userObject = nullptr;
 
 		std::vector<Unique<BodyPart>> parts;
 
