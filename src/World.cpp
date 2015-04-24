@@ -357,8 +357,6 @@ void World::update(float dt) {
 
 	while (callbacks->try_dequeue(callback))
 		callback();
-
-
 }
 
 void World::_notifyDestroyed(Body& body) {

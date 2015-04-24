@@ -84,7 +84,7 @@ namespace Phys {
 
 		void updateGraphics();
 
-		const World& getWorld() const {
+		World& getWorld() const {
 			return world;
 		}
 
