@@ -39,14 +39,14 @@ namespace Phys {
 
 		const Material& material;
 			
-		Unique<Dojo::Mesh> _mesh;
+		Unique<Dojo::Mesh> mesh[2];
 
 		Dojo::AABB activityAABB;
 
 		b2ParticleSystem* particleSystem;
+		std::atomic<bool> rebuilding = false;
 
 		uintptr_t counter = 0;
-		std::atomic<bool> building = false;
 	private:
 	};
 }

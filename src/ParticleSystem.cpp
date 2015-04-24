@@ -14,22 +14,30 @@ const ParticleSystem& ParticleSystem::getFor(b2ParticleSystem* ps) {
 	return *(ParticleSystem*)ps->GetUserDataBuffer()[0];
 }
 
+Unique<Dojo::Mesh> _makeMesh() {
+	auto mesh = make_unique<Mesh>();
+
+	mesh->setDynamic(true);
+	mesh->setTriangleMode(TriangleMode::TriangleList);
+	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
+
+	return mesh;
+}
+
 ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleRadius, float damping /*= 0*/) :
 	Dojo::Renderable(parent, Vector::ZERO),
 	material(material),
 	damping(damping),
 	particleRadius(particleRadius),
 	world(world),
-	group(group),
-	_mesh(make_unique<Mesh>()) {
+	group(group) {
 	DEBUG_ASSERT(particleRadius > 0, "Invalid particle size");
 
-	setMesh(_mesh.get());
+	mesh[0] = _makeMesh();
+	mesh[1] = _makeMesh();
 
-	mesh->setDynamic(true);
-	mesh->setTriangleMode(TriangleMode::TriangleList);
-	mesh->setVertexFields({VertexField::Position2D, VertexField::Color, VertexField::UV0});
-	//mesh->setIndexByteSize(4);
+	setMesh(mesh[0].get());
+	setVisible(false);
 
 	world.asyncCommand([this, damping, particleRadius, &material, &world]() {
 		b2ParticleSystemDef particleSystemDef;
@@ -91,9 +99,9 @@ void ParticleSystem::onPostSimulationStep() {
 	//only show when active, visible and has particles
 	setVisible(active && viewport.isInViewRect(*this) && particleSystem->GetParticleCount() > 0);
 
-	if (isVisible() && !building) {
-		building = true;
-		mesh->begin(particleSystem->GetParticleCount());
+	if (isVisible() && !rebuilding) {
+		rebuilding = true;
+		mesh[1]->begin(particleSystem->GetParticleCount());
 
 		auto position = particleSystem->GetPositionBuffer();
 		auto color = particleSystem->GetColorBuffer();
@@ -107,35 +115,37 @@ void ParticleSystem::onPostSimulationStep() {
 				b2Color c1 = color->GetColor();
 				Color c(c1.r, c1.g, c1.b, 1.f);
 
-				auto baseIdx = mesh->getVertexCount();
+				auto baseIdx = mesh[1]->getVertexCount();
 
 				float r = particleRadius * 1.5f;
 				// 			if (hash < 5 && hash > 0)
 				// 				r -= 0.03f * hash;
 
-				mesh->vertex(position->x - r, position->y - r);
-				mesh->color(c);
-				mesh->uv(0, 0);
-				mesh->vertex(position->x + r, position->y - r);
-				mesh->color(c);
-				mesh->uv(1, 0);
-				mesh->vertex(position->x - r, position->y + r);
-				mesh->color(c);
-				mesh->uv(0, 1);
-				mesh->vertex(position->x + r, position->y + r);
-				mesh->color(c);
-				mesh->uv(1, 1);
+				mesh[1]->vertex(position->x - r, position->y - r);
+				mesh[1]->color(c);
+				mesh[1]->uv(0, 0);
+				mesh[1]->vertex(position->x + r, position->y - r);
+				mesh[1]->color(c);
+				mesh[1]->uv(1, 0);
+				mesh[1]->vertex(position->x - r, position->y + r);
+				mesh[1]->color(c);
+				mesh[1]->uv(0, 1);
+				mesh[1]->vertex(position->x + r, position->y + r);
+				mesh[1]->color(c);
+				mesh[1]->uv(1, 1);
 
-				mesh->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
+				mesh[1]->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
 			}
 		}
 
-		//fire a callback to rebuild the mesh
-		world.asyncCallback([this]() {
-			mesh->end();
-			building = false;
-			setVisible(isVisible() && mesh->getVertexCount() > 0);
+		world.asyncCallback([this](){
+			mesh[1]->end();
+			setVisible(isVisible() && mesh[1]->getVertexCount() > 0);
+
+			std::swap(mesh[0], mesh[1]);
+
+			setMesh(mesh[0].get());
+			rebuilding = false;
 		});
 	}
-
 }
