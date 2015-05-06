@@ -18,7 +18,7 @@ Unique<Dojo::Mesh> _makeMesh() {
 	auto mesh = make_unique<Mesh>();
 
 	mesh->setDynamic(true);
-	mesh->setTriangleMode(TriangleMode::TriangleList);
+	mesh->setTriangleMode(PrimitiveMode::TriangleList);
 	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
 
 	return mesh;
