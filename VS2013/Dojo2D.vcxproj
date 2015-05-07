@@ -25,7 +25,7 @@
     <ClInclude Include="..\include\Dojo2D\RayResult.h" />
     <ClInclude Include="..\include\Dojo2D\World.h" />
     <ClInclude Include="..\include\Dojo2D\WorldListener.h" />
-    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="..\src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\Dojo2D\BodyPart.cpp" />
@@ -109,7 +109,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;../dependencies/include;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;..\Box2D\liquidfun\Box2D</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -126,8 +126,8 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>liquidfun.lib;Dojo.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../../dojo/lib/$(Configuration);../dependencies/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Box2D.lib;Dojo.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../dojo/lib/$(Configuration);../lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <Verbose>
       </Verbose>
     </Lib>
@@ -139,7 +139,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;../dependencies/include;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;..\Box2D\liquidfun\Box2D</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -167,8 +167,8 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>liquidfun.lib;Dojo.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../../dojo/lib/$(Configuration);../dependencies/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Box2D.lib;Dojo.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../dojo/lib/$(Configuration);../lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <Verbose>
       </Verbose>
     </Lib>
@@ -180,7 +180,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;../dependencies/include;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;..\Box2D\liquidfun\Box2D</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;PUBLISH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -207,8 +207,8 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>liquidfun.lib;Dojo.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../../dojo/lib/$(Configuration);../dependencies/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Box2D.lib;Dojo.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../dojo/lib/$(Configuration);../lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <Verbose>
       </Verbose>
     </Lib>

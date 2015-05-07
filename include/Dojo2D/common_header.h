@@ -6,8 +6,6 @@
 #include <unordered_set>
 #include <mutex>
 
-#define DLLX __declspec(dllimport)
-
 #include "ConvexDecomposition/b2Polygon.h"
 
 namespace Phys {

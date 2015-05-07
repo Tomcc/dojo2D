@@ -24,7 +24,6 @@
     <ClCompile Include="..\include\Dojo2D\BodyPart.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="..\include\Dojo2D\Body.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -49,6 +48,7 @@
     <ClInclude Include="..\include\Dojo2D\ContactMode.h" />
     <ClInclude Include="..\include\Dojo2D\WorldListener.h" />
     <ClInclude Include="..\include\Dojo2D\BodyPart.h" />
+    <ClInclude Include="..\src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
