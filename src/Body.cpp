@@ -6,8 +6,9 @@
 
 using namespace Phys;
 
-Body::Body(World& world) :
-	world(world) {
+Body::Body(Dojo::Object& object, World& world) :
+	world(world),
+	object(object) {
 
 }
 
@@ -20,10 +21,10 @@ Body::~Body() {
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
 	//TODO use a unique pointer when capture-by-move is available
 
-	auto part = new BodyPart(material);
-	parts.emplace_back(part);
+	parts.emplace_back(make_unique<BodyPart>(material));
 
-	world.asyncCommand([this, part, &material, sensor, shape]() {
+	auto& part = *parts.back();
+	world.asyncCommand([this, &part, &material, sensor, shape]() {
 
 		b2FixtureDef fixtureDef;
 
@@ -35,12 +36,12 @@ BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material,
 		fixtureDef.filter.groupIndex = group;
 		fixtureDef.isSensor = sensor;
 
-		fixtureDef.userData = (void*)part;
+		fixtureDef.userData = (void*)&part;
 
-		part->fixture = body->CreateFixture(&fixtureDef);
+		part.fixture = body->CreateFixture(&fixtureDef);
 	});
 
-	return *part;
+	return part;
 }
 
 BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor /*= false*/) {
@@ -99,29 +100,29 @@ BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensio
 void Body::destroyPhysics() {
 	world._notifyDestroyed(*this);
 
-	graphics = nullptr;
 	staticShape = false;
 	group = 0;
 	particleCollisionModel = false;
 
-	world.asyncCommand([&]() {
-		if (body) {
+	//appear like the body is destroyed instantly on the main thread
+	auto oldBody = body;
+	body = nullptr;
+	world.asyncCommand([&, oldBody]() {
+		if (oldBody) {
 			world.destroyBody(*this);
-			body = nullptr;
+			world.getBox2D().DestroyBody(oldBody);
 		}
 	});
 }
 
-void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, bool staticShape, bool inactive) {
-
-	this->graphics = graphics;
+void Body::initPhysics(Group group, bool staticShape, bool inactive) {
 	this->group = group;
 
 	b2BodyDef bodyDef;
 	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
 
-	bodyDef.position = asB2Vec(obj.position);
-	bodyDef.angle = obj.getRoll();
+	bodyDef.position = asB2Vec(object.position);
+	bodyDef.angle = object.getRoll();
 
 	if (staticShape) {
 		bodyDef.awake = false;
@@ -144,35 +145,28 @@ void Body::_init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, boo
 	});
 }
 
-void Body::initPhysics(Dojo::Renderable& g, Group group, bool staticShape, bool inactive) {
-	_init(g, &g, group, staticShape, inactive);
-}
-
-void Body::initPhysics(Dojo::Object& obj, Group group, bool staticShape, bool inactive) {
-	_init(obj, nullptr, group, staticShape, inactive);
-}
-
 void Body::onSimulationPaused() {
-	if (graphics)
-		graphics->speed = Vector::ZERO;
+	DEBUG_TODO; //make Renderable a component
+// 	if (graphics)
+// 		graphics->speed = Vector::ZERO;
 }
 
 void Body::updateGraphics() {
-
-	if (graphics && !world.isPaused()) {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-
-		auto& t = body->GetTransform();
-
-		graphics->position = asVec(t.p);
-		graphics->speed = asVec(body->GetLinearVelocity());
-
-		if (body->IsFixedRotation()) {
-			body->SetTransform(t.p, graphics->getRoll());
-		}
-		else
-			graphics->setRoll(Radians(t.q.GetAngle()));
-	}
+	DEBUG_TODO; //make Renderable a component
+// 	if (graphics && !world.isPaused()) {
+// 		DEBUG_ASSERT(body, "Call initPhysics first");
+// 
+// 		auto& t = body->GetTransform();
+// 
+// 		graphics->position = asVec(t.p);
+// 		graphics->speed = asVec(body->GetLinearVelocity());
+// 
+// 		if (body->IsFixedRotation()) {
+// 			body->SetTransform(t.p, graphics->getRoll());
+// 		}
+// 		else
+// 			graphics->setRoll(Radians(t.q.GetAngle()));
+// 	}
 }
 
 void Body::applyForce(const Vector& force) {

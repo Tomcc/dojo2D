@@ -196,6 +196,10 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	auto& phA = getBodyForFixture(contact->GetFixtureA());
 	auto& phB = getBodyForFixture(contact->GetFixtureB());
 
+	//don't report collisions between bodies with no listeners, duh
+	if (!phA.collisionListener && !phB.collisionListener)
+		return;
+
 	contact->GetWorldManifold(&worldManifold);
 
 	const b2Body& bodyA = *contact->GetFixtureA()->GetBody();
@@ -343,8 +347,11 @@ void World::update(float dt) {
 			continue;
 
 		Vector p = asVec(c.point);
-		c.A->onCollision(*c.B, c.force, p);
-		c.B->onCollision(*c.A, c.force, p);
+		if (c.A->collisionListener)
+			c.A->collisionListener->onCollision(*c.B, c.force, p);
+
+		if (c.B->collisionListener)
+			c.B->collisionListener->onCollision(*c.A, c.force, p);
 	}
 
 	while (deferredSensorCollisions->try_dequeue(sc)) {
@@ -352,7 +359,8 @@ void World::update(float dt) {
 		if (deletedBodies.contains(&body))
 			continue;
 
-		body.onSensorCollision(*sc.other, *sc.sensor); //sensor collisions are not bidirectional
+		if (body.collisionListener)
+			body.collisionListener->onSensorCollision(*sc.other, *sc.sensor); //sensor collisions are not bidirectional
 	}
 
 	while (callbacks->try_dequeue(callback))
@@ -372,7 +380,6 @@ void World::addBody(Body& body) {
 void World::destroyBody(Body& body) {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 	bodies.erase(&body);
-	box2D->DestroyBody(body.getB2Body());
 }
 
 void World::pause() {

@@ -7,11 +7,20 @@ namespace Phys {
 	class Material;
 	class World;
 	class BodyPart;
+	class Body;
+
+	class CollisionListener {
+	public:
+		virtual void onCollision(Body& other, float force, const Vector& point) {}
+		virtual void onSensorCollision(Body& other, b2Fixture& sensor) {};
+	};
 
 	class Body
 	{
 	public:
-		Body(World& world);
+		CollisionListener* collisionListener = nullptr;
+
+		Body(Dojo::Object& object, World& world);
 
 		virtual ~Body();
 
@@ -21,8 +30,7 @@ namespace Phys {
 		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::ZERO, bool sensor = false);
 		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
 
-		void initPhysics(Dojo::Renderable& graphics, Group group, bool staticShape = false, bool inactive = false);
-		void initPhysics(Dojo::Object& level, Group group, bool staticShape = false, bool inactive = false);
+		void initPhysics(Group group, bool staticShape = false, bool inactive = false);
 
 		///Removes physical behaviors from this object
 		void destroyPhysics();
@@ -78,9 +86,7 @@ namespace Phys {
 			return particleCollisionModel;
 		}
 
-		virtual void onCollision(Body& other, float force, const Vector& point) {}
-		virtual void onSensorCollision(Body& other, b2Fixture& sensor) {};
-		virtual void onSimulationPaused();
+		void onSimulationPaused();
 
 		void updateGraphics();
 
@@ -98,9 +104,8 @@ namespace Phys {
 		}
 
 	protected:
-
+		Dojo::Object& object;
 		World& world;
-		Dojo::Renderable* graphics = nullptr;
 
 		b2Body* body = nullptr;
 		Group group;
@@ -111,7 +116,6 @@ namespace Phys {
 
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
 
-		void _init(Dojo::Object& obj, Dojo::Renderable* graphics, Group group, bool staticShape, bool inactive);
 	private:
 		bool particleCollisionModel = false;
 	};
