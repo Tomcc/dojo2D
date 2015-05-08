@@ -88,7 +88,7 @@ namespace Phys {
 
 		void onSimulationPaused();
 
-		void updateGraphics();
+		void updateObject();
 
 		World& getWorld() const {
 			return world;

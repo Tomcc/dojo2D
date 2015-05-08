@@ -55,7 +55,7 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 
 				for (auto&& b : bodies)
 					if (b->getB2Body()->IsAwake() && b->getB2Body()->IsActive())
-						b->updateGraphics();
+						b->updateObject();
 
 				for (auto&& listener : listeners)
 					listener->onPostSimulationStep();

@@ -25,7 +25,7 @@ Unique<Dojo::Mesh> _makeMesh() {
 }
 
 ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleRadius, float damping /*= 0*/) :
-	Dojo::Renderable(parent, Vector::ZERO),
+	Object(parent, Vector::ZERO),
 	material(material),
 	damping(damping),
 	particleRadius(particleRadius),
@@ -36,8 +36,10 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& mat
 	mesh[0] = _makeMesh();
 	mesh[1] = _makeMesh();
 
-	setMesh(mesh[0].get());
-	setVisible(false);
+	renderable = make_unique<Renderable>(*this);
+	renderable->setMesh(mesh[0].get());
+	renderable->setTexture(getGameState().getTexture("particle"));
+	renderable->setVisible(false);
 
 	world.asyncCommand([this, damping, particleRadius, &material, &world]() {
 		b2ParticleSystemDef particleSystemDef;
@@ -75,20 +77,14 @@ void ParticleSystem::addParticle(const Dojo::Vector& pos, const Dojo::Vector& ve
 	});
 }
 
-void ParticleSystem::onAction(float dt) {
-	Object::onAction(dt);
-
-	advanceFade(dt);
-}
-
 void ParticleSystem::onPostSimulationStep() {
 	b2AABB b2bb;
 	particleSystem->ComputeAABB(&b2bb);
 
-	worldBB.max = asVec(b2bb.upperBound);
-	worldBB.min = asVec(b2bb.lowerBound);
-
-	activityAABB = worldBB.grow(5);
+	activityAABB = AABB{
+		asVec(b2bb.lowerBound),
+		asVec(b2bb.upperBound)
+	}.grow(5);
 
 	auto& viewport = *getGameState().getViewport();
 
@@ -97,18 +93,16 @@ void ParticleSystem::onPostSimulationStep() {
 	particleSystem->SetPaused(!active);
 
 	//only show when active, visible and has particles
-	setVisible(active && viewport.isInViewRect(*this) && particleSystem->GetParticleCount() > 0);
+	getRenderable()->setVisible(active && viewport.isInViewRect(*getRenderable()) && particleSystem->GetParticleCount() > 0);
 
-	if (isVisible() && !rebuilding) {
+	if (getRenderable()->isVisible() && !rebuilding) {
 		rebuilding = true;
 		mesh[1]->begin(particleSystem->GetParticleCount());
 
 		auto position = particleSystem->GetPositionBuffer();
 		auto color = particleSystem->GetColorBuffer();
-		//auto userData = (uintptr_t*)particleSystem->GetUserDataBuffer();
-		auto velocity = particleSystem->GetVelocityBuffer();
 
-		for (int i = 0; i < particleSystem->GetParticleCount(); ++i , ++position , ++color , ++velocity) {
+		for (int i = 0; i < particleSystem->GetParticleCount(); ++i , ++position , ++color) {
 			//int hash = ((*userData * 0x1f1f1f1f) >> 1) & 0xf;
 
 			if (viewport.isInViewRect(Vector{position->x, position->y})) {
@@ -140,11 +134,11 @@ void ParticleSystem::onPostSimulationStep() {
 
 		world.asyncCallback([this](){
 			mesh[1]->end();
-			setVisible(isVisible() && mesh[1]->getVertexCount() > 0);
+			getRenderable()->setVisible(getRenderable()->isVisible() && mesh[1]->getVertexCount() > 0);
 
 			std::swap(mesh[0], mesh[1]);
 
-			setMesh(mesh[0].get());
+			getRenderable()->setMesh(mesh[0].get());
 			rebuilding = false;
 		});
 	}

@@ -10,7 +10,7 @@ namespace Phys {
 
 	///TODO decouple from rendering
 	class ParticleSystem : 
-		public Dojo::Renderable,
+		public Dojo::Object,
 		public WorldListener
 	{
 	public:
@@ -29,8 +29,6 @@ namespace Phys {
 		b2ParticleSystem& getParticleSystem() {
 			return *particleSystem;
 		}
-
-		virtual void onAction(float dt) override;
 
 		virtual void onPostSimulationStep() override;
 
