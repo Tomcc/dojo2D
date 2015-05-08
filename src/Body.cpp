@@ -146,27 +146,27 @@ void Body::initPhysics(Group group, bool staticShape, bool inactive) {
 }
 
 void Body::onSimulationPaused() {
-	DEBUG_TODO; //make Renderable a component
-// 	if (graphics)
-// 		graphics->speed = Vector::ZERO;
+	if (auto graphics = object.getRenderable()) {
+		graphics->speed = Vector::ZERO;
+	}
 }
 
 void Body::updateGraphics() {
-	DEBUG_TODO; //make Renderable a component
-// 	if (graphics && !world.isPaused()) {
-// 		DEBUG_ASSERT(body, "Call initPhysics first");
-// 
-// 		auto& t = body->GetTransform();
-// 
-// 		graphics->position = asVec(t.p);
-// 		graphics->speed = asVec(body->GetLinearVelocity());
-// 
-// 		if (body->IsFixedRotation()) {
-// 			body->SetTransform(t.p, graphics->getRoll());
-// 		}
-// 		else
-// 			graphics->setRoll(Radians(t.q.GetAngle()));
-// 	}
+	//TODO this should just set the interpolation target rather than the actual transform?
+	if (auto graphics = object.getRenderable()) {
+		DEBUG_ASSERT(body, "Call initPhysics first");
+
+		auto& t = body->GetTransform();
+
+		graphics->position = asVec(t.p);
+		graphics->speed = asVec(body->GetLinearVelocity());
+
+		if (body->IsFixedRotation()) {
+			body->SetTransform(t.p, graphics->getRoll());
+		}
+		else
+			graphics->setRoll(Radians(t.q.GetAngle()));
+	}
 }
 
 void Body::applyForce(const Vector& force) {

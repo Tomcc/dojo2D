@@ -49,7 +49,7 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 					callbacks->enqueue(std::move(job.callback));
 			}
 
-			if (!simulationPaused && timer.getElapsedTime() > timeStep) {
+			if (!simulationPaused && timer.getElapsedTime() >= timeStep) {
 				timer.reset();
 				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
