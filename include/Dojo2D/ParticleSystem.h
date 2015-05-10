@@ -14,6 +14,14 @@ namespace Phys {
 		public WorldListener
 	{
 	public:
+		struct Particle {
+			b2ParticleDef def;
+
+			Particle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);
+		};
+
+		typedef std::vector<Particle> ParticleList;
+
 		const Group group;
 		bool autoDeactivate = true;
 
@@ -24,7 +32,7 @@ namespace Phys {
 		ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleSize, float damping = 0);
 		virtual ~ParticleSystem();
 
-		void addParticle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);
+		void addParticles(ParticleList&& particles);
 
 		b2ParticleSystem& getParticleSystem() {
 			return *particleSystem;

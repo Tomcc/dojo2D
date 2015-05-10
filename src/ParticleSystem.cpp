@@ -16,6 +16,7 @@ const ParticleSystem& ParticleSystem::getFor(b2ParticleSystem* ps) {
 }
 
 Unique<Dojo::Mesh> _makeMesh() {
+	//TODO move to ParticleSystemRenderer
 	auto mesh = make_unique<Mesh>();
 
 	mesh->setDynamic(true);
@@ -38,6 +39,7 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& mat
 	mesh[1] = _makeMesh();
 
 	renderable = make_unique<ParticleSystemRenderer>(*this);
+	//TODO move to ParticleSystemRenderer
 	renderable->setMesh(mesh[0].get());
 	renderable->setTexture(getGameState().getTexture("particle"));
 	renderable->setVisible(false);
@@ -62,19 +64,23 @@ ParticleSystem::~ParticleSystem() {
 	world.sync();
 }
 
-void ParticleSystem::addParticle(const Dojo::Vector& pos, const Dojo::Vector& velocity, const Color& color, float lifetime) {
+ParticleSystem::Particle::Particle(const Dojo::Vector& pos, const Dojo::Vector& velocity, const Dojo::Color& color, float lifetime) {
 	DEBUG_ASSERT(lifetime > 0, "Invalid lifetime");
 
-	b2ParticleDef particle;
-	particle.flags = b2_waterParticle | b2_colorMixingParticle;
-	particle.position = asB2Vec(pos);
-	particle.velocity = asB2Vec(velocity);
-	particle.color = b2Color(color.r, color.g, color.b);
-	particle.lifetime = lifetime;
-	particle.userData = this;
+	def.flags = b2_waterParticle | b2_colorMixingParticle;
+	def.position = asB2Vec(pos);
+	def.velocity = asB2Vec(velocity);
+	def.color = b2Color(color.r, color.g, color.b);
+	def.lifetime = lifetime;
+	def.userData = this;
+}
 
+void ParticleSystem::addParticles(ParticleList&& particles) {
+	//TODO C++14 acquire-by-move
 	world.asyncCommand([=]() {
-		particleSystem->CreateParticle(particle);
+		for (auto&& particle : particles) {
+			particleSystem->CreateParticle(particle.def);
+		}
 	});
 }
 
@@ -149,3 +155,4 @@ void ParticleSystem::onPostSimulationStep() {
 		});
 	}
 }
+
