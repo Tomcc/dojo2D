@@ -3,6 +3,7 @@
 #include "Material.h"
 #include "PhysUtil.h"
 #include "World.h"
+#include "ParticleSystemRenderer.h"
 
 using namespace Phys;
 using namespace Dojo;
@@ -36,7 +37,7 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& mat
 	mesh[0] = _makeMesh();
 	mesh[1] = _makeMesh();
 
-	renderable = make_unique<Renderable>(*this);
+	renderable = make_unique<ParticleSystemRenderer>(*this);
 	renderable->setMesh(mesh[0].get());
 	renderable->setTexture(getGameState().getTexture("particle"));
 	renderable->setVisible(false);
@@ -78,24 +79,29 @@ void ParticleSystem::addParticle(const Dojo::Vector& pos, const Dojo::Vector& ve
 }
 
 void ParticleSystem::onPostSimulationStep() {
+	//TODO split this between this and its Renderable instead of calling setAABB
 	b2AABB b2bb;
 	particleSystem->ComputeAABB(&b2bb);
 
-	activityAABB = AABB{
+	auto bb = AABB{
 		asVec(b2bb.lowerBound),
 		asVec(b2bb.upperBound)
-	}.grow(5);
+	};
+
+	((ParticleSystemRenderer&)*renderable).setAABB(bb);
+
+	activityAABB = bb.grow(5);
 
 	auto& viewport = *getGameState().getViewport();
 
 	//suspend the particlesystem when it's too far from the player
 	bool active = (!autoDeactivate) || (viewport.isInViewRect(activityAABB));
 	particleSystem->SetPaused(!active);
-
+	
 	//only show when active, visible and has particles
-	getRenderable()->setVisible(active && viewport.isInViewRect(*getRenderable()) && particleSystem->GetParticleCount() > 0);
+	renderable->setVisible(active && viewport.isInViewRect(*renderable) && particleSystem->GetParticleCount() > 0);
 
-	if (getRenderable()->isVisible() && !rebuilding) {
+	if (renderable->isVisible() && !rebuilding) {
 		rebuilding = true;
 		mesh[1]->begin(particleSystem->GetParticleCount());
 
@@ -134,11 +140,11 @@ void ParticleSystem::onPostSimulationStep() {
 
 		world.asyncCallback([this](){
 			mesh[1]->end();
-			getRenderable()->setVisible(getRenderable()->isVisible() && mesh[1]->getVertexCount() > 0);
+			renderable->setVisible(renderable->isVisible() && mesh[1]->getVertexCount() > 0);
 
 			std::swap(mesh[0], mesh[1]);
 
-			getRenderable()->setMesh(mesh[0].get());
+			renderable->setMesh(mesh[0].get());
 			rebuilding = false;
 		});
 	}

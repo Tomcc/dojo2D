@@ -21,6 +21,7 @@
     <ClInclude Include="..\include\Dojo2D\ContactMode.h" />
     <ClInclude Include="..\include\Dojo2D\ParticleSystem.h" />
     <ClInclude Include="..\include\Dojo2D\Material.h" />
+    <ClInclude Include="..\include\Dojo2D\ParticleSystemRenderer.h" />
     <ClInclude Include="..\include\Dojo2D\PhysUtil.h" />
     <ClInclude Include="..\include\Dojo2D\RayResult.h" />
     <ClInclude Include="..\include\Dojo2D\World.h" />
@@ -29,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\Dojo2D\BodyPart.cpp" />
+    <ClCompile Include="..\include\Dojo2D\ParticleSystemRenderer.cpp" />
     <ClCompile Include="..\include\Dojo2D\PhysUtil.cpp" />
     <ClCompile Include="..\src\Body.cpp" />
     <ClCompile Include="..\src\ConvexDecomposition\b2Polygon.cpp">
