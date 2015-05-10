@@ -18,7 +18,7 @@ Body::~Body() {
 	//TODO find a way to give the body back to world?
 }
 
-BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
+BodyPart& Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
 	//TODO use a unique pointer when capture-by-move is available
 
 	parts.emplace_back(make_unique<BodyPart>(material));
@@ -149,7 +149,7 @@ void Body::onSimulationPaused() {
 	object.speed = Vector::ZERO;
 }
 
-void Phys::Body::updateObject() {
+void Body::updateObject() {
 	//TODO this should just set the interpolation target rather than the actual transform?
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
@@ -212,7 +212,7 @@ void Body::forcePosition(const Vector& position) {
 	});
 }
 
-void Phys::Body::forceRotation(Radians angle) {
+void Body::forceRotation(Radians angle) {
 	world.asyncCommand([=]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
@@ -220,7 +220,7 @@ void Phys::Body::forceRotation(Radians angle) {
 	});
 }
 
-void Phys::Body::setTransform(const Vector& position, Radians angle) {
+void Body::setTransform(const Vector& position, Radians angle) {
 	world.asyncCommand([=]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetTransform(asB2Vec(position), angle);
@@ -254,7 +254,7 @@ float Body::getAngularDamping() const {
 	return body->GetAngularDamping();
 }
 
-Dojo::Vector Phys::Body::getPosition() const {
+Dojo::Vector Body::getPosition() const {
 	DEBUG_ASSERT(body, "meh, shouldn't be needed");
 
 	return asVec(body->GetPosition());
