@@ -15,3 +15,5 @@ dependencies/win32/hqx/Release/
 dependencies/win32/hqx/Debug/
 *.sdf
 *.opensdf
+
+lib/
