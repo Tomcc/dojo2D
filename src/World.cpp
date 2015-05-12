@@ -337,11 +337,8 @@ Vector World::getGravity() const {
 void World::update(float dt) {
 	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
 
-	DeferredCollision c;
-	DeferredSensorCollision sc;
-	Command callback;
-
 	//play back all collisions
+	DeferredCollision c;
 	while (deferredCollisions->try_dequeue(c)) {
 		if (deletedBodies.contains(c.A) || deletedBodies.contains(c.B))
 			continue;
@@ -354,6 +351,7 @@ void World::update(float dt) {
 			c.B->collisionListener->onCollision(*c.A, c.force, p);
 	}
 
+	DeferredSensorCollision sc;
 	while (deferredSensorCollisions->try_dequeue(sc)) {
 		auto& body = getBodyForFixture(sc.sensor);
 		if (deletedBodies.contains(&body))
@@ -363,6 +361,9 @@ void World::update(float dt) {
 			body.collisionListener->onSensorCollision(*sc.other, *sc.sensor); //sensor collisions are not bidirectional
 	}
 
+	//TODO timeslice this in some way? 
+	//right now it can stall the main thread with too many callbacks
+	Command callback;
 	while (callbacks->try_dequeue(callback))
 		callback();
 }
