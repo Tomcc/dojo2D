@@ -40,7 +40,7 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& mat
 
 	renderable = make_unique<ParticleSystemRenderer>(*this);
 	//TODO move to ParticleSystemRenderer
-	renderable->setMesh(mesh[0].get());
+	renderable->setMesh(*mesh[0]);
 	renderable->setTexture(getGameState().getTexture("particle"));
 	renderable->setVisible(false);
 
@@ -150,7 +150,7 @@ void ParticleSystem::onPostSimulationStep() {
 
 			std::swap(mesh[0], mesh[1]);
 
-			renderable->setMesh(mesh[0].get());
+			renderable->setMesh(*mesh[0]);
 			rebuilding = false;
 		});
 	}
