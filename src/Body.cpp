@@ -271,9 +271,8 @@ void Body::setActive() {
 	});
 }
 
-
 float Body::getMass() const {
-
+	DEBUG_ASSERT(body, "Call initPhysics first");
 	return body->GetMass();
 }
 
@@ -298,4 +297,12 @@ Vector Body::getVelocityAtLocalPoint(const Vector& localPoint) const {
 	DEBUG_ASSERT(body, "Call initPhysics first");
 
 	return asVec(body->GetLinearVelocityFromLocalPoint(asB2Vec(localPoint)));
+}
+
+float Body::getMinimumDistanceTo(const Vector& point) const {
+	float min = FLT_MAX;
+	for (auto&& part : parts) {
+		min = std::min(min, part->getMinimumDistanceTo(point));
+	}
+	return min;
 }

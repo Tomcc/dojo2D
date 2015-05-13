@@ -229,17 +229,17 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelongsToGroup, RayResult& result, const Command& callback) const {
 	result.group = rayBelongsToGroup;
 	asyncCommand([=, &result]() {
-					box2D->RayCast(
-						&result,
-						{start.x, start.y},
-						{end.x, end.y});
+		box2D->RayCast(
+			&result,
+			{ start.x, start.y },
+			{ end.x, end.y });
 
-					if (!result.hit)
-						result.position = end;
+		if (!result.hit)
+			result.position = end;
 
-					result.dist = start.distance(result.position);
-				},
-				callback);
+		result.dist = start.distance(result.position);
+	},
+		callback);
 }
 
 bool World::isWorkerThread() const {

@@ -15,6 +15,7 @@ namespace Phys {
 
 		b2Fixture& getFixture() const;
 
+		float getMinimumDistanceTo(const Vector& pos) const;
 	protected:
 		b2Fixture* fixture = nullptr;
 	};

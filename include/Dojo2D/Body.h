@@ -103,6 +103,8 @@ namespace Phys {
 			return (T*)userObject;
 		}
 
+		float getMinimumDistanceTo(const Vector& pos) const;
+
 	protected:
 		Dojo::Object& object;
 		World& world;
@@ -115,7 +117,6 @@ namespace Phys {
 		std::vector<Unique<BodyPart>> parts;
 
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
-
 	private:
 		bool particleCollisionModel = false;
 	};
