@@ -104,13 +104,10 @@ void Body::destroyPhysics() {
 	group = 0;
 	particleCollisionModel = false;
 
-	//appear like the body is destroyed instantly on the main thread
-	auto oldBody = body;
-	body = nullptr;
-	world.asyncCommand([&, oldBody]() {
-		if (oldBody) {
-			world.destroyBody(*this);
-			world.getBox2D().DestroyBody(oldBody);
+	world.asyncCommand([&]() {
+		if (body) {
+			world.removeBody(*this);
+			world.getBox2D().DestroyBody(body);
 		}
 	});
 }
@@ -151,8 +148,6 @@ void Body::onSimulationPaused() {
 
 void Body::updateObject() {
 	//TODO this should just set the interpolation target rather than the actual transform?
-	DEBUG_ASSERT(body, "Call initPhysics first");
-
 	auto& t = body->GetTransform();
 
 	object.position = asVec(t.p);
@@ -243,26 +238,23 @@ void Body::setDamping(float linear, float angular) {
 }
 
 float Body::getLinearDamping() const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
+	_waitForBody();
 
 	return body->GetLinearDamping();
 }
 
 float Body::getAngularDamping() const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
+	_waitForBody();
 
 	return body->GetAngularDamping();
 }
 
 Dojo::Vector Body::getPosition() const {
-	DEBUG_ASSERT(body, "meh, shouldn't be needed");
-
+	_waitForBody();
 	return asVec(body->GetPosition());
 }
 
 void Body::setActive() {
-	DEBUG_ASSERT(body, "Call initPhysics first");
-
 	world.asyncCommand([=]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		if (!isStatic())
@@ -272,37 +264,44 @@ void Body::setActive() {
 }
 
 float Body::getMass() const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
+	_waitForBody();
 	return body->GetMass();
 }
 
 Vector Body::getLocalPoint(const Vector& worldPosition) const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
-
+	_waitForBody();
 	return asVec(body->GetLocalPoint(asB2Vec(worldPosition)));
 }
 
 Vector Body::getWorldPoint(const Vector& localPosition) const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
+	_waitForBody();
 	return asVec(body->GetWorldPoint(asB2Vec(localPosition)));
 }
 
 Vector Body::getVelocity() const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
-
+	_waitForBody();
 	return asVec(body->GetLinearVelocity());
 }
 
 Vector Body::getVelocityAtLocalPoint(const Vector& localPoint) const {
-	DEBUG_ASSERT(body, "Call initPhysics first");
-
+	_waitForBody();
 	return asVec(body->GetLinearVelocityFromLocalPoint(asB2Vec(localPoint)));
 }
 
 float Body::getMinimumDistanceTo(const Vector& point) const {
+	_waitForBody();
+	
 	float min = FLT_MAX;
 	for (auto&& part : parts) {
 		min = std::min(min, part->getMinimumDistanceTo(point));
 	}
 	return min;
+}
+
+void Phys::Body::_waitForBody() const {
+	//if the body is not yet here, assume it could be somewhere in the command pipeline
+	if (!body)
+		world.sync();
+
+	DEBUG_ASSERT(body, "Call initPhysics first!");
 }

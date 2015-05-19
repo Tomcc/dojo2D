@@ -17,3 +17,4 @@ dependencies/win32/hqx/Debug/
 *.opensdf
 
 lib/
+*.vcxproj.user

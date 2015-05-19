@@ -62,7 +62,7 @@ namespace Phys {
 			return *box2D;
 		}
 		void addBody(Body& body);
-		void destroyBody(Body& body);
+		void removeBody(Body& body);
 
 		void pause();
 

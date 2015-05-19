@@ -378,7 +378,7 @@ void World::addBody(Body& body) {
 	bodies.emplace(&body);
 }
 
-void World::destroyBody(Body& body) {
+void World::removeBody(Body& body) {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 	bodies.erase(&body);
 }

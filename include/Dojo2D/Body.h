@@ -117,6 +117,8 @@ namespace Phys {
 		std::vector<Unique<BodyPart>> parts;
 
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
+
+		void _waitForBody() const;
 	private:
 		bool particleCollisionModel = false;
 	};
