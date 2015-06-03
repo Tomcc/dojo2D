@@ -76,8 +76,15 @@ ParticleSystem::Particle::Particle(const Dojo::Vector& pos, const Dojo::Vector& 
 }
 
 void Phys::ParticleSystem::addParticles(const ParticleList& particles) {
-	//TODO C++14 acquire-by-move in another function
 	world.asyncCommand([=]() {
+		for (auto&& particle : particles) {
+			particleSystem->CreateParticle(particle.def);
+		}
+	});
+}
+
+void Phys::ParticleSystem::addParticles(ParticleList&& rhs) {
+	world.asyncCommand([this, particles = std::move(rhs)]() {
 		for (auto&& particle : particles) {
 			particleSystem->CreateParticle(particle.def);
 		}

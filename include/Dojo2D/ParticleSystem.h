@@ -33,6 +33,7 @@ namespace Phys {
 		virtual ~ParticleSystem();
 
 		void addParticles(const ParticleList& particles);
+		void addParticles(ParticleList&& particles);
 
 		b2ParticleSystem& getParticleSystem() {
 			return *particleSystem;
