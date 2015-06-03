@@ -32,7 +32,7 @@ namespace Phys {
 		ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleSize, float damping = 0);
 		virtual ~ParticleSystem();
 
-		void addParticles(ParticleList&& particles);
+		void addParticles(const ParticleList& particles);
 
 		b2ParticleSystem& getParticleSystem() {
 			return *particleSystem;

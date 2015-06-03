@@ -6,8 +6,6 @@
 #include <unordered_set>
 #include <mutex>
 
-#include "ConvexDecomposition/b2Polygon.h"
-
 namespace Phys {
 	typedef uint32_t Group;
 	using Vector = Dojo::Vector;
