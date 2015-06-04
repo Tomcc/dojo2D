@@ -33,16 +33,6 @@
     <ClCompile Include="..\include\Dojo2D\ParticleSystemRenderer.cpp" />
     <ClCompile Include="..\include\Dojo2D\PhysUtil.cpp" />
     <ClCompile Include="..\src\Body.cpp" />
-    <ClCompile Include="..\src\ConvexDecomposition\b2Polygon.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\src\ConvexDecomposition\b2Triangle.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Publish|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\src\ParticleSystem.cpp" />
     <ClCompile Include="..\src\RayResult.cpp" />
     <ClCompile Include="..\src\World.cpp" />
@@ -110,7 +100,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;..\Box2D\liquidfun\Box2D</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -140,7 +130,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;..\Box2D\liquidfun\Box2D</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -181,7 +171,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Publish|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>../../dojo/dependencies/include;../../dojo/include;../include/Dojo2D/ConvexDecomposition;../include/Dojo2D;../src;..\Box2D\liquidfun\Box2D</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;PUBLISH;%(PreprocessorDefinitions)</PreprocessorDefinitions>

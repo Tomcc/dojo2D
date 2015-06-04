@@ -7,7 +7,7 @@
 #include <mutex>
 
 namespace Phys {
-	typedef uint32_t Group;
+	typedef uint16_t Group;
 	using Vector = Dojo::Vector;
 	using Radians = Dojo::Radians;
 

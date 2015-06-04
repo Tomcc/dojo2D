@@ -1,6 +1,6 @@
 #include "PhysUtil.h"
 
-#include "ConvexDecomposition/b2Polygon.h"
+#include <Box2D/ConvexDecomposition/b2Polygon.h>
 
 std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& points) {
 	b2Polygon wholePolygon;

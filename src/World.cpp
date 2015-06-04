@@ -202,9 +202,6 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 
 	contact->GetWorldManifold(&worldManifold);
 
-	const b2Body& bodyA = *contact->GetFixtureA()->GetBody();
-	const b2Body& bodyB = *contact->GetFixtureB()->GetBody();
-
 	b2Vec2 point;
 	if (contact->GetManifold()->pointCount == 1)
 		point = worldManifold.points[0];

@@ -39,6 +39,8 @@
     <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\Common\b2Stat.h" />
     <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\Common\b2Timer.h" />
     <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\Common\b2TrackedBlock.h" />
+    <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\ConvexDecomposition\b2Polygon.h" />
+    <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\ConvexDecomposition\b2Triangle.h" />
     <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\Dynamics\b2Body.h" />
     <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\Dynamics\b2ContactManager.h" />
     <ClInclude Include="..\Box2D\liquidfun\Box2D\Box2D\Dynamics\b2Fixture.h" />
@@ -100,6 +102,8 @@
     <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\Common\b2Stat.cpp" />
     <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\Common\b2Timer.cpp" />
     <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\Common\b2TrackedBlock.cpp" />
+    <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\ConvexDecomposition\b2Polygon.cpp" />
+    <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\ConvexDecomposition\b2Triangle.cpp" />
     <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\Dynamics\b2Body.cpp" />
     <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\Dynamics\b2ContactManager.cpp" />
     <ClCompile Include="..\Box2D\liquidfun\Box2D\Box2D\Dynamics\b2Fixture.cpp" />

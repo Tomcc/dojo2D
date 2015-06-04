@@ -11,12 +11,6 @@
     <ClCompile Include="..\src\World.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ConvexDecomposition\b2Polygon.cpp">
-      <Filter>src\ConvexDecomposition</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ConvexDecomposition\b2Triangle.cpp">
-      <Filter>src\ConvexDecomposition</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ParticleSystem.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -72,9 +66,6 @@
     </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{e277f3d6-08f2-4b96-a300-9930bf0d349e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\ConvexDecomposition">
-      <UniqueIdentifier>{9958d130-c518-4b9c-9cb4-5f8675a44064}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
