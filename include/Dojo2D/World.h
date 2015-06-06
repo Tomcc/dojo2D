@@ -54,7 +54,7 @@ namespace Phys {
 
 		void sync() const;
 
-		void asyncCommand(const Command& command, const Command& callback = {}) const;
+		void asyncCommand(Command command, const Command& callback = {}) const;
 		void asyncCallback(const Command& callback) const;
 		bool isWorkerThread() const;
 

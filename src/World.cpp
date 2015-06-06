@@ -102,7 +102,7 @@ ContactMode World::getContactModeFor(Group A, Group B) const {
 	return std::min(modeA, modeB);
 }
 
-void World::asyncCommand(const Command& command, const Command& callback /*= Command()*/) const {
+void World::asyncCommand(Command command, const Command& callback /*= Command()*/) const {
 	DEBUG_ASSERT(command, "Command can't be a NOP");
 
 	if (isWorkerThread()) {
@@ -110,8 +110,9 @@ void World::asyncCommand(const Command& command, const Command& callback /*= Com
 		if (callback)
 			callbacks->enqueue(callback);
 	}
-	else
-		commands->enqueue(command, callback);
+	else {
+		commands->enqueue(std::move(command), callback);
+	}
 }
 
 void World::asyncCallback(const Command& callback) const {

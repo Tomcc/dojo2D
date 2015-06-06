@@ -18,17 +18,16 @@ Body::~Body() {
 	//TODO find a way to give the body back to world?
 }
 
-BodyPart& Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
-	//TODO use a unique pointer when capture-by-move is available
-
+BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
 	parts.emplace_back(make_unique<BodyPart>(material));
 
+	//TODO make the pointer Unique when at some point MSVC won't try to copy the lambda
 	auto& part = *parts.back();
-	world.asyncCommand([this, &part, &material, sensor, shape]() {
+	auto f = [this, &part, &material, sensor, lshape = std::move(shape)]() {
 
 		b2FixtureDef fixtureDef;
 
-		fixtureDef.shape = shape.get();
+		fixtureDef.shape = lshape.get();
 		fixtureDef.density = material.density;
 		fixtureDef.friction = material.friction;
 		fixtureDef.restitution = material.restitution;
@@ -39,7 +38,8 @@ BodyPart& Body::_addShape(Shared<b2Shape> shape, const Material& material, bool 
 		fixtureDef.userData = (void*)&part;
 
 		part.fixture = body->CreateFixture(&fixtureDef);
-	});
+	};
+	world.asyncCommand(std::move(f));
 
 	return part;
 }
@@ -49,10 +49,10 @@ BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int
 	DEBUG_ASSERT(count > 0, "Wrong vertex count");
 	DEBUG_ASSERT(count < b2_maxPolygonVertices, "This box shape has too many vertices!");
 
-	auto shape = make_shared<b2PolygonShape>();
+	auto shape = make_unique<b2PolygonShape>();
 	shape->Set(points, count);
 
-	return _addShape(shape, material, sensor);
+	return _addShape(std::move(shape), material, sensor);
 }
 
 BodyPart& Body::addPolyShape(const Material& material, const std::vector<b2Vec2>& points /*= nullptr*/, bool sensor /*= false */) {
@@ -79,12 +79,12 @@ BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, 
 BodyPart& Body::addCircleShape(const Material& material, float radius, const Vector& center, bool sensor /*= false*/) {
 	DEBUG_ASSERT(radius > 0, "Invalid radius");
 
-	auto circle = make_shared<b2CircleShape>();
+	auto circle = make_unique<b2CircleShape>();
 	circle->m_radius = radius;
 	circle->m_p.x = center.x;
 	circle->m_p.y = center.y;
 
-	return _addShape(circle, material, sensor);
+	return _addShape(std::move(circle), material, sensor);
 }
 
 BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center, bool sensor /*= false*/) {
