@@ -19,10 +19,10 @@ Body::~Body() {
 }
 
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
-	parts.emplace_back(make_unique<BodyPart>(material));
+	auto elem = parts.emplace(make_unique<BodyPart>(material));
 
 	//TODO make the pointer Unique when at some point MSVC won't try to copy the lambda
-	auto& part = *parts.back();
+	auto& part = **elem;
 	auto f = [this, &part, &material, sensor, lshape = std::move(shape)]() {
 
 		b2FixtureDef fixtureDef;
@@ -42,6 +42,21 @@ BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material,
 	world.asyncCommand(std::move(f));
 
 	return part;
+}
+
+void Phys::Body::removeShape(BodyPart& part) {
+	auto elem = Dojo::SmallSet<Unique<BodyPart>>::find(parts, part);
+	DEBUG_ASSERT(elem != parts.end(), "Part already removed");
+
+	//remove the part from the parts known to this thread, give it to a lambda
+	//TODO make the pointer Unique when at some point MSVC won't try to copy the lambda
+	//auto temp = std::move(*elem);
+
+	Shared<BodyPart> temp = std::move(*elem);
+	parts.erase(elem);
+	world.asyncCommand([this, part = std::move(temp)]{
+		body->DestroyFixture(&part->getFixture());
+	});
 }
 
 BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor /*= false*/) {

@@ -30,6 +30,8 @@ namespace Phys {
 		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::ZERO, bool sensor = false);
 		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
 
+		void removeShape(BodyPart& part);
+
 		void initPhysics(Group group, bool staticShape = false, bool inactive = false);
 
 		///Removes physical behaviors from this object
@@ -114,7 +116,7 @@ namespace Phys {
 		bool staticShape = false;
 		Dojo::Object* userObject = nullptr;
 
-		std::vector<Unique<BodyPart>> parts;
+		Dojo::SmallSet<Unique<BodyPart>> parts;
 
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
 
