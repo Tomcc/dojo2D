@@ -8,12 +8,52 @@
 
 namespace Phys {
 	class Body;
+	class BodyPart;
 
 	class World :
 		public b2ContactListener,
 		public b2ContactFilter {
 	public:
 		typedef std::function<void()> Command;
+
+	protected:
+		struct DeferredCollision {
+			BodyPart* A, *B;
+			float force;
+			b2Vec2 point;
+			DeferredCollision() {}
+			DeferredCollision(BodyPart& A, BodyPart& B, float force, const b2Vec2& point) :
+				A(&A),
+				B(&B),
+				force(force),
+				point(point) {
+
+			}
+		};
+
+		struct DeferredSensorCollision {
+			Body* other, *me;
+			b2Fixture* sensor;
+			DeferredSensorCollision() {}
+			DeferredSensorCollision(Body& other, Body& me, b2Fixture& sensor) :
+				other(&other),
+				me(&me),
+				sensor(&sensor) {
+
+			}
+		};
+
+		struct Job {
+			Command command, callback;
+			Job() {}
+			Job(const Command& command, const Command& callback) :
+				command(command),
+				callback(callback) {
+
+			}
+		};
+
+	public:
 
 		typedef std::unordered_set<const Body*> BodyList;
 		typedef std::vector<const b2Fixture*> FixtureList;
@@ -35,6 +75,7 @@ namespace Phys {
 
 		Vector getGravity() const;
 
+		void playCollisionSound(const DeferredCollision& collision) const;
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result, const Command& callback = {}) const;
 		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false) const;
@@ -77,42 +118,6 @@ namespace Phys {
 		}
 
 	protected:
-
-		struct DeferredCollision {
-			Body* A, *B;
-			float force;
-			b2Vec2 point;
-			DeferredCollision() {}
-			DeferredCollision(Body& A, Body& B, float force, const b2Vec2& point) :
-				A(&A),
-				B(&B),
-				force(force),
-				point(point) {
-
-			}
-		};
-
-		struct DeferredSensorCollision {
-			Body* other, *me;
-			b2Fixture* sensor;
-			DeferredSensorCollision() {}
-			DeferredSensorCollision(Body& other, Body& me, b2Fixture& sensor) :
-				other(&other),
-				me(&me),
-				sensor(&sensor) {
-
-			}
-		};
-
-		struct Job {
-			Command command, callback;
-			Job() {}
-			Job(const Command& command, const Command& callback) :
-				command(command),
-				callback(callback) {
-
-			}
-		};
 
 		std::thread thread;
 

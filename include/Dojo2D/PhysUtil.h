@@ -37,6 +37,12 @@ namespace Phys {
 		return *(const BodyPart*)fixture->GetUserData();
 	}
 
+	inline BodyPart& getPartForFixture(b2Fixture* fixture) {
+		//not using a reference because b2 is old style
+		DEBUG_ASSERT(fixture, "the fixture may not be null");
+		return *(BodyPart*)fixture->GetUserData();
+	}
+
 	std::vector<b2PolygonShape> decomposeConvex(const std::vector<Dojo::Vector>& points);
 }
 

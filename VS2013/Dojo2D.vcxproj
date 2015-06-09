@@ -33,6 +33,7 @@
     <ClCompile Include="..\include\Dojo2D\ParticleSystemRenderer.cpp" />
     <ClCompile Include="..\include\Dojo2D\PhysUtil.cpp" />
     <ClCompile Include="..\src\Body.cpp" />
+    <ClCompile Include="..\src\Material.cpp" />
     <ClCompile Include="..\src\ParticleSystem.cpp" />
     <ClCompile Include="..\src\RayResult.cpp" />
     <ClCompile Include="..\src\World.cpp" />

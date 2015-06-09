@@ -4,14 +4,16 @@
 
 namespace Phys {
 	class Material;
+	class Body;
 
 	class BodyPart {
 	public:
 		friend class Body;
 
 		const Material& material;
+		Body& body;
 
-		BodyPart(const Material& material);
+		BodyPart(Body& body, const Material& material);
 
 		b2Fixture& getFixture() const;
 

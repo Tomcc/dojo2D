@@ -1,7 +1,9 @@
 #include "World.h"
 #include "Body.h"
+#include "BodyPart.h"
 #include "PhysUtil.h"
 #include "ParticleSystem.h"
+#include "Material.h"
 
 using namespace Phys;
 
@@ -194,11 +196,15 @@ bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, 
 void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	b2WorldManifold worldManifold;
 
-	auto& phA = getBodyForFixture(contact->GetFixtureA());
-	auto& phB = getBodyForFixture(contact->GetFixtureB());
+	auto& partA = getPartForFixture(contact->GetFixtureA());
+	auto& partB = getPartForFixture(contact->GetFixtureB());
+	auto& bodyA = partA.body;
+	auto& bodyB = partB.body;
+	DEBUG_ASSERT(bodyA.isStatic() || bodyA.getMass() > 0, "HM");
+	DEBUG_ASSERT(bodyB.isStatic() || bodyB.getMass() > 0, "HM");
 
 	//don't report collisions between bodies with no listeners, duh
-	if (!phA.collisionListener && !phB.collisionListener)
+	if (!bodyA.collisionListener && !bodyB.collisionListener)
 		return;
 
 	contact->GetWorldManifold(&worldManifold);
@@ -209,8 +215,6 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	else
 		point = (worldManifold.points[0] + worldManifold.points[1]) * 0.5f;
 
-	DEBUG_ASSERT(phA.isStatic() || phA.getMass() > 0, "HM");
-	DEBUG_ASSERT(phB.isStatic() || phB.getMass() > 0, "HM");
 
 	auto& N = worldManifold.normal;
 	//	b2Vec2 T = { N.y, -N.x };
@@ -220,7 +224,7 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 
 	float force = F.Length();
 	if (force > 0.1f) {
-		deferredCollisions->enqueue(phA, phB, force, point);
+		deferredCollisions->enqueue(partA, partB, force, point);
 	}
 }
 
@@ -332,21 +336,43 @@ Vector World::getGravity() const {
 	return asVec(box2D->GetGravity());
 }
 
+const float MIN_SOUND_FORCE = 1.f;
+
+void Phys::World::playCollisionSound(const DeferredCollision& collision) const {
+	//TODO choose which sound to play... both? random? existing?
+	auto& part = *collision.A;
+
+	if (collision.force > MIN_SOUND_FORCE) {
+		if (auto set = (collision.force > 5) ? part.material.impactHard : part.material.impactSoft) {
+			float volume = std::min(collision.force / 10.f, 1.f);
+			Dojo::Platform::singleton().getSoundManager().playSound(
+				asVec(collision.point),
+				set,
+				volume
+				);
+		}
+	}
+}
+
 void World::update(float dt) {
 	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
 
 	//play back all collisions
 	DeferredCollision c;
 	while (deferredCollisions->try_dequeue(c)) {
-		if (deletedBodies.contains(c.A) || deletedBodies.contains(c.B))
+		auto& bA = c.A->body;
+		auto& bB = c.B->body;
+		if (deletedBodies.contains(&bA) || deletedBodies.contains(&bB))
 			continue;
 
 		Vector p = asVec(c.point);
-		if (c.A->collisionListener)
-			c.A->collisionListener->onCollision(*c.B, c.force, p);
+		if (bA.collisionListener)
+			bA.collisionListener->onCollision(bB, c.force, p);
 
-		if (c.B->collisionListener)
-			c.B->collisionListener->onCollision(*c.A, c.force, p);
+		if (bB.collisionListener)
+			bB.collisionListener->onCollision(bA, c.force, p);
+
+		playCollisionSound(c);
 	}
 
 	DeferredSensorCollision sc;

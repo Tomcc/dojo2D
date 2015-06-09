@@ -19,7 +19,7 @@ Body::~Body() {
 }
 
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
-	auto elem = parts.emplace(make_unique<BodyPart>(material));
+	auto elem = parts.emplace(make_unique<BodyPart>(*this, material));
 
 	//TODO make the pointer Unique when at some point MSVC won't try to copy the lambda
 	auto& part = **elem;

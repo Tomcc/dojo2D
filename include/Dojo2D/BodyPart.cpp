@@ -3,8 +3,9 @@
 
 using namespace Phys;
 
-BodyPart::BodyPart(const Material& material) :
-	material(material) {
+BodyPart::BodyPart(Body& body, const Material& material) :
+	material(material),
+	body(body) {
 
 }
 

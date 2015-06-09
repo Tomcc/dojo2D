@@ -5,6 +5,12 @@
 namespace Phys {
 	class Material {
 	public:
+		enum State {
+			Gas,
+			Fluid,
+			Solid
+		};
+
 		const Dojo::String name;
 		float density = 1.f;
 
@@ -16,11 +22,13 @@ namespace Phys {
 		float friction = 0.5f;
 		float restitution = 0.f;
 
-		Material(const Dojo::String& name) :
-			name(name) {
+		State state = Solid;
 
-			DEBUG_ASSERT(name.size() > 0, "Invalid material name");
-		}
+		Dojo::SoundSet
+			*impactHard = nullptr,
+			*impactSoft = nullptr;
+
+		Material(const Dojo::String& name, const Dojo::Table& desc = Dojo::Table::EMPTY, const Dojo::ResourceGroup* group = nullptr);
 	};
 }
 
