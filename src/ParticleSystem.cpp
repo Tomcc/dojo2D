@@ -27,7 +27,7 @@ Unique<Dojo::Mesh> _makeMesh() {
 }
 
 ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleRadius, float damping /*= 0*/) :
-	Object(parent, Vector::ZERO),
+	Object(parent, Vector::Zero),
 	material(material),
 	damping(damping),
 	particleRadius(particleRadius),

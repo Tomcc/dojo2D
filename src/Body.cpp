@@ -158,7 +158,7 @@ void Body::initPhysics(Group group, bool staticShape, bool inactive) {
 }
 
 void Body::onSimulationPaused() {
-	object.speed = Vector::ZERO;
+	object.speed = Vector::Zero;
 }
 
 void Body::updateObject() {

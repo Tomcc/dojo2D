@@ -26,9 +26,9 @@ namespace Phys {
 
 		BodyPart& addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor = false);
 		BodyPart& addPolyShape(const Material& material, const std::vector<b2Vec2>& points, bool sensor = false);
-		BodyPart& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
-		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::ZERO, bool sensor = false);
-		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::ZERO, bool sensor = false);
+		BodyPart& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, bool sensor = false);
+		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::Zero, bool sensor = false);
+		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, bool sensor = false);
 
 		void removeShape(BodyPart& part);
 

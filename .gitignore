@@ -18,3 +18,5 @@ dependencies/win32/hqx/Debug/
 
 lib/
 *.vcxproj.user
+
+VS2013/Publish/*

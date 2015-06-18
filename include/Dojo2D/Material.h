@@ -28,7 +28,7 @@ namespace Phys {
 			*impactHard = nullptr,
 			*impactSoft = nullptr;
 
-		Material(const Dojo::String& name, const Dojo::Table& desc = Dojo::Table::EMPTY, const Dojo::ResourceGroup* group = nullptr);
+		Material(const Dojo::String& name, const Dojo::Table& desc = Dojo::Table::Empty, const Dojo::ResourceGroup* group = nullptr);
 	};
 }
 

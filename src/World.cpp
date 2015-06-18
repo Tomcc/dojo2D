@@ -340,6 +340,7 @@ const float MIN_SOUND_FORCE = 1.f;
 
 void Phys::World::playCollisionSound(const DeferredCollision& collision) const {
 	//TODO choose which sound to play... both? random? existing?
+	//TODO this code doesn't belong here too much, perhaps World shouldn't know about sounds
 	auto& part = *collision.A;
 
 	if (collision.force > MIN_SOUND_FORCE) {
