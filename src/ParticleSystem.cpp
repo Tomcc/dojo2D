@@ -38,11 +38,13 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& mat
 	mesh[0] = _makeMesh();
 	mesh[1] = _makeMesh();
 
-	renderable = make_unique<ParticleSystemRenderer>(*this);
-	//TODO move to ParticleSystemRenderer
-	renderable->setMesh(*mesh[0]);
-	renderable->setTexture(getGameState().getTexture("particle"));
-	renderable->setVisible(false);
+	addComponent([&]() {
+		auto r = make_unique<ParticleSystemRenderer>(*this);
+		r->setMesh(*mesh[0]);
+		r->setTexture(getGameState().getTexture("particle"));
+		r->setVisible(false);
+		return r;
+	}());
 
 	world.asyncCommand([this, damping, particleRadius, &material, &world]() {
 		b2ParticleSystemDef particleSystemDef;
@@ -101,7 +103,8 @@ void ParticleSystem::onPostSimulationStep() {
 		asVec(b2bb.upperBound)
 	};
 
-	((ParticleSystemRenderer&)*renderable).setAABB(bb);
+	auto& renderable = (ParticleSystemRenderer&)*getRenderable();
+	renderable.setAABB(bb);
 
 	activityAABB = bb.grow(5);
 
@@ -112,9 +115,9 @@ void ParticleSystem::onPostSimulationStep() {
 	particleSystem->SetPaused(!active);
 	
 	//only show when active, visible and has particles
-	renderable->setVisible(active && viewport.isInViewRect(*renderable) && particleSystem->GetParticleCount() > 0);
+	getRenderable()->setVisible(active && viewport.isInViewRect(renderable) && particleSystem->GetParticleCount() > 0);
 
-	if (renderable->isVisible() && !rebuilding) {
+	if (renderable.isVisible() && !rebuilding) {
 		rebuilding = true;
 		mesh[1]->begin(particleSystem->GetParticleCount());
 
@@ -151,13 +154,13 @@ void ParticleSystem::onPostSimulationStep() {
 			}
 		}
 
-		world.asyncCallback([this](){
+		world.asyncCallback([this, &renderable](){
 			mesh[1]->end();
-			renderable->setVisible(renderable->isVisible() && mesh[1]->getVertexCount() > 0);
+			renderable.setVisible(renderable.isVisible() && mesh[1]->getVertexCount() > 0);
 
 			std::swap(mesh[0], mesh[1]);
 
-			renderable->setMesh(*mesh[0]);
+			renderable.setMesh(*mesh[0]);
 			rebuilding = false;
 		});
 	}

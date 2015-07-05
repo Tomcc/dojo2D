@@ -11,16 +11,17 @@ namespace Phys {
 
 	class CollisionListener {
 	public:
-		virtual void onCollision(Body& other, float force, const Vector& point) {}
+		virtual void onCollision(Phys::Body& me, Phys::Body& other, float force, const Vector& point) {}
 		virtual void onSensorCollision(Body& other, b2Fixture& sensor) {};
 	};
 
-	class Body
-	{
+	class Body : public Dojo::Component	{
 	public:
+		static const int ID = 1;
+
 		CollisionListener* collisionListener = nullptr;
 
-		Body(Dojo::Object& object, World& world);
+		Body(Dojo::Object& object, World& world, Group group, bool staticShape = false, bool inactive = false);
 
 		virtual ~Body();
 
@@ -31,8 +32,6 @@ namespace Phys {
 		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, bool sensor = false);
 
 		void removeShape(BodyPart& part);
-
-		void initPhysics(Group group, bool staticShape = false, bool inactive = false);
 
 		///Removes physical behaviors from this object
 		void destroyPhysics();
@@ -96,25 +95,23 @@ namespace Phys {
 			return world;
 		}
 
-		void setUserObject(Dojo::Object* object) {
-			userObject = object;
-		}
-
-		template<class T>
-		T* getUserObject() const {
-			return (T*)userObject;
-		}
-
 		float getMinimumDistanceTo(const Vector& pos) const;
 
+		virtual void onDispose() override {
+			destroyPhysics();
+		}
+
+		virtual bool canDestroy() const override {
+			//wait until the World has really destroyed the body
+			return body == nullptr;
+		}
+
 	protected:
-		Dojo::Object& object;
 		World& world;
 
 		b2Body* body = nullptr;
 		Group group;
 		bool staticShape = false;
-		Dojo::Object* userObject = nullptr;
 
 		Dojo::SmallSet<Unique<BodyPart>> parts;
 

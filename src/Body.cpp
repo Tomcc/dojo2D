@@ -6,16 +6,41 @@
 
 using namespace Phys;
 
-Body::Body(Dojo::Object& object, World& world) :
-	world(world),
-	object(object) {
+Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bool inactive) :
+	Component(object),
+	world(world) {
 
+	this->group = group;
+
+	b2BodyDef bodyDef;
+	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
+
+	bodyDef.position = asB2Vec(self.position);
+	bodyDef.angle = self.getRoll();
+
+	if (staticShape) {
+		bodyDef.awake = false;
+		this->staticShape = staticShape;
+	}
+	else {
+		bodyDef.angularDamping = 0.1f;
+		bodyDef.linearDamping = 0.1f;
+		//bodyDef.bullet = true;
+	}
+
+	if (inactive)
+		bodyDef.awake = bodyDef.active = false;
+
+	bodyDef.userData = this;
+
+	world.asyncCommand([this, bodyDef, &world]() {
+		body = world.getBox2D().CreateBody(&bodyDef);
+		world.addBody(*this);
+	});
 }
 
 Body::~Body() {
-	destroyPhysics();
-	world.sync(); //cannot let the body be destroyed before the physics :(
-	//TODO find a way to give the body back to world?
+	DEBUG_ASSERT(!body, "This body was not properly disposed of before destruction");
 }
 
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
@@ -123,56 +148,27 @@ void Body::destroyPhysics() {
 		if (body) {
 			world.removeBody(*this);
 			world.getBox2D().DestroyBody(body);
+			body = nullptr;
 		}
 	});
 }
 
-void Body::initPhysics(Group group, bool staticShape, bool inactive) {
-	this->group = group;
-
-	b2BodyDef bodyDef;
-	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
-
-	bodyDef.position = asB2Vec(object.position);
-	bodyDef.angle = object.getRoll();
-
-	if (staticShape) {
-		bodyDef.awake = false;
-		this->staticShape = staticShape;
-	}
-	else {
-		bodyDef.angularDamping = 0.1f;
-		bodyDef.linearDamping = 0.1f;
-		//bodyDef.bullet = true;
-	}
-
-	if (inactive)
-		bodyDef.awake = bodyDef.active = false;
-
-	bodyDef.userData = this;
-
-	world.asyncCommand([this, bodyDef]() {
-		body = world.getBox2D().CreateBody(&bodyDef);
-		world.addBody(*this);
-	});
-}
-
 void Body::onSimulationPaused() {
-	object.speed = Vector::Zero;
+	self.speed = Vector::Zero;
 }
 
 void Body::updateObject() {
 	//TODO this should just set the interpolation target rather than the actual transform?
 	auto& t = body->GetTransform();
 
-	object.position = asVec(t.p);
-	object.speed = asVec(body->GetLinearVelocity());
+	self.position = asVec(t.p);
+	self.speed = asVec(body->GetLinearVelocity());
 
 	if (body->IsFixedRotation()) {
-		body->SetTransform(t.p, object.getRoll());
+		body->SetTransform(t.p, self.getRoll());
 	}
 	else
-		object.setRoll(Radians(t.q.GetAngle()));
+		self.setRoll(Radians(t.q.GetAngle()));
 }
 
 void Body::applyForce(const Vector& force) {

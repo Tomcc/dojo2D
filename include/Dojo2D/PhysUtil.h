@@ -17,8 +17,8 @@ namespace Phys {
 	}
 
 	inline Phys::Body& getBodyForFixture(const b2Fixture& fixture) {
-		DEBUG_ASSERT(fixture.GetBody()->GetUserData(), "Malformed fixture without an owner Body");
-		return *(Phys::Body*)fixture.GetBody()->GetUserData();
+		DEBUG_ASSERT(fixture.getBody()->GetUserData(), "Malformed fixture without an owner Body");
+		return *(Phys::Body*)fixture.getBody()->GetUserData();
 	}
 
 	inline Phys::Body& getBodyForFixture(const b2Fixture* fixture) {
