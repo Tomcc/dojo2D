@@ -10,7 +10,7 @@ namespace Phys {
 	public:
 		static const int ID = 4;
 
-		ParticleSystemRenderer(ParticleSystem& ps);
+		ParticleSystemRenderer(ParticleSystem& ps, Dojo::RenderLayer::ID layer);
 
 		void setAABB(const Dojo::AABB& box);
 

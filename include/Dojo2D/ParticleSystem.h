@@ -27,9 +27,9 @@ namespace Phys {
 
 		static const ParticleSystem& getFor(b2ParticleSystem* ps);
 
-		const float damping, particleRadius;
+		const float damping;
 		
-		ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleSize, float damping = 0);
+		ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, float damping = 0);
 		virtual ~ParticleSystem();
 
 		void addParticles(const ParticleList& particles);

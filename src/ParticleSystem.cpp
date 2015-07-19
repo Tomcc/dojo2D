@@ -26,29 +26,28 @@ Unique<Dojo::Mesh> _makeMesh() {
 	return mesh;
 }
 
-ParticleSystem::ParticleSystem(World& world, Object& parent, const Material& material, Group group, float particleRadius, float damping /*= 0*/) :
+Phys::ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, float damping /*= 0*/) :
 	Object(parent, Vector::Zero),
 	material(material),
 	damping(damping),
-	particleRadius(particleRadius),
 	world(world),
 	group(group) {
-	DEBUG_ASSERT(particleRadius > 0, "Invalid particle size");
+	DEBUG_ASSERT(particleSize > 0, "Invalid particle size");
 
 	mesh[0] = _makeMesh();
 	mesh[1] = _makeMesh();
 
 	addComponent([&]() {
-		auto r = make_unique<ParticleSystemRenderer>(*this);
+		auto r = make_unique<ParticleSystemRenderer>(*this, layer);
 		r->setMesh(*mesh[0]);
 		r->setTexture(getGameState().getTexture("particle"));
 		r->setVisible(false);
 		return r;
 	}());
 
-	world.asyncCommand([this, damping, particleRadius, &material, &world]() {
+	world.asyncCommand([this, damping, particleSize, &material, &world]() {
 		b2ParticleSystemDef particleSystemDef;
-		particleSystemDef.radius = particleRadius;
+		particleSystemDef.radius = particleSize;
 		particleSystemDef.destroyByAge = true;
 
 		particleSystemDef.density = material.density;
@@ -137,7 +136,7 @@ void ParticleSystem::onPostSimulationStep() {
 
 				auto baseIdx = mesh[1]->getVertexCount();
 
-				float r = particleRadius * 1.5f;
+				float r = particleSystem->GetRadius() * 1.5f;
 				// 			if (hash < 5 && hash > 0)
 				// 				r -= 0.03f * hash;
 
