@@ -55,9 +55,11 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 				timer.reset();
 				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
-				for (auto&& b : bodies)
-					if (b->getB2Body()->IsAwake() && b->getB2Body()->IsActive())
+				for (auto&& b : bodies) {
+					if (b->getB2Body()->IsAwake() && b->getB2Body()->IsActive()) {
 						b->updateObject();
+					}
+				}
 
 				for (auto&& listener : listeners)
 					listener->onPostSimulationStep();

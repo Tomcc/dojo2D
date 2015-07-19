@@ -7,7 +7,12 @@
 #include <mutex>
 
 namespace Phys {
-	typedef uint16_t Group;
+
+	struct Group : public Dojo::PseudoEnumClass<uint16_t> {
+		template<typename T>
+		Group(T raw) : PseudoEnumClass(raw) {}
+	};
+
 	using Vector = Dojo::Vector;
 	using Radians = Dojo::Radians;
 

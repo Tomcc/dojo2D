@@ -110,7 +110,7 @@ namespace Phys {
 		World& world;
 
 		b2Body* body = nullptr;
-		Group group;
+		Group group = Group::invalid();
 		bool staticShape = false;
 
 		Dojo::SmallSet<Unique<BodyPart>> parts;
