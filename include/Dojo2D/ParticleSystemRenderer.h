@@ -8,6 +8,8 @@ namespace Phys {
 	class ParticleSystemRenderer : public Dojo::Renderable
 	{
 	public:
+		static const int ID = 4;
+
 		ParticleSystemRenderer(ParticleSystem& ps);
 
 		void setAABB(const Dojo::AABB& box);

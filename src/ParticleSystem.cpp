@@ -103,7 +103,11 @@ void ParticleSystem::onPostSimulationStep() {
 		asVec(b2bb.upperBound)
 	};
 
-	auto& renderable = (ParticleSystemRenderer&)*getRenderable();
+	//TODO move the mesh generation in the component itself
+	//to allow for different renderables
+	DEBUG_ASSERT(has<ParticleSystemRenderer>(), "No renderable component?");
+
+	auto& renderable = get<ParticleSystemRenderer>();
 	renderable.setAABB(bb);
 
 	activityAABB = bb.grow(5);
@@ -115,7 +119,7 @@ void ParticleSystem::onPostSimulationStep() {
 	particleSystem->SetPaused(!active);
 	
 	//only show when active, visible and has particles
-	getRenderable()->setVisible(active && viewport.isInViewRect(renderable) && particleSystem->GetParticleCount() > 0);
+	renderable.setVisible(active && viewport.isInViewRect(renderable) && particleSystem->GetParticleCount() > 0);
 
 	if (renderable.isVisible() && !rebuilding) {
 		rebuilding = true;

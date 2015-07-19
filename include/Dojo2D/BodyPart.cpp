@@ -20,7 +20,7 @@ float BodyPart::getMinimumDistanceTo(const Vector& pos) const {
 	b2Vec2 normal;
 	float res;
 	fixture->GetShape()->ComputeDistance(
-		fixture->getBody()->GetTransform(),
+		fixture->GetBody()->GetTransform(),
 		asB2Vec(pos),
 		&res,
 		&normal,

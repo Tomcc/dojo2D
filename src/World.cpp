@@ -14,7 +14,7 @@ bool World::shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shap
 }
 
 bool World::shapesOverlap(const b2Shape& shape, const b2Fixture& fixture) {
-	return shapesOverlap(shape, B2_IDENTITY, *fixture.GetShape(), fixture.getBody()->GetTransform());
+	return shapesOverlap(shape, B2_IDENTITY, *fixture.GetShape(), fixture.GetBody()->GetTransform());
 }
 
 
@@ -175,7 +175,7 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 		auto shouldBeAbove = odcA ? fixtureA : fixtureB;
 
 		//check if they are in the correct position
-		if (shouldBeBelow->getBody()->GetPosition().y > shouldBeAbove->getBody()->GetPosition().y - shouldBeAbove->GetAABB(0).GetExtents().y * 0.3f)
+		if (shouldBeBelow->GetBody()->GetPosition().y > shouldBeAbove->GetBody()->GetPosition().y - shouldBeAbove->GetAABB(0).GetExtents().y * 0.3f)
 			return false;
 	}
 
