@@ -3,7 +3,7 @@
 using namespace Phys;
 using namespace Dojo;
 
-Material::Material(const String& name, const Table& desc, const ResourceGroup* group) :
+Material::Material(const std::string& name, const Table& desc, const ResourceGroup* group) :
 	name(name) {
 	DEBUG_ASSERT(name.size() > 0, "Invalid name");
 

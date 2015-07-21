@@ -209,6 +209,7 @@
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DisableSpecificWarnings>4458</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -252,6 +253,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
+      <DisableSpecificWarnings>4458</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -294,6 +296,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
+      <DisableSpecificWarnings>4458</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
