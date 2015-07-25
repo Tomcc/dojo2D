@@ -11,7 +11,7 @@ namespace Phys {
 		bool hit = false;
 		Vector position;
 		Vector normal;
-		b2Fixture *hitFixture = nullptr;
+		b2Fixture* hitFixture = nullptr;
 		Group group = 0;
 		float dist;
 
@@ -19,7 +19,7 @@ namespace Phys {
 			world(&world) {
 
 		}
-			
+
 		float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float32 fraction) override;
 
 		float32 ReportParticle(const b2ParticleSystem* particleSystem, int32 index, const b2Vec2& point, const b2Vec2& normal, float32 fraction) override {

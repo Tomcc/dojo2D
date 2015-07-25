@@ -24,8 +24,9 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 	DEBUG_ASSERT(timeStep > 0, "Invalid timestep");
 
 	for (int i = 0; i < GROUP_COUNT; ++i) {
-		for (int j = 0; j < GROUP_COUNT; ++j)
+		for (int j = 0; j < GROUP_COUNT; ++j) {
 			collideMode[j][i] = ContactMode::Normal;
+		}
 	}
 
 	//create the box 2D world
@@ -38,31 +39,34 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 	deferredCollisions = make_unique<Dojo::Pipe<DeferredCollision>>();
 	deferredSensorCollisions = make_unique<Dojo::Pipe<DeferredSensorCollision>>();
 
-	thread = std::thread([=]() {
+	thread = std::thread([ = ]() {
 		Dojo::Timer timer;
 		Job job;
+
 		while (running) {
 
 			//process all available commands
 			while ((simulationPaused || timer.getElapsedTime() < timeStep) && commands->try_dequeue(job)) {
 				job.command();
 
-				if (job.callback)
+				if (job.callback) {
 					callbacks->enqueue(std::move(job.callback));
+				}
 			}
 
 			if (!simulationPaused && timer.getElapsedTime() >= timeStep) {
 				timer.reset();
 				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
-				for (auto&& b : bodies) {
+				for (auto && b : bodies) {
 					if (b->getB2Body()->IsAwake() && b->getB2Body()->IsActive()) {
 						b->updateObject();
 					}
 				}
 
-				for (auto&& listener : listeners)
+				for (auto && listener : listeners) {
 					listener->onPostSimulationStep();
+				}
 
 				//tell to cleanup the deleted bodies
 				if (deletedBodies.size() > 0) {
@@ -111,8 +115,10 @@ void World::asyncCommand(Command command, const Command& callback /*= Command()*
 
 	if (isWorkerThread()) {
 		command();
-		if (callback)
+
+		if (callback) {
 			callbacks->enqueue(callback);
+		}
 	}
 	else {
 		commands->enqueue(std::move(command), callback);
@@ -121,10 +127,13 @@ void World::asyncCommand(Command command, const Command& callback /*= Command()*
 
 void World::asyncCallback(const Command& callback) const {
 	DEBUG_ASSERT(callback, "Command can't be a NOP");
-	if (isWorkerThread())
+
+	if (isWorkerThread()) {
 		callbacks->enqueue(callback);
-	else
+	}
+	else {
 		callback();
+	}
 }
 
 void World::sync() const {
@@ -134,8 +143,9 @@ void World::sync() const {
 			done = true;
 		});
 
-		while (!done)
+		while (!done) {
 			std::this_thread::yield();
+		}
 	}
 }
 
@@ -165,8 +175,9 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 		deferredSensorCollisions->enqueue(phA, phB, *fixtureB);
 	}
 
-	if (fixtureA->IsSensor() && fixtureB->IsSensor())
+	if (fixtureA->IsSensor() && fixtureB->IsSensor()) {
 		return false;
+	}
 
 	bool odcA = phA.isParticle();
 	bool odcB = phB.isParticle();
@@ -177,8 +188,9 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 		auto shouldBeAbove = odcA ? fixtureA : fixtureB;
 
 		//check if they are in the correct position
-		if (shouldBeBelow->GetBody()->GetPosition().y > shouldBeAbove->GetBody()->GetPosition().y - shouldBeAbove->GetAABB(0).GetExtents().y * 0.3f)
+		if (shouldBeBelow->GetBody()->GetPosition().y > shouldBeAbove->GetBody()->GetPosition().y - shouldBeAbove->GetAABB(0).GetExtents().y * 0.3f) {
 			return false;
+		}
 	}
 
 	return b2ContactFilter::ShouldCollide(fixtureA, fixtureB);
@@ -188,8 +200,9 @@ bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, 
 	auto& body = getBodyForFixture(fixture);
 	auto& ps = ParticleSystem::getFor(particleSystem);
 
-	if (getContactModeFor(body.getGroup(), ps.group) != ContactMode::Normal)
+	if (getContactModeFor(body.getGroup(), ps.group) != ContactMode::Normal) {
 		return false;
+	}
 	else {
 		return b2ContactFilter::ShouldCollide(fixture, particleSystem, particleIndex);
 	}
@@ -206,25 +219,32 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	DEBUG_ASSERT(bodyB.isStatic() || bodyB.getMass() > 0, "HM");
 
 	//don't report collisions between bodies with no listeners, duh
-	if (!bodyA.collisionListener && !bodyB.collisionListener)
+	if (!bodyA.collisionListener && !bodyB.collisionListener) {
 		return;
+	}
 
 	contact->GetWorldManifold(&worldManifold);
 
 	b2Vec2 point;
-	if (contact->GetManifold()->pointCount == 1)
+
+	if (contact->GetManifold()->pointCount == 1) {
 		point = worldManifold.points[0];
-	else
+	}
+	else {
 		point = (worldManifold.points[0] + worldManifold.points[1]) * 0.5f;
+	}
 
 
 	auto& N = worldManifold.normal;
 	//	b2Vec2 T = { N.y, -N.x };
 	b2Vec2 F = {0, 0};
-	for (int i = 0; i < impulse->count; ++i)
+
+	for (int i = 0; i < impulse->count; ++i) {
 		F += impulse->normalImpulses[i] * N;
+	}
 
 	float force = F.Length();
+
 	if (force > 0.1f) {
 		deferredCollisions->enqueue(partA, partB, force, point);
 	}
@@ -232,18 +252,19 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 
 void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelongsToGroup, RayResult& result, const Command& callback) const {
 	result.group = rayBelongsToGroup;
-	asyncCommand([=, &result]() {
+	asyncCommand([ =, &result]() {
 		box2D->RayCast(
 			&result,
-			{ start.x, start.y },
-			{ end.x, end.y });
+		{ start.x, start.y },
+		{ end.x, end.y });
 
-		if (!result.hit)
+		if (!result.hit) {
 			result.position = end;
+		}
 
 		result.dist = start.distance(result.position);
 	},
-		callback);
+	callback);
 }
 
 bool World::isWorkerThread() const {
@@ -263,28 +284,33 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 	bool empty = true;
 	asyncCommand([&]() {
 		b2PolygonShape aabbShape;
+
 		if (precise) {
 			Vector dim = max - min;
 			Vector center = (max + min) * 0.5f;
 			aabbShape.SetAsBox(dim.x, dim.y, asB2Vec(center), 0);
 		}
 
-		auto report = [&](b2Fixture* fixture) {
+		auto report = [&](b2Fixture * fixture) {
 			if (!fixture->IsSensor()) {
 				auto& body = getBodyForFixture(fixture);
 				auto contactMode = getContactModeFor(group, body.getGroup());
+
 				if (contactMode == ContactMode::Normal) {
 
 					if (!precise || shapesOverlap(aabbShape, *fixture)) {
 						empty = false;
 
-						if (resultBody)
+						if (resultBody) {
 							resultBody->insert(&body);
+						}
 
-						else if (resultFixture)
+						else if (resultFixture) {
 							resultFixture->push_back(fixture);
-						else
-							return false; //stop search immediately
+						}
+						else {
+							return false;    //stop search immediately
+						}
 					}
 				}
 			}
@@ -352,7 +378,7 @@ void Phys::World::playCollisionSound(const DeferredCollision& collision) const {
 				asVec(collision.point),
 				set,
 				volume
-				);
+			);
 		}
 	}
 }
@@ -362,37 +388,49 @@ void World::update(float dt) {
 
 	//play back all collisions
 	DeferredCollision c;
+
 	while (deferredCollisions->try_dequeue(c)) {
 		auto& bA = c.A->body;
 		auto& bB = c.B->body;
-		if (deletedBodies.contains(&bA) || deletedBodies.contains(&bB))
+
+		if (deletedBodies.contains(&bA) || deletedBodies.contains(&bB)) {
 			continue;
+		}
 
 		Vector p = asVec(c.point);
-		if (bA.collisionListener)
-			bA.collisionListener->onCollision(bA, bB, c.force, p);
 
-		if (bB.collisionListener)
+		if (bA.collisionListener) {
+			bA.collisionListener->onCollision(bA, bB, c.force, p);
+		}
+
+		if (bB.collisionListener) {
 			bB.collisionListener->onCollision(bB, bA, c.force, p);
+		}
 
 		playCollisionSound(c);
 	}
 
 	DeferredSensorCollision sc;
+
 	while (deferredSensorCollisions->try_dequeue(sc)) {
 		auto& body = getBodyForFixture(sc.sensor);
-		if (deletedBodies.contains(&body))
-			continue;
 
-		if (body.collisionListener)
-			body.collisionListener->onSensorCollision(*sc.other, *sc.sensor); //sensor collisions are not bidirectional
+		if (deletedBodies.contains(&body)) {
+			continue;
+		}
+
+		if (body.collisionListener) {
+			body.collisionListener->onSensorCollision(*sc.other, *sc.sensor);    //sensor collisions are not bidirectional
+		}
 	}
 
-	//TODO timeslice this in some way? 
+	//TODO timeslice this in some way?
 	//right now it can stall the main thread with too many callbacks
 	Command callback;
-	while (callbacks->try_dequeue(callback))
+
+	while (callbacks->try_dequeue(callback)) {
 		callback();
+	}
 }
 
 void World::_notifyDestroyed(Body& body) {
@@ -416,7 +454,7 @@ void World::pause() {
 		simulationPaused = true;
 
 		//tell all bodies they're being paused
-		for (auto&& body : bodies) {
+		for (auto && body : bodies) {
 			body->onSimulationPaused();
 		}
 	});

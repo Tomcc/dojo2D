@@ -26,10 +26,12 @@ std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& poi
 	int n = DecomposeConvex(&wholePolygon, polys, MAX_PIECES);
 
 	std::vector<b2PolygonShape> processedPolys;
+
 	processedPolys.reserve(n);
 
 	//use AddTo and then extract the polyshape from the fixture!
 	b2FixtureDef temp;
+
 	for (int i = 0; i < n; ++i) {
 		polys[i].AddTo(temp);
 

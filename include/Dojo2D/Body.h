@@ -3,7 +3,7 @@
 #include "common_header.h"
 
 namespace Phys {
-	
+
 	class Material;
 	class World;
 	class BodyPart;
@@ -72,7 +72,7 @@ namespace Phys {
 		void setTransform(const Vector& position, Radians angle);
 
 		Group getGroup() const {
-				return group;
+			return group;
 		}
 
 		b2Body* getB2Body() const {

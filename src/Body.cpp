@@ -28,8 +28,9 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 		//bodyDef.bullet = true;
 	}
 
-	if (inactive)
+	if (inactive) {
 		bodyDef.awake = bodyDef.active = false;
+	}
 
 	bodyDef.userData = this;
 
@@ -79,7 +80,7 @@ void Phys::Body::removeShape(BodyPart& part) {
 
 	Shared<BodyPart> temp = std::move(*elem);
 	parts.erase(elem);
-	world.asyncCommand([this, part = std::move(temp)]{
+	world.asyncCommand([this, part = std::move(temp)] {
 		body->DestroyFixture(&part->getFixture());
 	});
 }
@@ -167,13 +168,14 @@ void Body::updateObject() {
 	if (body->IsFixedRotation()) {
 		body->SetTransform(t.p, self.getRoll());
 	}
-	else
+	else {
 		self.setRoll(Radians(t.q.GetAngle()));
+	}
 }
 
 void Body::applyForce(const Vector& force) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForceToCenter(asB2Vec(force), true);
 	});
@@ -181,7 +183,7 @@ void Body::applyForce(const Vector& force) {
 
 void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
 	});
@@ -189,7 +191,7 @@ void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint)
 
 void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		b2Vec2 worldPoint = body->GetWorldPoint(asB2Vec(localPoint));
 		body->ApplyForce(asB2Vec(force), worldPoint, true);
@@ -197,21 +199,21 @@ void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint)
 }
 
 void Body::applyTorque(float t) {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->ApplyTorque(t, true);
 	});
 }
 
 void Body::setFixedRotation(bool enable) {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetFixedRotation(enable);
 	});
 }
 
 void Body::forcePosition(const Vector& position) {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
 		body->SetTransform(asB2Vec(position), t.q.GetAngle());
@@ -219,7 +221,7 @@ void Body::forcePosition(const Vector& position) {
 }
 
 void Body::forceRotation(Radians angle) {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		auto t = body->GetTransform();
 		body->SetTransform(t.p, angle);
@@ -227,21 +229,21 @@ void Body::forceRotation(Radians angle) {
 }
 
 void Body::setTransform(const Vector& position, Radians angle) {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetTransform(asB2Vec(position), angle);
 	});
 }
 
 void Body::forceVelocity(const Vector& velocity) {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetLinearVelocity(asB2Vec(velocity));
 	});
 }
 
 void Body::setDamping(float linear, float angular) {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
 		body->SetLinearDamping(linear);
 		body->SetAngularDamping(angular);
@@ -266,10 +268,13 @@ Dojo::Vector Body::getPosition() const {
 }
 
 void Body::setActive() {
-	world.asyncCommand([=]() {
+	world.asyncCommand([ = ]() {
 		DEBUG_ASSERT(body, "Call initPhysics first");
-		if (!isStatic())
+
+		if (!isStatic()) {
 			body->SetAwake(true);
+		}
+
 		body->SetActive(true);
 	});
 }
@@ -301,18 +306,21 @@ Vector Body::getVelocityAtLocalPoint(const Vector& localPoint) const {
 
 float Body::getMinimumDistanceTo(const Vector& point) const {
 	_waitForBody();
-	
+
 	float min = FLT_MAX;
-	for (auto&& part : parts) {
+
+	for (auto && part : parts) {
 		min = std::min(min, part->getMinimumDistanceTo(point));
 	}
+
 	return min;
 }
 
 void Phys::Body::_waitForBody() const {
 	//if the body is not yet here, assume it could be somewhere in the command pipeline
-	if (!body)
+	if (!body) {
 		world.sync();
+	}
 
 	DEBUG_ASSERT(body, "Call initPhysics first!");
 }

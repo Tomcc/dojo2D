@@ -25,8 +25,8 @@ namespace Phys {
 		State state = Solid;
 
 		Dojo::SoundSet
-			*impactHard = nullptr,
-			*impactSoft = nullptr;
+		* impactHard = nullptr,
+		  *impactSoft = nullptr;
 
 		Material(const std::string& name, const Dojo::Table& desc = Dojo::Table::Empty, const Dojo::ResourceGroup* group = nullptr);
 	};

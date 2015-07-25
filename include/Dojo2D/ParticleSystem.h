@@ -9,10 +9,9 @@ namespace Phys {
 	class World;
 
 	///TODO decouple from rendering
-	class ParticleSystem : 
+	class ParticleSystem :
 		public Dojo::Object,
-		public WorldListener
-	{
+		public WorldListener {
 	public:
 		struct Particle {
 			b2ParticleDef def;
@@ -28,7 +27,7 @@ namespace Phys {
 		static const ParticleSystem& getFor(b2ParticleSystem* ps);
 
 		const float damping;
-		
+
 		ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, float damping = 0);
 		virtual ~ParticleSystem();
 
@@ -45,7 +44,7 @@ namespace Phys {
 		World& world;
 
 		const Material& material;
-			
+
 		Unique<Dojo::Mesh> mesh[2];
 
 		Dojo::AABB activityAABB;

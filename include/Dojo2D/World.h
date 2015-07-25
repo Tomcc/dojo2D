@@ -122,7 +122,7 @@ namespace Phys {
 		std::thread thread;
 
 		bool running = true;
-			
+
 		Dojo::SmallSet<WorldListener*> listeners;
 
 		Unique<b2World> box2D;

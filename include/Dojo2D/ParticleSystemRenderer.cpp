@@ -7,8 +7,8 @@ using namespace Dojo;
 using namespace Phys;
 
 Phys::ParticleSystemRenderer::ParticleSystemRenderer(ParticleSystem& ps, Dojo::RenderLayer::ID layer) :
-Renderable(ps, layer),
-particleSystem(ps) {
+	Renderable(ps, layer),
+	particleSystem(ps) {
 
 }
 

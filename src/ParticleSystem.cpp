@@ -77,8 +77,8 @@ ParticleSystem::Particle::Particle(const Dojo::Vector& pos, const Dojo::Vector& 
 }
 
 void Phys::ParticleSystem::addParticles(const ParticleList& particles) {
-	world.asyncCommand([=]() {
-		for (auto&& particle : particles) {
+	world.asyncCommand([ = ]() {
+		for (auto && particle : particles) {
 			particleSystem->CreateParticle(particle.def);
 		}
 	});
@@ -86,7 +86,7 @@ void Phys::ParticleSystem::addParticles(const ParticleList& particles) {
 
 void Phys::ParticleSystem::addParticles(ParticleList&& rhs) {
 	world.asyncCommand([this, particles = std::move(rhs)]() {
-		for (auto&& particle : particles) {
+		for (auto && particle : particles) {
 			particleSystem->CreateParticle(particle.def);
 		}
 	});
@@ -116,7 +116,7 @@ void ParticleSystem::onPostSimulationStep() {
 	//suspend the particlesystem when it's too far from the player
 	bool active = (!autoDeactivate) || (viewport.isInViewRect(activityAABB));
 	particleSystem->SetPaused(!active);
-	
+
 	//only show when active, visible and has particles
 	renderable.setVisible(active && viewport.isInViewRect(renderable) && particleSystem->GetParticleCount() > 0);
 
@@ -157,7 +157,7 @@ void ParticleSystem::onPostSimulationStep() {
 			}
 		}
 
-		world.asyncCallback([this, &renderable](){
+		world.asyncCallback([this, &renderable]() {
 			mesh[1]->end();
 			renderable.setVisible(renderable.isVisible() && mesh[1]->getVertexCount() > 0);
 

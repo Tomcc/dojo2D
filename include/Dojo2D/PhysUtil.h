@@ -6,7 +6,7 @@ namespace Phys {
 	class Body;
 	class BodyPart;
 
-	//make a copy of the b2vec 
+	//make a copy of the b2vec
 	inline Dojo::Vector asVec(const b2Vec2& v) {
 		return{ v.x, v.y };
 	}

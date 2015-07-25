@@ -5,8 +5,7 @@
 namespace Phys {
 	class ParticleSystem;
 
-	class ParticleSystemRenderer : public Dojo::Renderable
-	{
+	class ParticleSystemRenderer : public Dojo::Renderable {
 	public:
 		static const int ID = 4;
 
