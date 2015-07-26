@@ -6,8 +6,9 @@ std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& poi
 	b2Polygon wholePolygon;
 
 	//warning: b2Polygon acquires x and y and frees with delete
-	wholePolygon.x = new float32[points.size()];
-	wholePolygon.y = new float32[points.size()];
+	std::vector<float32> buffer(points.size() * 2);
+	wholePolygon.x = buffer.data();
+	wholePolygon.y = buffer.data() + points.size();
 	wholePolygon.nVertices = points.size();
 
 	for (size_t i = 0; i < points.size(); ++i) {
@@ -37,6 +38,8 @@ std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& poi
 
 		processedPolys.emplace_back(*(b2PolygonShape*)temp.shape);
 	}
+
+	wholePolygon.x = wholePolygon.y = nullptr; //prevent b2polygon from deleting our stuff
 
 	return processedPolys;
 }

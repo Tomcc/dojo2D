@@ -16,12 +16,12 @@ namespace Phys {
 		return *(b2Vec2*)(&v);
 	}
 
-	inline Phys::Body& getBodyForFixture(const b2Fixture& fixture) {
+	inline Body& getBodyForFixture(const b2Fixture& fixture) {
 		DEBUG_ASSERT(fixture.GetBody()->GetUserData(), "Malformed fixture without an owner Body");
-		return *(Phys::Body*)fixture.GetBody()->GetUserData();
+		return *(Body*)fixture.GetBody()->GetUserData();
 	}
 
-	inline Phys::Body& getBodyForFixture(const b2Fixture* fixture) {
+	inline Body& getBodyForFixture(const b2Fixture* fixture) {
 		//not using a reference because b2 is old style
 		DEBUG_ASSERT(fixture, "the fixture may not be null");
 		return getBodyForFixture(*fixture);
