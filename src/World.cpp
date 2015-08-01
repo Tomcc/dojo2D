@@ -306,7 +306,7 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 						}
 
 						else if (resultFixture) {
-							resultFixture->push_back(fixture);
+							resultFixture->emplace_back(fixture);
 						}
 						else {
 							return false;    //stop search immediately
