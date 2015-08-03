@@ -37,7 +37,7 @@ Phys::ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderL
 	mesh[0] = _makeMesh();
 	mesh[1] = _makeMesh();
 
-	addComponent([&]() {
+	addComponent([&] {
 		auto r = make_unique<ParticleSystemRenderer>(*this, layer);
 		r->setMesh(*mesh[0]);
 		r->setTexture(getGameState().getTexture("particle"));
@@ -78,7 +78,7 @@ ParticleSystem::Particle::Particle(const Dojo::Vector& pos, const Dojo::Vector& 
 
 void Phys::ParticleSystem::addParticles(const ParticleList& particles) {
 	world.asyncCommand([ = ]() {
-		for (auto && particle : particles) {
+		for (auto&& particle : particles) {
 			particleSystem->CreateParticle(particle.def);
 		}
 	});
@@ -86,7 +86,7 @@ void Phys::ParticleSystem::addParticles(const ParticleList& particles) {
 
 void Phys::ParticleSystem::addParticles(ParticleList&& rhs) {
 	world.asyncCommand([this, particles = std::move(rhs)]() {
-		for (auto && particle : particles) {
+		for (auto&& particle : particles) {
 			particleSystem->CreateParticle(particle.def);
 		}
 	});

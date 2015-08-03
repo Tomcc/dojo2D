@@ -145,7 +145,7 @@ void Body::destroyPhysics() {
 	group = 0;
 	particleCollisionModel = false;
 
-	world.asyncCommand([&]() {
+	world.asyncCommand([&] {
 		if (body) {
 			world.removeBody(*this);
 			world.getBox2D().DestroyBody(body);
@@ -309,7 +309,7 @@ float Body::getMinimumDistanceTo(const Vector& point) const {
 
 	float min = FLT_MAX;
 
-	for (auto && part : parts) {
+	for (auto&& part : parts) {
 		min = std::min(min, part->getMinimumDistanceTo(point));
 	}
 

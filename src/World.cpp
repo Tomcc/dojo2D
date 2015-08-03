@@ -58,19 +58,19 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 				timer.reset();
 				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
-				for (auto && b : bodies) {
+				for (auto&& b : bodies) {
 					if (b->getB2Body()->IsAwake() && b->getB2Body()->IsActive()) {
 						b->updateObject();
 					}
 				}
 
-				for (auto && listener : listeners) {
+				for (auto&& listener : listeners) {
 					listener->onPostSimulationStep();
 				}
 
 				//tell to cleanup the deleted bodies
 				if (deletedBodies.size() > 0) {
-					asyncCallback([&]() {
+					asyncCallback([&] {
 						deletedBodies.clear();
 					});
 				}
@@ -88,13 +88,13 @@ World::~World() {
 }
 
 void World::addListener(WorldListener& listener) {
-	asyncCommand([&]() {
+	asyncCommand([&] {
 		listeners.emplace(&listener);
 	});
 }
 
 void World::removeListener(WorldListener& listener) {
-	asyncCommand([&]() {
+	asyncCommand([&] {
 		listeners.erase(&listener);
 	});
 }
@@ -139,7 +139,7 @@ void World::asyncCallback(const Command& callback) const {
 void World::sync() const {
 	if (!isWorkerThread()) {
 		std::atomic<bool> done = false;
-		asyncCommand([&]() {
+		asyncCommand([&] {
 			done = true;
 		});
 
@@ -282,7 +282,7 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
 	bool empty = true;
-	asyncCommand([&]() {
+	asyncCommand([&] {
 		b2PolygonShape aabbShape;
 
 		if (precise) {
@@ -454,7 +454,7 @@ void World::pause() {
 		simulationPaused = true;
 
 		//tell all bodies they're being paused
-		for (auto && body : bodies) {
+		for (auto&& body : bodies) {
 			body->onSimulationPaused();
 		}
 	});
