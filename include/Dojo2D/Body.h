@@ -19,6 +19,7 @@ namespace Phys {
 	public:
 		static const int ID = 1;
 
+		bool pushable = true;
 		CollisionListener* collisionListener = nullptr;
 
 		Body(Dojo::Object& object, World& world, Group group, bool staticShape = false, bool inactive = false);
