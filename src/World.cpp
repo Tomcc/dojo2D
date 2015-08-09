@@ -369,7 +369,7 @@ void Phys::World::playCollisionSound(const DeferredCollision& collision) const {
 			float volume = std::min(collision.force / 10.f, 1.f);
 			Dojo::Platform::singleton().getSoundManager().playSound(
 				asVec(collision.point),
-				set,
+				*set,
 				volume
 			);
 		}
