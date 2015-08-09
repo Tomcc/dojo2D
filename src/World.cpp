@@ -359,25 +359,52 @@ Vector World::getGravity() const {
 
 const float MIN_SOUND_FORCE = 1.f;
 
-void Phys::World::playCollisionSound(const DeferredCollision& collision) const {
+float Phys::World::_closestRecentlyPlayedSound(const Vector& point) {
+	float minDist = FLT_MAX;
+	for (auto&& pos : recentlyPlayedSoundPositions) {
+		minDist = std::min(minDist, pos.distanceSquared(point));
+	}
+	return sqrt(minDist);
+}
+
+void Phys::World::playCollisionSound(const DeferredCollision& collision) {
 	//TODO choose which sound to play... both? random? existing?
 	//TODO this code doesn't belong here too much, perhaps World shouldn't know about sounds
 	auto& part = *collision.A;
 
 	if (collision.force > MIN_SOUND_FORCE) {
+		//ensure that the bodies are actually moving respect to each other
 		if (auto set = (collision.force > 5) ? part.material.impactHard : part.material.impactSoft) {
-			float volume = std::min(collision.force / 10.f, 1.f);
-			Dojo::Platform::singleton().getSoundManager().playSound(
-				asVec(collision.point),
-				*set,
-				volume
-			);
+
+			auto pos = asVec(collision.point);
+			if (_closestRecentlyPlayedSound(pos) > 0.2f) {
+				float volume = std::min(collision.force / 3.f, 1.f);
+				Dojo::Platform::singleton().getSoundManager().playSound(
+					pos,
+					*set,
+					volume
+					);
+
+				if (recentlyPlayedSoundPositions.size() > 20) {
+					recentlyPlayedSoundPositions.pop_front();
+				}
+				recentlyPlayedSoundPositions.emplace_back(pos);
+			}
 		}
 	}
 }
 
 void World::update(float dt) {
 	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
+
+	//remove a recently played sound
+	if (recentlyPlayedSoundPositions.size() > 0) {
+		removeNextSound += dt;
+		if (removeNextSound > 0.5f) {
+			recentlyPlayedSoundPositions.pop_front();
+			removeNextSound = 0;
+		}
+	}
 
 	//play back all collisions
 	DeferredCollision c;

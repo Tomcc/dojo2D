@@ -75,7 +75,7 @@ namespace Phys {
 
 		Vector getGravity() const;
 
-		void playCollisionSound(const DeferredCollision& collision) const;
+		void playCollisionSound(const DeferredCollision& collision);
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result, const Command& callback = {}) const;
 		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false) const;
@@ -136,8 +136,13 @@ namespace Phys {
 
 		static const int GROUP_COUNT = 256; //HACK
 		ContactMode collideMode[GROUP_COUNT][GROUP_COUNT];
+		
+		float removeNextSound = 0;
+		std::deque<Vector> recentlyPlayedSoundPositions;
 
 		bool simulationPaused = true;
+
+		float _closestRecentlyPlayedSound(const Vector& point);
 	};
 }
 
