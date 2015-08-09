@@ -67,13 +67,6 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 				for (auto&& listener : listeners) {
 					listener->onPostSimulationStep();
 				}
-
-				//tell to cleanup the deleted bodies
-				if (deletedBodies.size() > 0) {
-					asyncCallback([&] {
-						deletedBodies.clear();
-					});
-				}
 			}
 			else {
 				std::this_thread::yield();
@@ -431,6 +424,9 @@ void World::update(float dt) {
 	while (callbacks->try_dequeue(callback)) {
 		callback();
 	}
+
+	//by now, any stale pointer in the queues should have been cleaned
+	deletedBodies.clear();
 }
 
 void World::_notifyDestroyed(Body& body) {
