@@ -2,6 +2,8 @@
 
 #include "common_header.h"
 
+#include "Material.h"
+
 namespace Phys {
 	class ParticleSystem;
 
@@ -16,7 +18,10 @@ namespace Phys {
 		virtual void update(float dt) override;
 
 	protected:
-		ParticleSystem& particleSystem;
+		Unique<Dojo::Mesh> mesh[2];
+
+		std::atomic<bool> rebuilding = false;
+		ParticleSystem& mParticleSystem;
 	private:
 	};
 

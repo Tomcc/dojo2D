@@ -15,33 +15,19 @@ const ParticleSystem& ParticleSystem::getFor(b2ParticleSystem* ps) {
 	return *(ParticleSystem*)ps->GetUserDataBuffer()[0];
 }
 
-Unique<Dojo::Mesh> _makeMesh() {
-	//TODO move to ParticleSystemRenderer
-	auto mesh = make_unique<Mesh>();
-
-	mesh->setDynamic(true);
-	mesh->setTriangleMode(PrimitiveMode::TriangleList);
-	mesh->setVertexFields({ VertexField::Position2D, VertexField::Color, VertexField::UV0 });
-
-	return mesh;
-}
-
-Phys::ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, float damping /*= 0*/) :
+ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, float damping /*= 0*/) :
 	Object(parent, Vector::Zero),
-	material(material),
 	damping(damping),
 	world(world),
-	group(group) {
+	group(group),
+	material(material) {
 	DEBUG_ASSERT(particleSize > 0, "Invalid particle size");
-
-	mesh[0] = _makeMesh();
-	mesh[1] = _makeMesh();
 
 	addComponent([&] {
 		auto r = make_unique<ParticleSystemRenderer>(*this, layer);
-		r->setMesh(*mesh[0]);
 		r->setTexture(getGameState().getTexture("particle"));
 		r->setVisible(false);
+		r->setShader(*getGameState().getShader("textured_mult_color"));
 		return r;
 	}());
 
@@ -76,7 +62,7 @@ ParticleSystem::Particle::Particle(const Dojo::Vector& pos, const Dojo::Vector& 
 	def.userData = this;
 }
 
-void Phys::ParticleSystem::addParticles(const ParticleList& particles) {
+void ParticleSystem::addParticles(const ParticleList& particles) {
 	world.asyncCommand([ = ]() {
 		for (auto&& particle : particles) {
 			particleSystem->CreateParticle(particle.def);
@@ -84,10 +70,18 @@ void Phys::ParticleSystem::addParticles(const ParticleList& particles) {
 	});
 }
 
-void Phys::ParticleSystem::addParticles(ParticleList&& rhs) {
+void ParticleSystem::addParticles(ParticleList&& rhs) {
 	world.asyncCommand([this, particles = std::move(rhs)]() {
 		for (auto&& particle : particles) {
 			particleSystem->CreateParticle(particle.def);
+		}
+	});
+}
+
+void ParticleSystem::applyForceField(const Dojo::Vector& force) {
+	world.asyncCommand([this, force] {
+		for (auto i : range(0, particleSystem->GetParticleCount())) {
+			particleSystem->ParticleApplyForce(i, asB2Vec(force));
 		}
 	});
 }
@@ -97,75 +91,16 @@ void ParticleSystem::onPostSimulationStep() {
 	b2AABB b2bb;
 	particleSystem->ComputeAABB(&b2bb);
 
-	auto bb = AABB{
+	mSimulationAABB = AABB{
 		asVec(b2bb.lowerBound),
 		asVec(b2bb.upperBound)
 	};
 
-	//TODO move the mesh generation in the component itself
-	//to allow for different renderables
-	DEBUG_ASSERT(has<ParticleSystemRenderer>(), "No renderable component?");
-
-	auto& renderable = get<ParticleSystemRenderer>();
-	renderable.setAABB(bb);
-
-	activityAABB = bb.grow(5);
-
 	auto& viewport = *getGameState().getViewport();
 
 	//suspend the particlesystem when it's too far from the player
-	bool active = (!autoDeactivate) || (viewport.isInViewRect(activityAABB));
-	particleSystem->SetPaused(!active);
+	mSimulating = (!autoDeactivate) || (viewport.isInViewRect(mSimulationAABB.grow(3)));
+	particleSystem->SetPaused(!mSimulating);
 
-	//only show when active, visible and has particles
-	renderable.setVisible(active && viewport.isInViewRect(renderable) && particleSystem->GetParticleCount() > 0);
-
-	if (renderable.isVisible() && !rebuilding) {
-		rebuilding = true;
-		mesh[1]->begin(particleSystem->GetParticleCount());
-
-		auto position = particleSystem->GetPositionBuffer();
-		auto color = particleSystem->GetColorBuffer();
-
-		for (int i = 0; i < particleSystem->GetParticleCount(); ++i , ++position , ++color) {
-			//int hash = ((*userData * 0x1f1f1f1f) >> 1) & 0xf;
-
-			if (viewport.isInViewRect(Vector{position->x, position->y})) {
-				b2Color c1 = color->GetColor();
-				Color c(c1.r, c1.g, c1.b, 1.f);
-
-				auto baseIdx = mesh[1]->getVertexCount();
-
-				float r = particleSystem->GetRadius() * 1.5f;
-				// 			if (hash < 5 && hash > 0)
-				// 				r -= 0.03f * hash;
-
-				mesh[1]->vertex(position->x - r, position->y - r);
-				mesh[1]->color(c);
-				mesh[1]->uv(0, 0);
-				mesh[1]->vertex(position->x + r, position->y - r);
-				mesh[1]->color(c);
-				mesh[1]->uv(1, 0);
-				mesh[1]->vertex(position->x - r, position->y + r);
-				mesh[1]->color(c);
-				mesh[1]->uv(0, 1);
-				mesh[1]->vertex(position->x + r, position->y + r);
-				mesh[1]->color(c);
-				mesh[1]->uv(1, 1);
-
-				mesh[1]->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
-			}
-		}
-
-		world.asyncCallback([this, &renderable]() {
-			mesh[1]->end();
-			renderable.setVisible(renderable.isVisible() && mesh[1]->getVertexCount() > 0);
-
-			std::swap(mesh[0], mesh[1]);
-
-			renderable.setMesh(*mesh[0]);
-			rebuilding = false;
-		});
-	}
 }
 
