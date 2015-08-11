@@ -34,25 +34,38 @@ namespace Phys {
 		void addParticles(const ParticleList& particles);
 		void addParticles(ParticleList&& particles);
 
+		void applyForceField(const Dojo::Vector& force);
+
 		b2ParticleSystem& getParticleSystem() {
 			return *particleSystem;
+		}
+
+		World& getWorld() const {
+			return world;
+		}
+
+		bool isSimulating() const {
+			return mSimulating;
+		}
+
+
+		const Dojo::AABB& getSimulationAABB() const {
+			return mSimulationAABB;
 		}
 
 		virtual void onPostSimulationStep() override;
 
 	protected:
-		World& world;
-
 		const Material& material;
 
-		Unique<Dojo::Mesh> mesh[2];
+		World& world;
 
-		Dojo::AABB activityAABB;
+		Dojo::AABB mSimulationAABB;
 
 		b2ParticleSystem* particleSystem;
-		std::atomic<bool> rebuilding = false;
 
 		uintptr_t counter = 0;
+		std::atomic<bool> mSimulating = false;
 	private:
 	};
 }

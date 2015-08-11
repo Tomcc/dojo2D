@@ -271,7 +271,7 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise /*= false*/) const {
+bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise) const {
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
 	bool empty = true;
@@ -314,16 +314,25 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 		class Query : public b2QueryCallback {
 		public:
 			decltype(report)& func;
+			ParticleList* particles = nullptr;
 
-			Query(const decltype(func)& f) : func(f) {
+			Query(const decltype(func)& f, ParticleList* p) : func(f), particles(p) {
 			}
 
 			virtual bool ReportFixture(b2Fixture* fixture) override {
 				return func(fixture);
 			}
 
+			virtual bool ReportParticle(const b2ParticleSystem* particleSystem, int32 index) override {
+				//TODO //WARNING LiquidFun's particle reporting mechanics look like really inefficient
+				//jumbles of virtuals, this can probably be optimized
+				DEBUG_ASSERT(particles, "Particle list not provided");
+
+				(*particles)[particleSystem].emplace_back(index);
+			}
+
 			virtual bool ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) override {
-				return false; //stupid defaults, really
+				return particles != nullptr;
 			}
 		};
 
@@ -331,7 +340,7 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 		bb.lowerBound = asB2Vec(min);
 		bb.upperBound = asB2Vec(max);
 
-		Query q = report;
+		Query q = { report, particles };
 		box2D->QueryAABB(&q, bb);
 	});
 	sync(); //TODO it would make sense to have a async version
@@ -339,17 +348,17 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 	return empty;
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise) const {
-	_AABBQuery(min, max, group, &result, nullptr, precise);
+void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise, ParticleList* particles) const {
+	_AABBQuery(min, max, group, &result, nullptr, particles, precise);
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise /*= false*/) const {
-	_AABBQuery(min, max, group, nullptr, &result, precise);
+void World::AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise, ParticleList* particles) const {
+	_AABBQuery(min, max, group, nullptr, &result, particles, precise);
 }
 
 
 bool World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) const {
-	return _AABBQuery(min, max, group, nullptr, nullptr, precise);
+	return _AABBQuery(min, max, group, nullptr, nullptr, nullptr, precise);
 }
 
 

@@ -57,6 +57,7 @@ namespace Phys {
 
 		typedef std::unordered_set<const Body*> BodyList;
 		typedef std::vector<const b2Fixture*> FixtureList;
+		typedef std::unordered_map<const b2ParticleSystem*, std::vector<uint16_t>> ParticleList;
 
 		const float timeStep;
 
@@ -78,12 +79,14 @@ namespace Phys {
 		void playCollisionSound(const DeferredCollision& collision);
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result, const Command& callback = {}) const;
-		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, bool precise = false) const;
+		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise) const;
 
-		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false) const;
-		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false) const;
+		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false, ParticleList* particles = nullptr) const;
+		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false, ParticleList* particles = nullptr) const;
 
 		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false) const;
+
+		void applyForceField(const Dojo::AABB& area, Group group, const Vector& volumeForce);
 
 		void update(float dt);
 
