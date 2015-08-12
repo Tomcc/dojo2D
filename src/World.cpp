@@ -271,7 +271,7 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise) const {
+bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const {
 	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
 
 	bool empty = true;
@@ -287,22 +287,24 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 		auto report = [&](b2Fixture * fixture) {
 			if (!fixture->IsSensor()) {
 				auto& body = getBodyForFixture(fixture);
-				auto contactMode = getContactModeFor(group, body.getGroup());
+				if (!onlyPushable || body.isPushable()) {
+					auto contactMode = getContactModeFor(group, body.getGroup());
 
-				if (contactMode == ContactMode::Normal) {
+					if (contactMode == ContactMode::Normal) {
 
-					if (!precise || shapesOverlap(aabbShape, *fixture)) {
-						empty = false;
+						if (!precise || shapesOverlap(aabbShape, *fixture)) {
+							empty = false;
 
-						if (resultBody) {
-							resultBody->insert(&body);
-						}
+							if (resultBody) {
+								resultBody->insert(&body);
+							}
 
-						else if (resultFixture) {
-							resultFixture->emplace_back(fixture);
-						}
-						else {
-							return false;    //stop search immediately
+							else if (resultFixture) {
+								resultFixture->emplace_back(fixture);
+							}
+							else {
+								return false;    //stop search immediately
+							}
 						}
 					}
 				}
@@ -323,12 +325,15 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 				return func(fixture);
 			}
 
-			virtual bool ReportParticle(const b2ParticleSystem* particleSystem, int32 index) override {
+			virtual bool ReportParticle(b2ParticleSystem* particleSystem, int32 index) override {
 				//TODO //WARNING LiquidFun's particle reporting mechanics look like really inefficient
 				//jumbles of virtuals, this can probably be optimized
 				DEBUG_ASSERT(particles, "Particle list not provided");
 
+				//TODO filter groups?
+
 				(*particles)[particleSystem].emplace_back(index);
+				return true;
 			}
 
 			virtual bool ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) override {
@@ -349,16 +354,37 @@ bool World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyLi
 }
 
 void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise, ParticleList* particles) const {
-	_AABBQuery(min, max, group, &result, nullptr, particles, precise);
+	_AABBQuery(min, max, group, &result, nullptr, particles, precise, false);
 }
 
 void World::AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise, ParticleList* particles) const {
-	_AABBQuery(min, max, group, nullptr, &result, particles, precise);
+	_AABBQuery(min, max, group, nullptr, &result, particles, precise, false);
 }
 
 
 bool World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) const {
-	return _AABBQuery(min, max, group, nullptr, nullptr, nullptr, precise);
+	return _AABBQuery(min, max, group, nullptr, nullptr, nullptr, precise, false);
+}
+
+void Phys::World::applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type) {
+	auto F = asB2Vec(force);
+	asyncCommand([this, area, group, F] {
+		FixtureList fixtures;
+		ParticleList particles;
+
+		_AABBQuery(area.min, area.max, group, nullptr, &fixtures, &particles, false, true);
+
+		for (auto&& fixture : fixtures) {
+			//TODO the force should be proportional to the area or to the volume
+			fixture->GetBody()->ApplyForceToCenter(F, true);
+		}
+
+		for (auto&& pair : particles) {
+			for (auto&& i : pair.second) {
+				pair.first->ParticleApplyForce(i, F);
+			}
+		}
+	});
 }
 
 
@@ -402,6 +428,8 @@ void Phys::World::playCollisionSound(const DeferredCollision& collision) {
 		}
 	}
 }
+
+
 
 void World::update(float dt) {
 	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");

@@ -324,3 +324,7 @@ void Phys::Body::_waitForBody() const {
 
 	DEBUG_ASSERT(body, "Call initPhysics first!");
 }
+
+bool Body::isPushable() const {
+	return pushable && body->IsActive() && !isStatic();
+}

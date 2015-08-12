@@ -19,7 +19,6 @@ namespace Phys {
 	public:
 		static const int ID = 1;
 
-		bool pushable = true;
 		CollisionListener* collisionListener = nullptr;
 
 		Body(Dojo::Object& object, World& world, Group group, bool staticShape = false, bool inactive = false);
@@ -72,6 +71,10 @@ namespace Phys {
 
 		void setTransform(const Vector& position, Radians angle);
 
+		void setPushable(bool p) {
+			pushable = p;
+		}
+
 		Group getGroup() const {
 			return group;
 		}
@@ -107,8 +110,11 @@ namespace Phys {
 			return body == nullptr;
 		}
 
+		bool isPushable() const;
+
 	protected:
 		World& world;
+		bool pushable = true;
 
 		b2Body* body = nullptr;
 		Group group = Group::invalid();

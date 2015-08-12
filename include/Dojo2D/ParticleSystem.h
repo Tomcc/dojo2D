@@ -35,7 +35,7 @@ namespace Phys {
 		void addParticles(ParticleList&& particles);
 
 		void applyForceField(const Dojo::Vector& force);
-
+		
 		b2ParticleSystem& getParticleSystem() {
 			return *particleSystem;
 		}
