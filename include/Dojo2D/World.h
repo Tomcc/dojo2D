@@ -84,12 +84,12 @@ namespace Phys {
 		void playCollisionSound(const DeferredCollision& collision);
 		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result, const Command& callback = {}) const;
-		bool _AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const;
+		bool _AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const;
 
-		void AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise = false, ParticleList* particles = nullptr) const;
-		void AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise = false, ParticleList* particles = nullptr) const;
+		void AABBQuery(const Dojo::AABB& area, Group group, FixtureList& result, bool precise = false, ParticleList* particles = nullptr) const;
+		void AABBQuery(const Dojo::AABB& area, Group group, BodyList& result, bool precise = false, ParticleList* particles = nullptr) const;
 
-		bool AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise = false) const;
+		bool AABBQueryEmpty(const Dojo::AABB& area, Group group, bool precise = false) const;
 
 		void applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type);
 

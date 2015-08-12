@@ -271,17 +271,14 @@ RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelong
 	return result;
 }
 
-bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const {
-	DEBUG_ASSERT(min.x < max.x && min.y < max.y, "Invalid bounding box");
-
+bool Phys::World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const {
 	bool empty = true;
 	asyncCommand([&] {
 		b2PolygonShape aabbShape;
 
 		if (precise) {
-			Vector dim = max - min;
-			Vector center = (max + min) * 0.5f;
-			aabbShape.SetAsBox(dim.x, dim.y, asB2Vec(center), 0);
+			Vector dim = area.getSize();
+			aabbShape.SetAsBox(dim.x, dim.y, asB2Vec(area.getCenter()), 0);
 		}
 
 		auto report = [&](b2Fixture * fixture) {
@@ -342,8 +339,8 @@ bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, 
 		};
 
 		b2AABB bb;
-		bb.lowerBound = asB2Vec(min);
-		bb.upperBound = asB2Vec(max);
+		bb.lowerBound = asB2Vec(area.min);
+		bb.upperBound = asB2Vec(area.max);
 
 		Query q = { report, particles };
 		box2D->QueryAABB(&q, bb);
@@ -353,17 +350,16 @@ bool Phys::World::_AABBQuery(const Vector& min, const Vector& max, Group group, 
 	return empty;
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, BodyList& result, bool precise, ParticleList* particles) const {
-	_AABBQuery(min, max, group, &result, nullptr, particles, precise, false);
+void World::AABBQuery(const Dojo::AABB& area, Group group, BodyList& result, bool precise, ParticleList* particles) const {
+	_AABBQuery(area, group, &result, nullptr, particles, precise, false);
 }
 
-void World::AABBQuery(const Vector& min, const Vector& max, Group group, FixtureList& result, bool precise, ParticleList* particles) const {
-	_AABBQuery(min, max, group, nullptr, &result, particles, precise, false);
+void World::AABBQuery(const Dojo::AABB& area, Group group, FixtureList& result, bool precise, ParticleList* particles) const {
+	_AABBQuery(area, group, nullptr, &result, particles, precise, false);
 }
 
-
-bool World::AABBQueryEmpty(const Vector& min, const Vector& max, Group group, bool precise /*= false*/) const {
-	return _AABBQuery(min, max, group, nullptr, nullptr, nullptr, precise, false);
+bool World::AABBQueryEmpty(const Dojo::AABB& area, Group group, bool precise /*= false*/) const {
+	return _AABBQuery(area, group, nullptr, nullptr, nullptr, precise, false);
 }
 
 void Phys::World::applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type) {
@@ -372,7 +368,7 @@ void Phys::World::applyForceField(const Dojo::AABB& area, Group group, const Vec
 		FixtureList fixtures;
 		ParticleList particles;
 
-		_AABBQuery(area.min, area.max, group, nullptr, &fixtures, &particles, false, true);
+		_AABBQuery(area, group, nullptr, &fixtures, &particles, false, true);
 
 		for (auto&& fixture : fixtures) {
 			//TODO the force should be proportional to the area or to the volume
