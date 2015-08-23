@@ -11,7 +11,7 @@ namespace Phys {
 			Solid
 		};
 
-		const std::string name;
+		const utf::string name;
 		float density = 1.f;
 
 		//fluid parameters
@@ -28,7 +28,7 @@ namespace Phys {
 		* impactHard = nullptr,
 		  *impactSoft = nullptr;
 
-		Material(const std::string& name, const Dojo::Table& desc = Dojo::Table::Empty, const Dojo::ResourceGroup* group = nullptr);
+		Material(const utf::string& name, const Dojo::Table& desc = Dojo::Table::Empty, const Dojo::ResourceGroup* group = nullptr);
 	};
 }
 
