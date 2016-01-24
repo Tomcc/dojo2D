@@ -1,3 +1,6 @@
 [submodule "Box2D"]
 	path = Box2D
 	url = git@github.com:Tomcc/liquidfun.git
+[submodule "dojo"]
+	path = dojo
+	url = git@github.com:Tomcc/dojo.git
