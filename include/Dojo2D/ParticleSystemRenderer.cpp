@@ -37,7 +37,7 @@ void ParticleSystemRenderer::update(float dt) {
 	advanceFade(dt);
 
 	bool simulating = mParticleSystem.isSimulating();
-	auto& viewport = *self.getGameState().getViewport();
+	auto& viewport = self.getGameState().getViewport().unwrap();
 
 	auto& b2Particles = mParticleSystem.getParticleSystem();
 	//only show when active, visible and has particles
@@ -92,7 +92,7 @@ void ParticleSystemRenderer::update(float dt) {
 			rebuilding = false;
 
 			//update the AABB and stuff
-			worldBB = getMesh()->getBounds();
+			worldBB = getMesh().unwrap().getBounds();
 		});
 	}
 }

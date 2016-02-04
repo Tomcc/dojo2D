@@ -25,9 +25,9 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::
 
 	addComponent([&] {
 		auto r = make_unique<ParticleSystemRenderer>(*this, layer);
-		r->setTexture(getGameState().getTexture("particle"));
+		r->setTexture(getGameState().getTexture("particle").unwrap());
 		r->setVisible(false);
-		r->setShader(*getGameState().getShader("textured_mult_color"));
+		r->setShader(getGameState().getShader("textured_mult_color").unwrap());
 		return r;
 	}());
 
@@ -96,7 +96,7 @@ void ParticleSystem::onPostSimulationStep() {
 		asVec(b2bb.upperBound)
 	};
 
-	auto& viewport = *getGameState().getViewport();
+	auto& viewport = getGameState().getViewport().unwrap();
 
 	//suspend the particlesystem when it's too far from the player
 	mSimulating = (!autoDeactivate) || (viewport.isInViewRect(mSimulationAABB.grow(3)));

@@ -3,7 +3,7 @@
 using namespace Phys;
 using namespace Dojo;
 
-Material::Material(const utf::string& name, const Table& desc, const ResourceGroup* group) :
+Material::Material(const utf::string& name, const Table& desc, optional_ref<const ResourceGroup> group) :
 	name(name) {
 	DEBUG_ASSERT(name.not_empty(), "Invalid name");
 
@@ -26,10 +26,12 @@ Material::Material(const utf::string& name, const Table& desc, const ResourceGro
 	}
 
 	//load sounds if available
-	if (group && desc.existsAs("soundPrefix", Table::FieldType::String)) {
-		auto prefix = desc.getString("soundPrefix");
+	if (auto g = group.cast()) {
+		if (desc.existsAs("soundPrefix", Table::FieldType::String)) {
+			auto prefix = desc.getString("soundPrefix");
 
-		impactHard = group->getSound(prefix + "_impact_hard");
-		impactSoft = group->getSound(prefix + "_impact_soft");
+			impactHard = g.get().getSound(prefix + "_impact_hard");
+			impactSoft = g.get().getSound(prefix + "_impact_soft");
+		}
 	}
 }

@@ -15,8 +15,8 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 	b2BodyDef bodyDef;
 	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
 
-	bodyDef.position = asB2Vec(self.position);
-	bodyDef.angle = self.getRoll();
+	bodyDef.position = asB2Vec(object.position);
+	bodyDef.angle = object.getRoll();
 
 	if (staticShape) {
 		bodyDef.awake = false;
@@ -155,21 +155,21 @@ void Body::destroyPhysics() {
 }
 
 void Body::onSimulationPaused() {
-	self.speed = Vector::Zero;
+	object.speed = Vector::Zero;
 }
 
 void Body::updateObject() {
 	//TODO this should just set the interpolation target rather than the actual transform?
 	auto& t = body->GetTransform();
 
-	self.position = asVec(t.p);
-	self.speed = asVec(body->GetLinearVelocity());
+	object.position = asVec(t.p);
+	object.speed = asVec(body->GetLinearVelocity());
 
 	if (body->IsFixedRotation()) {
-		body->SetTransform(t.p, self.getRoll());
+		body->SetTransform(t.p, object.getRoll());
 	}
 	else {
-		self.setRoll(Radians(t.q.GetAngle()));
+		object.setRoll(Radians(t.q.GetAngle()));
 	}
 }
 

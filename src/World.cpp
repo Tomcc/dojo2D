@@ -405,16 +405,17 @@ void Phys::World::playCollisionSound(const DeferredCollision& collision) {
 
 	if (collision.force > MIN_SOUND_FORCE) {
 		//ensure that the bodies are actually moving respect to each other
-		if (auto set = (collision.force > 5) ? part.material.impactHard : part.material.impactSoft) {
+		auto& impactSound = (collision.force > 5) ? part.material.impactHard : part.material.impactSoft;
+		if (auto set = impactSound.cast()) {
 
 			auto pos = asVec(collision.point);
 			if (_closestRecentlyPlayedSound(pos) > 0.2f) {
 				float volume = std::min(collision.force / 3.f, 1.f);
 				Dojo::Platform::singleton().getSoundManager().playSound(
 					pos,
-					*set,
+					set.get(),
 					volume
-					);
+				);
 
 				if (recentlyPlayedSoundPositions.size() > 20) {
 					recentlyPlayedSoundPositions.pop_front();
