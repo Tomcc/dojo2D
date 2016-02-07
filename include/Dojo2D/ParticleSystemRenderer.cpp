@@ -23,13 +23,14 @@ Unique<Dojo::Mesh> _makeMesh() {
 Phys::ParticleSystemRenderer::ParticleSystemRenderer(ParticleSystem& ps, Dojo::RenderLayer::ID layer) :
 	Renderable(ps, layer),
 	mParticleSystem(ps) {
+	mTransform = Matrix(1);
 
 	mesh[0] = _makeMesh();
 	mesh[1] = _makeMesh();
 }
 
 void ParticleSystemRenderer::setAABB(const AABB& box) {
-	worldBB = box;
+	mWorldBB = box;
 }
 
 void ParticleSystemRenderer::update(float dt) {
@@ -81,8 +82,8 @@ void ParticleSystemRenderer::update(float dt) {
 					mesh[1]->quad(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx + 3);
 				}
 			}
-		}
-		,[this]() {
+		},
+		[this]() {
 			mesh[1]->end();
 			setVisible(isVisible() && mesh[1]->getVertexCount() > 0);
 
@@ -92,7 +93,7 @@ void ParticleSystemRenderer::update(float dt) {
 			rebuilding = false;
 
 			//update the AABB and stuff
-			worldBB = getMesh().unwrap().getBounds();
+			mWorldBB = getMesh().unwrap().getBounds();
 		});
 	}
 }
