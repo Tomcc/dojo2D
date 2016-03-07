@@ -243,9 +243,13 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	}
 }
 
-void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelongsToGroup, RayResult& result, const Command& callback) const {
-	result.group = rayBelongsToGroup;
-	asyncCommand([ =, &result]() {
+std::future<RayResult> World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup) const {
+	auto promise = make_shared<std::promise<RayResult>>(); //TODO pool the promises perhaps
+
+	asyncCommand([this, promise, start, end, rayBelongsToGroup]() {
+		RayResult result(self);
+		result.group = rayBelongsToGroup;
+
 		box2D->RayCast(
 			&result,
 		{ start.x, start.y },
@@ -256,22 +260,18 @@ void World::asyncRaycast(const Vector& start, const Vector& end, Group rayBelong
 		}
 
 		result.dist = start.distance(result.position);
-	},
-	callback);
+
+		promise->set_value(result);
+	});
+
+	return promise->get_future();
 }
 
 bool World::isWorkerThread() const {
 	return std::this_thread::get_id() == thread.get_id();
 }
 
-RayResult World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup /*= 0*/) const {
-	RayResult result(*this);
-	asyncRaycast(start, end, rayBelongsToGroup, result);
-	sync();
-	return result;
-}
-
-bool Phys::World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const {
+bool World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const {
 	bool empty = true;
 	asyncCommand([&] {
 		b2PolygonShape aabbShape;
@@ -406,7 +406,7 @@ void Phys::World::playCollisionSound(const DeferredCollision& collision) {
 	if (collision.force > MIN_SOUND_FORCE) {
 		//ensure that the bodies are actually moving respect to each other
 		auto& impactSound = (collision.force > 5) ? part.material.impactHard : part.material.impactSoft;
-		if (auto set = impactSound.cast()) {
+		if (auto set = impactSound.to_ref()) {
 
 			auto pos = asVec(collision.point);
 			if (_closestRecentlyPlayedSound(pos) > 0.2f) {

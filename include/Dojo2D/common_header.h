@@ -13,8 +13,12 @@ namespace Phys {
 		Group(T raw) : PseudoEnumClass(raw) {}
 	};
 
+	//some reexports
 	using Vector = Dojo::Vector;
 	using Radians = Dojo::Radians;
+	
+	template<typename T>
+	using optional_ref = Dojo::optional_ref<T>;
 
 	typedef std::lock_guard<std::mutex> ScopedLock;
 }

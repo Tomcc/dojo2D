@@ -11,12 +11,13 @@ namespace Phys {
 		bool hit = false;
 		Vector position;
 		Vector normal;
-		b2Fixture* hitFixture = nullptr;
 		Group group = 0;
 		float dist;
 
+		RayResult() {}
+
 		explicit RayResult(const World& world) :
-			world(&world) {
+			world(world) {
 
 		}
 
@@ -26,14 +27,19 @@ namespace Phys {
 			return -1; //ignore all particles
 		}
 
-		Body* getHitBody() const;
+		optional_ref<b2Fixture> getHitFixture() const {
+			return hitFixture;
+		}
 
-		const Material* getHitMaterial() const;
+		optional_ref<Body> getHitBody() const;
+
+		optional_ref<const Material> getHitMaterial() const;
 
 		virtual bool ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) override;
 
 	protected:
-		const World* world;
+		optional_ref<b2Fixture> hitFixture;
+		optional_ref<const World> world;
 	};
 }
 

@@ -1,9 +1,8 @@
 #include "Material.h"
 
 using namespace Phys;
-using namespace Dojo;
 
-Material::Material(const utf::string& name, const Table& desc, optional_ref<const ResourceGroup> group) :
+Material::Material(const utf::string& name, const Dojo::Table& desc, optional_ref<const Dojo::ResourceGroup> group) :
 	name(name) {
 	DEBUG_ASSERT(name.not_empty(), "Invalid name");
 
@@ -26,8 +25,8 @@ Material::Material(const utf::string& name, const Table& desc, optional_ref<cons
 	}
 
 	//load sounds if available
-	if (auto g = group.cast()) {
-		if (desc.existsAs("soundPrefix", Table::FieldType::String)) {
+	if (auto g = group.to_ref()) {
+		if (desc.existsAs("soundPrefix", Dojo::Table::FieldType::String)) {
 			auto prefix = desc.getString("soundPrefix");
 
 			impactHard = g.get().getSound(prefix + "_impact_hard");

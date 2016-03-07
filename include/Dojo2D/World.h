@@ -82,8 +82,7 @@ namespace Phys {
 		Vector getGravity() const;
 
 		void playCollisionSound(const DeferredCollision& collision);
-		RayResult raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
-		void asyncRaycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup, RayResult& result, const Command& callback = {}) const;
+		std::future<RayResult> raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 		bool _AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const;
 
 		void AABBQuery(const Dojo::AABB& area, Group group, FixtureList& result, bool precise = false, ParticleList* particles = nullptr) const;
@@ -110,6 +109,11 @@ namespace Phys {
 		b2World& getBox2D() {
 			return *box2D;
 		}
+
+		const b2World& getBox2D() const {
+			return *box2D;
+		}
+
 		void addBody(Body& body);
 		void removeBody(Body& body);
 

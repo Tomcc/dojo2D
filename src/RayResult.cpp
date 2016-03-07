@@ -11,11 +11,11 @@ float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Ve
 		return -1;    //ignore
 	}
 
-	if (world->getContactModeFor(getBodyForFixture(fixture).getGroup(), group) != ContactMode::Normal) {
+	if (world.unwrap().getContactModeFor(getBodyForFixture(fixture).getGroup(), group) != ContactMode::Normal) {
 		return -1;    //ignore as these two groups can't see each other
 	}
 
-	hitFixture = fixture;
+	hitFixture = *fixture;
 
 	position = asVec(P);
 	normal = asVec(N);
@@ -24,12 +24,22 @@ float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Ve
 	return fraction; //stop
 }
 
-Body* RayResult::getHitBody() const {
-	return hitFixture ? &getBodyForFixture(hitFixture) : nullptr;
+optional_ref<Body> RayResult::getHitBody() const {
+	if (auto f = hitFixture.to_ref()) {
+		return getBodyForFixture(f);
+	}
+	else {
+		return{};
+	}
 }
 
-const Material* RayResult::getHitMaterial() const {
-	return hitFixture ? &getPartForFixture(hitFixture).material : nullptr;
+optional_ref<const Material> RayResult::getHitMaterial() const {
+	if (auto f = hitFixture.to_ref()) {
+		return getPartForFixture(f).material;
+	}
+	else {
+		return{};
+	}
 }
 
 bool RayResult::ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) {
