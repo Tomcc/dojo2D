@@ -60,6 +60,7 @@
     <ClInclude Include="..\include\Dojo2D\WorldListener.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\AABBQueryResult.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">

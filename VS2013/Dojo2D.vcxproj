@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\Dojo2D\AABBQueryResult.h" />
     <ClInclude Include="..\include\Dojo2D\Body.h" />
     <ClInclude Include="..\include\Dojo2D\BodyPart.h" />
     <ClInclude Include="..\include\Dojo2D\common_header.h" />

@@ -5,6 +5,7 @@
 #include "RayResult.h"
 #include "ContactMode.h"
 #include "WorldListener.h"
+#include "AABBQueryResult.h"
 
 namespace Phys {
 	class Body;
@@ -60,9 +61,13 @@ namespace Phys {
 			ApplyToVolume
 		};
 
-		typedef std::unordered_set<Body*> BodyList;
-		typedef std::vector<b2Fixture*> FixtureList;
-		typedef std::unordered_map<b2ParticleSystem*, std::vector<uint16_t>> ParticleList;
+		enum AABBQueryFlags {
+			QUERY_BODIES = 1 << 1,
+			QUERY_FIXTURES = 1 << 2,
+			QUERY_PARTICLES = 1 << 3,
+			QUERY_PRECISE = 1 << 4,
+			QUERY_PUSHABLE_ONLY = 1 << 5
+		};
 
 		const float timeStep;
 
@@ -83,12 +88,7 @@ namespace Phys {
 
 		void playCollisionSound(const DeferredCollision& collision);
 		std::future<RayResult> raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
-		bool _AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const;
-
-		void AABBQuery(const Dojo::AABB& area, Group group, FixtureList& result, bool precise = false, ParticleList* particles = nullptr) const;
-		void AABBQuery(const Dojo::AABB& area, Group group, BodyList& result, bool precise = false, ParticleList* particles = nullptr) const;
-
-		bool AABBQueryEmpty(const Dojo::AABB& area, Group group, bool precise = false) const;
+		std::future<AABBQueryResult> AABBQuery(const Dojo::AABB& area, Group group, uint8_t flags = 0) const;
 
 		void applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type);
 

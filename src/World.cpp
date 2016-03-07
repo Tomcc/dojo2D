@@ -271,12 +271,13 @@ bool World::isWorkerThread() const {
 	return std::this_thread::get_id() == thread.get_id();
 }
 
-bool World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody, FixtureList* resultFixture, ParticleList* particles, bool precise, bool onlyPushable) const {
-	bool empty = true;
-	asyncCommand([&] {
+std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group group, uint8_t flags) const {
+	auto promise = make_shared<std::promise<AABBQueryResult>>(); //TODO pool results
+	asyncCommand([this, promise, flags, area, group] {
 		b2PolygonShape aabbShape;
-
-		if (precise) {
+		AABBQueryResult result;
+		
+		if (flags & QUERY_PRECISE) {
 			Vector dim = area.getSize();
 			aabbShape.SetAsBox(dim.x, dim.y, asB2Vec(area.getCenter()), 0);
 		}
@@ -284,20 +285,20 @@ bool World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody
 		auto report = [&](b2Fixture * fixture) {
 			if (!fixture->IsSensor()) {
 				auto& body = getBodyForFixture(fixture);
-				if (!onlyPushable || body.isPushable()) {
+				if (!(flags & QUERY_PUSHABLE_ONLY) || body.isPushable()) {
 					auto contactMode = getContactModeFor(group, body.getGroup());
 
 					if (contactMode == ContactMode::Normal) {
 
-						if (!precise || shapesOverlap(aabbShape, *fixture)) {
-							empty = false;
+						if (!(flags & QUERY_PRECISE) || shapesOverlap(aabbShape, *fixture)) {
+							result.empty = false;
 
-							if (resultBody) {
-								resultBody->insert(&body);
+							if (flags & QUERY_BODIES) {
+								result.bodies.insert(&body);
 							}
 
-							else if (resultFixture) {
-								resultFixture->emplace_back(fixture);
+							else if (flags & QUERY_FIXTURES) {
+								result.fixtures.emplace_back(fixture);
 							}
 							else {
 								return false;    //stop search immediately
@@ -313,9 +314,12 @@ bool World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody
 		class Query : public b2QueryCallback {
 		public:
 			decltype(report)& func;
-			ParticleList* particles = nullptr;
+			AABBQueryResult::ParticleList& particles;
+			bool queryParticles;
 
-			Query(const decltype(func)& f, ParticleList* p) : func(f), particles(p) {
+			Query(const decltype(func)& f, AABBQueryResult::ParticleList& p, bool queryParticles) 
+				: func(f)
+				, particles(p) {
 			}
 
 			virtual bool ReportFixture(b2Fixture* fixture) override {
@@ -325,16 +329,13 @@ bool World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody
 			virtual bool ReportParticle(b2ParticleSystem* particleSystem, int32 index) override {
 				//TODO //WARNING LiquidFun's particle reporting mechanics look like really inefficient
 				//jumbles of virtuals, this can probably be optimized
-				DEBUG_ASSERT(particles, "Particle list not provided");
-
-				//TODO filter groups?
-
-				(*particles)[particleSystem].emplace_back(index);
+				
+				particles[particleSystem].emplace_back(index);
 				return true;
 			}
 
 			virtual bool ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) override {
-				return particles != nullptr;
+				return queryParticles;
 			}
 		};
 
@@ -342,40 +343,26 @@ bool World::_AABBQuery(const Dojo::AABB& area, Group group, BodyList* resultBody
 		bb.lowerBound = asB2Vec(area.min);
 		bb.upperBound = asB2Vec(area.max);
 
-		Query q = { report, particles };
+		Query q = { report, result.particles, (flags & QUERY_PARTICLES) > 0 };
 		box2D->QueryAABB(&q, bb);
+
+		promise->set_value(std::move(result));
 	});
-	sync(); //TODO it would make sense to have a async version
-
-	return empty;
-}
-
-void World::AABBQuery(const Dojo::AABB& area, Group group, BodyList& result, bool precise, ParticleList* particles) const {
-	_AABBQuery(area, group, &result, nullptr, particles, precise, false);
-}
-
-void World::AABBQuery(const Dojo::AABB& area, Group group, FixtureList& result, bool precise, ParticleList* particles) const {
-	_AABBQuery(area, group, nullptr, &result, particles, precise, false);
-}
-
-bool World::AABBQueryEmpty(const Dojo::AABB& area, Group group, bool precise /*= false*/) const {
-	return _AABBQuery(area, group, nullptr, nullptr, nullptr, precise, false);
+	
+	return promise->get_future();
 }
 
 void Phys::World::applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type) {
-	auto F = asB2Vec(force);
-	asyncCommand([this, area, group, F] {
-		FixtureList fixtures;
-		ParticleList particles;
+	asyncCommand([this, area, group, force] {
+		auto F = asB2Vec(force);
+		auto query = AABBQuery(area, group, QUERY_FIXTURES | QUERY_PARTICLES | QUERY_PUSHABLE_ONLY);
 
-		_AABBQuery(area, group, nullptr, &fixtures, &particles, false, true);
-
-		for (auto&& fixture : fixtures) {
+		for (auto&& fixture : query.get().fixtures) {
 			//TODO the force should be proportional to the area or to the volume
 			fixture->GetBody()->ApplyForceToCenter(F, true);
 		}
 
-		for (auto&& pair : particles) {
+		for (auto&& pair : query.get().particles) {
 			for (auto&& i : pair.second) {
 				pair.first->ParticleApplyForce(i, F);
 			}
