@@ -66,16 +66,16 @@ void ParticleSystemRenderer::update(float dt) {
 					// 			if (hash < 5 && hash > 0)
 					// 				r -= 0.03f * hash;
 
-					mesh[1]->vertex(position->x - r, position->y - r);
+					mesh[1]->vertex({position->x - r, position->y - r});
 					mesh[1]->color(c);
 					mesh[1]->uv(0, 0);
-					mesh[1]->vertex(position->x + r, position->y - r);
+					mesh[1]->vertex({position->x + r, position->y - r});
 					mesh[1]->color(c);
 					mesh[1]->uv(1, 0);
-					mesh[1]->vertex(position->x - r, position->y + r);
+					mesh[1]->vertex({position->x - r, position->y + r});
 					mesh[1]->color(c);
 					mesh[1]->uv(0, 1);
-					mesh[1]->vertex(position->x + r, position->y + r);
+					mesh[1]->vertex({position->x + r, position->y + r});
 					mesh[1]->color(c);
 					mesh[1]->uv(1, 1);
 
