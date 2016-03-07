@@ -35,17 +35,17 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 	bodyDef.userData = this;
 
 	world.asyncCommand([this, bodyDef, &world]() {
-		body = world.getBox2D().CreateBody(&bodyDef);
-		world.addBody(*this);
+		body = *world.getBox2D().CreateBody(&bodyDef);
+		world.addBody(self);
 	});
 }
 
 Body::~Body() {
-	DEBUG_ASSERT(!body, "This body was not properly disposed of before destruction");
+	DEBUG_ASSERT(canDestroy(), "This body was not properly disposed of before destruction");
 }
 
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
-	auto elem = parts.emplace(make_unique<BodyPart>(*this, material));
+	auto elem = parts.emplace(make_unique<BodyPart>(self, material));
 
 	//TODO make the pointer Unique when at some point MSVC won't try to copy the lambda
 	auto& part = **elem;
@@ -63,7 +63,7 @@ BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material,
 
 		fixtureDef.userData = (void*)&part;
 
-		part.fixture = body->CreateFixture(&fixtureDef);
+		part.fixture = body.unwrap().CreateFixture(&fixtureDef);
 	};
 	world.asyncCommand(std::move(f));
 
@@ -81,7 +81,7 @@ void Phys::Body::removeShape(BodyPart& part) {
 	Shared<BodyPart> temp = std::move(*elem);
 	parts.erase(elem);
 	world.asyncCommand([this, part = std::move(temp)] {
-		body->DestroyFixture(&part->getFixture());
+		body.unwrap().DestroyFixture(&part->getFixture());
 	});
 }
 
@@ -139,17 +139,17 @@ BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensio
 }
 
 void Body::destroyPhysics() {
-	world._notifyDestroyed(*this);
+	world._notifyDestroyed(self);
 
 	staticShape = false;
 	group = 0;
 	particleCollisionModel = false;
 
 	world.asyncCommand([&] {
-		if (body) {
-			world.removeBody(*this);
-			world.getBox2D().DestroyBody(body);
-			body = nullptr;
+		if (body.is_some()) {
+			world.removeBody(self);
+			world.getBox2D().DestroyBody(body.to_raw_ptr());
+			body = {};
 		}
 	});
 }
@@ -160,13 +160,13 @@ void Body::onSimulationPaused() {
 
 void Body::updateObject() {
 	//TODO this should just set the interpolation target rather than the actual transform?
-	auto& t = body->GetTransform();
+	auto& t = body.unwrap().GetTransform();
 
 	object.position = asVec(t.p);
-	object.speed = asVec(body->GetLinearVelocity());
+	object.speed = asVec(body.unwrap().GetLinearVelocity());
 
-	if (body->IsFixedRotation()) {
-		body->SetTransform(t.p, object.getRoll());
+	if (body.unwrap().IsFixedRotation()) {
+		body.unwrap().SetTransform(t.p, object.getRoll());
 	}
 	else {
 		object.setRoll(Radians(t.q.GetAngle()));
@@ -176,139 +176,115 @@ void Body::updateObject() {
 void Body::applyForce(const Vector& force) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		body->ApplyForceToCenter(asB2Vec(force), true);
+		body.unwrap().ApplyForceToCenter(asB2Vec(force), true);
 	});
 }
 
 void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		body->ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
+		body.unwrap().ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
 	});
 }
 
 void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		b2Vec2 worldPoint = body->GetWorldPoint(asB2Vec(localPoint));
-		body->ApplyForce(asB2Vec(force), worldPoint, true);
+		b2Vec2 worldPoint = body.unwrap().GetWorldPoint(asB2Vec(localPoint));
+		body.unwrap().ApplyForce(asB2Vec(force), worldPoint, true);
 	});
 }
 
 void Body::applyTorque(float t) {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		body->ApplyTorque(t, true);
+		body.unwrap().ApplyTorque(t, true);
 	});
 }
 
 void Body::setFixedRotation(bool enable) {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		body->SetFixedRotation(enable);
+		body.unwrap().SetFixedRotation(enable);
 	});
 }
 
 void Body::forcePosition(const Vector& position) {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		auto t = body->GetTransform();
-		body->SetTransform(asB2Vec(position), t.q.GetAngle());
+		auto t = body.unwrap().GetTransform();
+		body.unwrap().SetTransform(asB2Vec(position), t.q.GetAngle());
 	});
 }
 
 void Body::forceRotation(Radians angle) {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		auto t = body->GetTransform();
-		body->SetTransform(t.p, angle);
+		auto t = body.unwrap().GetTransform();
+		body.unwrap().SetTransform(t.p, angle);
 	});
 }
 
 void Body::setTransform(const Vector& position, Radians angle) {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		body->SetTransform(asB2Vec(position), angle);
+		body.unwrap().SetTransform(asB2Vec(position), angle);
 	});
 }
 
 void Body::forceVelocity(const Vector& velocity) {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		body->SetLinearVelocity(asB2Vec(velocity));
+		body.unwrap().SetLinearVelocity(asB2Vec(velocity));
 	});
 }
 
 void Body::setDamping(float linear, float angular) {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-		body->SetLinearDamping(linear);
-		body->SetAngularDamping(angular);
+		body.unwrap().SetLinearDamping(linear);
+		body.unwrap().SetAngularDamping(angular);
 	});
 }
 
 float Body::getLinearDamping() const {
-	_waitForBody();
-
-	return body->GetLinearDamping();
+	return _waitForBody().GetLinearDamping();
 }
 
 float Body::getAngularDamping() const {
-	_waitForBody();
-
-	return body->GetAngularDamping();
+	return _waitForBody().GetAngularDamping();
 }
 
 Dojo::Vector Body::getPosition() const {
-	_waitForBody();
-	return asVec(body->GetPosition());
+	return asVec(_waitForBody().GetPosition());
 }
 
 void Body::setActive() {
 	world.asyncCommand([ = ]() {
-		DEBUG_ASSERT(body, "Call initPhysics first");
-
 		if (!isStatic()) {
-			body->SetAwake(true);
+			body.unwrap().SetAwake(true);
 		}
 
-		body->SetActive(true);
+		body.unwrap().SetActive(true);
 	});
 }
 
 float Body::getMass() const {
-	_waitForBody();
-	return body->GetMass();
+	return _waitForBody().GetMass();
 }
 
 Vector Body::getLocalPoint(const Vector& worldPosition) const {
-	_waitForBody();
-	return asVec(body->GetLocalPoint(asB2Vec(worldPosition)));
+	return asVec(_waitForBody().GetLocalPoint(asB2Vec(worldPosition)));
 }
 
 Vector Body::getWorldPoint(const Vector& localPosition) const {
-	_waitForBody();
-	return asVec(body->GetWorldPoint(asB2Vec(localPosition)));
+	return asVec(_waitForBody().GetWorldPoint(asB2Vec(localPosition)));
 }
 
 Vector Body::getVelocity() const {
-	_waitForBody();
-	return asVec(body->GetLinearVelocity());
+	return asVec(_waitForBody().GetLinearVelocity());
 }
 
 Vector Body::getVelocityAtLocalPoint(const Vector& localPoint) const {
-	_waitForBody();
-	return asVec(body->GetLinearVelocityFromLocalPoint(asB2Vec(localPoint)));
+	return asVec(_waitForBody().GetLinearVelocityFromLocalPoint(asB2Vec(localPoint)));
 }
 
 float Body::getMinimumDistanceTo(const Vector& point) const {
 	_waitForBody();
-
 	float min = FLT_MAX;
-
 	for (auto&& part : parts) {
 		min = std::min(min, part->getMinimumDistanceTo(point));
 	}
@@ -316,15 +292,20 @@ float Body::getMinimumDistanceTo(const Vector& point) const {
 	return min;
 }
 
-void Phys::Body::_waitForBody() const {
+b2Body& Phys::Body::_waitForBody() const
+{
 	//if the body is not yet here, assume it could be somewhere in the command pipeline
-	if (!body) {
+	if (body.is_none()) {
 		world.sync();
 	}
 
-	DEBUG_ASSERT(body, "Call initPhysics first!");
+	return body.unwrap();
+}
+
+float Body::getWeight() const {
+	return world.getGravity().length() * getMass();
 }
 
 bool Body::isPushable() const {
-	return pushable && body->IsActive() && !isStatic();
+	return pushable && _waitForBody().IsActive() && !isStatic();
 }

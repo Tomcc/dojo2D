@@ -8,6 +8,6 @@ namespace Phys {
 		virtual ~WorldListener() {
 		}
 
-		virtual void onPostSimulationStep() = 0;
+		virtual void onPhysicsStep(float dt) = 0;
 	};
 }

@@ -53,7 +53,7 @@ namespace Phys {
 			return mSimulationAABB;
 		}
 
-		virtual void onPostSimulationStep() override;
+		virtual void onPhysicsStep(float dt) override;
 
 	protected:
 		const Material& material;

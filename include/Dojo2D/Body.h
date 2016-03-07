@@ -54,7 +54,8 @@ namespace Phys {
 
 		void setActive();
 
-		virtual float getMass() const;
+		float getMass() const;
+		float getWeight() const;
 
 		Vector getLocalPoint(const Vector& worldPosition) const;
 		Vector getWorldPoint(const Vector& localPosition) const;
@@ -79,7 +80,7 @@ namespace Phys {
 			return group;
 		}
 
-		b2Body* getB2Body() const {
+		optional_ref<b2Body> getB2Body() const {
 			return body;
 		}
 
@@ -107,7 +108,7 @@ namespace Phys {
 
 		virtual bool canDestroy() const override {
 			//wait until the World has really destroyed the body
-			return body == nullptr;
+			return body.is_none();
 		}
 
 		bool isPushable() const;
@@ -116,7 +117,7 @@ namespace Phys {
 		World& world;
 		bool pushable = true;
 
-		b2Body* body = nullptr;
+		optional_ref<b2Body> body;
 		Group group = Group::invalid();
 		bool staticShape = false;
 
@@ -124,7 +125,7 @@ namespace Phys {
 
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
 
-		void _waitForBody() const;
+		b2Body& _waitForBody() const;
 	private:
 		bool particleCollisionModel = false;
 	};

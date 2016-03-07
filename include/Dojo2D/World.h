@@ -16,6 +16,7 @@ namespace Phys {
 		public b2ContactFilter {
 	public:
 		typedef std::function<void()> Command;
+		typedef std::function<float()> Controller;
 
 	protected:
 		struct DeferredCollision {

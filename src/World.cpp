@@ -55,17 +55,19 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 			}
 
 			if (!simulationPaused && timer.getElapsedTime() >= timeStep) {
+				auto step = static_cast<float>(timer.getElapsedTime());
 				timer.reset();
-				box2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
+				box2D->Step(step, velocityIterations, positionIterations, particleIterations);
 
 				for (auto&& b : bodies) {
-					if (b->getB2Body()->IsAwake() && b->getB2Body()->IsActive()) {
+					auto& body = b->getB2Body().unwrap();
+					if (body.IsAwake() && body.IsActive()) {
 						b->updateObject();
 					}
 				}
 
 				for (auto&& listener : listeners) {
-					listener->onPostSimulationStep();
+					listener->onPhysicsStep(step);
 				}
 			}
 			else {
@@ -352,7 +354,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 	return promise->get_future();
 }
 
-void Phys::World::applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type) {
+void World::applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type) {
 	asyncCommand([this, area, group, force] {
 		auto F = asB2Vec(force);
 		auto query = AABBQuery(area, group, QUERY_FIXTURES | QUERY_PARTICLES | QUERY_PUSHABLE_ONLY);
@@ -377,7 +379,7 @@ Vector World::getGravity() const {
 
 const float MIN_SOUND_FORCE = 1.f;
 
-float Phys::World::_closestRecentlyPlayedSound(const Vector& point) {
+float World::_closestRecentlyPlayedSound(const Vector& point) {
 	float minDist = FLT_MAX;
 	for (auto&& pos : recentlyPlayedSoundPositions) {
 		minDist = std::min(minDist, pos.distanceSquared(point));
@@ -385,7 +387,7 @@ float Phys::World::_closestRecentlyPlayedSound(const Vector& point) {
 	return sqrt(minDist);
 }
 
-void Phys::World::playCollisionSound(const DeferredCollision& collision) {
+void World::playCollisionSound(const DeferredCollision& collision) {
 	//TODO choose which sound to play... both? random? existing?
 	//TODO this code doesn't belong here too much, perhaps World shouldn't know about sounds
 	auto& part = *collision.A;

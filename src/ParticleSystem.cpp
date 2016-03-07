@@ -86,7 +86,7 @@ void ParticleSystem::applyForceField(const Dojo::Vector& force) {
 	});
 }
 
-void ParticleSystem::onPostSimulationStep() {
+void ParticleSystem::onPhysicsStep(float dt) {
 	//TODO split this between this and its Renderable instead of calling setAABB
 	b2AABB b2bb;
 	particleSystem->ComputeAABB(&b2bb);
