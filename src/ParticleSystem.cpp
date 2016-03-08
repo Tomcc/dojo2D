@@ -24,7 +24,7 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::
 	DEBUG_ASSERT(particleSize > 0, "Invalid particle size");
 
 	addComponent([&] {
-		auto r = make_unique<ParticleSystemRenderer>(*this, layer);
+		auto r = make_unique<ParticleSystemRenderer>(self, layer);
 		r->setTexture(getGameState().getTexture("particle").unwrap());
 		r->setVisible(false);
 		r->setShader(getGameState().getShader("textured_mult_color").unwrap());
@@ -42,12 +42,12 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::
 
 		particleSystem = world.getBox2D().CreateParticleSystem(&particleSystemDef);
 		particleSystem->SetDamping(damping);
-		world.addListener(*this);
+		world.addListener(self);
 	});
 }
 
 ParticleSystem::~ParticleSystem() {
-	world.removeListener(*this);
+	world.removeListener(self);
 	world.sync();
 }
 

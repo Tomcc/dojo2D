@@ -6,11 +6,10 @@
 
 using namespace Phys;
 
-Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bool inactive) :
-	Component(object),
-	world(world) {
-
-	this->group = group;
+Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bool inactive) 
+	: Component(object)
+	, world(world)
+	, group(group) {
 
 	b2BodyDef bodyDef;
 	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
@@ -20,7 +19,7 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 
 	if (staticShape) {
 		bodyDef.awake = false;
-		this->staticShape = staticShape;
+		self.staticShape = staticShape;
 	}
 	else {
 		bodyDef.angularDamping = 0.1f;
@@ -41,7 +40,7 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 }
 
 Body::~Body() {
-	DEBUG_ASSERT(canDestroy(), "This body was not properly disposed of before destruction");
+
 }
 
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
@@ -152,6 +151,16 @@ void Body::destroyPhysics() {
 			body = {};
 		}
 	});
+}
+
+void Body::onDestroy(Unique<Component> myself) {
+	if(body.is_some()) {
+		destroyPhysics();
+		//assign it to a task so that it can survive until it's destroyed
+		world.asyncCommand([owned = Shared<Component>(std::move(myself))]() mutable {
+			owned = {};
+		});
+	}
 }
 
 void Body::onSimulationPaused() {
