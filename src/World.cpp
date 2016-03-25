@@ -357,14 +357,14 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 void World::applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type) {
 	asyncCommand([this, area, group, force] {
 		auto F = asB2Vec(force);
-		auto query = AABBQuery(area, group, QUERY_FIXTURES | QUERY_PARTICLES | QUERY_PUSHABLE_ONLY);
+		auto query = AABBQuery(area, group, QUERY_FIXTURES | QUERY_PARTICLES | QUERY_PUSHABLE_ONLY).get();
 
-		for (auto&& fixture : query.get().fixtures) {
+		for (auto&& fixture : query.fixtures) {
 			//TODO the force should be proportional to the area or to the volume
 			fixture->GetBody()->ApplyForceToCenter(F, true);
 		}
 
-		for (auto&& pair : query.get().particles) {
+		for (auto&& pair : query.particles) {
 			for (auto&& i : pair.second) {
 				pair.first->ParticleApplyForce(i, F);
 			}
