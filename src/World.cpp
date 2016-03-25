@@ -4,6 +4,7 @@
 #include "PhysUtil.h"
 #include "ParticleSystem.h"
 #include "Material.h"
+#include "Joint.h"
 
 using namespace Phys;
 
@@ -25,48 +26,48 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 
 	for (int i = 0; i < GROUP_COUNT; ++i) {
 		for (int j = 0; j < GROUP_COUNT; ++j) {
-			collideMode[j][i] = ContactMode::Normal;
+			mCollideMode[j][i] = ContactMode::Normal;
 		}
 	}
 
 	//create the box 2D world
-	box2D = make_unique<b2World>(asB2Vec(gravity));
-	box2D->SetContactListener(this);
-	box2D->SetContactFilter(this);
+	mBox2D = make_unique<b2World>(asB2Vec(gravity));
+	mBox2D->SetContactListener(this);
+	mBox2D->SetContactFilter(this);
 
-	commands = make_unique<Dojo::Pipe<Job>>();
-	callbacks = make_unique<Dojo::Pipe<Command>>();
-	deferredCollisions = make_unique<Dojo::Pipe<DeferredCollision>>();
-	deferredSensorCollisions = make_unique<Dojo::Pipe<DeferredSensorCollision>>();
+	mCommands = make_unique<Dojo::Pipe<Job>>();
+	mCallbacks = make_unique<Dojo::Pipe<Command>>();
+	mDeferredCollisions = make_unique<Dojo::Pipe<DeferredCollision>>();
+	mDeferredSensorCollisions = make_unique<Dojo::Pipe<DeferredSensorCollision>>();
 
-	thread = std::thread([ = ]() {
+	mThread = std::thread([ = ]() {
 		Dojo::Timer timer;
 		Job job;
 
-		while (running) {
+		while (mRunning) {
 
 			//process all available commands
-			while ((simulationPaused || timer.getElapsedTime() < timeStep) && commands->try_dequeue(job)) {
+			while ((mSimulationPaused || timer.getElapsedTime() < timeStep) && mCommands->try_dequeue(job)) {
 				job.command();
 
 				if (job.callback) {
-					callbacks->enqueue(std::move(job.callback));
+					mCallbacks->enqueue(std::move(job.callback));
 				}
 			}
 
-			if (!simulationPaused && timer.getElapsedTime() >= timeStep) {
+			if (!mSimulationPaused && timer.getElapsedTime() >= timeStep) {
 				auto step = static_cast<float>(timer.getElapsedTime());
 				timer.reset();
-				box2D->Step(step, velocityIterations, positionIterations, particleIterations);
+				mBox2D->Step(step, velocityIterations, positionIterations, particleIterations);
 
-				for (auto&& b : bodies) {
+				for (auto&& b : mBodies) {
 					auto& body = b->getB2Body().unwrap();
 					if (body.IsAwake() && body.IsActive()) {
 						b->updateObject();
 					}
 				}
 
-				for (auto&& listener : listeners) {
+				for (auto&& listener : mListeners) {
 					listener->onPhysicsStep(step);
 				}
 			}
@@ -78,29 +79,29 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 }
 
 World::~World() {
-	running = false;
-	thread.join();
+	mRunning = false;
+	mThread.join();
 }
 
 void World::addListener(WorldListener& listener) {
 	asyncCommand([&] {
-		listeners.emplace(&listener);
+		mListeners.emplace(&listener);
 	});
 }
 
 void World::removeListener(WorldListener& listener) {
 	asyncCommand([&] {
-		listeners.erase(&listener);
+		mListeners.erase(&listener);
 	});
 }
 
 void World::setContactMode(Group A, Group B, ContactMode mode) {
-	collideMode[A][B] = collideMode[B][A] = mode;
+	mCollideMode[A][B] = mCollideMode[B][A] = mode;
 }
 
 ContactMode World::getContactModeFor(Group A, Group B) const {
-	auto modeA = collideMode[A][B];
-	auto modeB = collideMode[B][A];
+	auto modeA = mCollideMode[A][B];
+	auto modeB = mCollideMode[B][A];
 
 	return std::min(modeA, modeB);
 }
@@ -112,11 +113,11 @@ void World::asyncCommand(Command command, const Command& callback /*= Command()*
 		command();
 
 		if (callback) {
-			callbacks->enqueue(callback);
+			mCallbacks->enqueue(callback);
 		}
 	}
 	else {
-		commands->enqueue(std::move(command), callback);
+		mCommands->enqueue(std::move(command), callback);
 	}
 }
 
@@ -124,7 +125,7 @@ void World::asyncCallback(const Command& callback) const {
 	DEBUG_ASSERT(callback, "Command can't be a NOP");
 
 	if (isWorkerThread()) {
-		callbacks->enqueue(callback);
+		mCallbacks->enqueue(callback);
 	}
 	else {
 		callback();
@@ -154,8 +155,8 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
 		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
-			deferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
-			deferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
+			mDeferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
+			mDeferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
 		}
 
 		return false;
@@ -163,11 +164,11 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
 	//check if the sensors should collide
 	if (fixtureA->IsSensor()) {
-		deferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
+		mDeferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
 	}
 
 	if (fixtureB->IsSensor()) {
-		deferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
+		mDeferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
 	}
 
 	if (fixtureA->IsSensor() && fixtureB->IsSensor()) {
@@ -241,25 +242,29 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	float force = F.Length();
 
 	if (force > 0.1f) {
-		deferredCollisions->enqueue(partA._getWeakPtr(), partB._getWeakPtr(), force, point);
+		mDeferredCollisions->enqueue(partA._getWeakPtr(), partB._getWeakPtr(), force, point);
 	}
 }
 
 std::future<RayResult> World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup) const {
 	auto promise = make_shared<std::promise<RayResult>>(); //TODO pool the promises perhaps
 
+	DEBUG_ASSERT(end.isValid(), "HHMM");
+
 	asyncCommand([this, promise, start, end, rayBelongsToGroup]() {
 		RayResult result(self);
 		result.group = rayBelongsToGroup;
 
-		box2D->RayCast(
+		mBox2D->RayCast(
 			&result,
-		{ start.x, start.y },
-		{ end.x, end.y });
+			{ start.x, start.y },
+			{ end.x, end.y }
+		);
 
 		if (!result.hit) {
 			result.position = end;
 		}
+
 
 		result.dist = start.distance(result.position);
 
@@ -270,7 +275,7 @@ std::future<RayResult> World::raycast(const Vector& start, const Vector& end, Gr
 }
 
 bool World::isWorkerThread() const {
-	return std::this_thread::get_id() == thread.get_id();
+	return std::this_thread::get_id() == mThread.get_id();
 }
 
 std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group group, uint8_t flags) const {
@@ -346,7 +351,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 		bb.upperBound = asB2Vec(area.max);
 
 		Query q = { report, result.particles, (flags & QUERY_PARTICLES) > 0 };
-		box2D->QueryAABB(&q, bb);
+		mBox2D->QueryAABB(&q, bb);
 
 		promise->set_value(std::move(result));
 	});
@@ -374,20 +379,20 @@ void World::applyForceField(const Dojo::AABB& area, Group group, const Vector& f
 
 
 Vector World::getGravity() const {
-	return asVec(box2D->GetGravity());
+	return asVec(mBox2D->GetGravity());
 }
 
 const float MIN_SOUND_FORCE = 1.f;
 
 float World::_closestRecentlyPlayedSound(const Vector& point) {
 	float minDist = FLT_MAX;
-	for (auto&& pos : recentlyPlayedSoundPositions) {
+	for (auto&& pos : mRecentlyPlayedSoundPositions) {
 		minDist = std::min(minDist, pos.distanceSquared(point));
 	}
 	return sqrt(minDist);
 }
 
-void Phys::World::playCollisionSound(const DeferredCollision& collision, const BodyPart& part) {
+void World::playCollisionSound(const DeferredCollision& collision, const BodyPart& part) {
 	//TODO choose which sound to play... both? random? existing?
 	//TODO this code doesn't belong here too much, perhaps World shouldn't know about sounds
 	
@@ -405,10 +410,10 @@ void Phys::World::playCollisionSound(const DeferredCollision& collision, const B
 					volume
 				);
 
-				if (recentlyPlayedSoundPositions.size() > 20) {
-					recentlyPlayedSoundPositions.pop_front();
+				if (mRecentlyPlayedSoundPositions.size() > 20) {
+					mRecentlyPlayedSoundPositions.pop_front();
 				}
-				recentlyPlayedSoundPositions.emplace_back(pos);
+				mRecentlyPlayedSoundPositions.emplace_back(pos);
 			}
 		}
 	}
@@ -416,22 +421,32 @@ void Phys::World::playCollisionSound(const DeferredCollision& collision, const B
 
 
 
+void World::addJoint(Unique<Joint> joint) {
+
+	auto& ref = *joint;
+	asyncCommand([this, &ref] {
+		ref._init(self);
+	});
+
+	mJoints.emplace(std::move(joint));
+}
+
 void World::update(float dt) {
 	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
 
 	//remove a recently played sound
-	if (recentlyPlayedSoundPositions.size() > 0) {
-		removeNextSound += dt;
-		if (removeNextSound > 0.5f) {
-			recentlyPlayedSoundPositions.pop_front();
-			removeNextSound = 0;
+	if (mRecentlyPlayedSoundPositions.size() > 0) {
+		mRemoveNextSound += dt;
+		if (mRemoveNextSound > 0.5f) {
+			mRecentlyPlayedSoundPositions.pop_front();
+			mRemoveNextSound = 0;
 		}
 	}
 
 	//play back all collisions
 	DeferredCollision c;
 
-	while (deferredCollisions->try_dequeue(c)) {
+	while (mDeferredCollisions->try_dequeue(c)) {
 		auto partA = c.A.lock();
 		auto partB = c.B.lock();
 
@@ -456,7 +471,7 @@ void World::update(float dt) {
 
 	DeferredSensorCollision sc;
 
-	while (deferredSensorCollisions->try_dequeue(sc)) {
+	while (mDeferredSensorCollisions->try_dequeue(sc)) {
 		auto part = sc.sensor.lock();
 
 		if (part && part->body.collisionListener) {
@@ -468,28 +483,48 @@ void World::update(float dt) {
 	//right now it can stall the main thread with too many callbacks
 	Command callback;
 
-	while (callbacks->try_dequeue(callback)) {
+	while (mCallbacks->try_dequeue(callback)) {
 		callback();
 	}
 }
 
+Unique<Joint> World::removeJoint(Joint& joint) {
+	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
+
+	auto elem = Dojo::SmallSet<Unique<Joint>>::find(mJoints, joint);
+	DEBUG_ASSERT(elem != mJoints.end(), "Cannot remove joint as it's already removed");
+
+	auto ptr = std::move(*elem);
+	ptr->_deinit(self); //destroy the physics
+
+	mJoints.erase(elem);
+	return ptr;
+}
+
 void World::addBody(Body& body) {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
-	bodies.emplace(&body);
+	mBodies.emplace(&body);
 }
 
 void World::removeBody(Body& body) {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
-	bodies.erase(&body);
+
+	//go over all joints active on this body and deactivate them
+	auto joints = body.getJoints(); //copy because getjoints will remove the joints from the bodies
+	for(auto&& joint : joints) {
+		removeJoint(*joint);
+	}
+
+	mBodies.erase(&body);
 }
 
 void World::pause() {
 	asyncCommand([this]() {
-		DEBUG_ASSERT(!simulationPaused, "Already paused");
-		simulationPaused = true;
+		DEBUG_ASSERT(!mSimulationPaused, "Already paused");
+		mSimulationPaused = true;
 
 		//tell all bodies they're being paused
-		for (auto&& body : bodies) {
+		for (auto&& body : mBodies) {
 			body->onSimulationPaused();
 		}
 	});
@@ -497,7 +532,7 @@ void World::pause() {
 
 void World::resume() {
 	asyncCommand([this]() {
-		DEBUG_ASSERT(simulationPaused, "Already resumed");
-		simulationPaused = false;
+		DEBUG_ASSERT(mSimulationPaused, "Already resumed");
+		mSimulationPaused = false;
 	});
 }

@@ -8,6 +8,7 @@ namespace Phys {
 	class World;
 	class BodyPart;
 	class Body;
+	class Joint;
 
 	class CollisionListener {
 	public:
@@ -37,7 +38,7 @@ namespace Phys {
 		void destroyPhysics();
 
 		void enableParticleCollisions() {
-			particleCollisionModel = true;
+			mParticleCollisionModel = true;
 		}
 
 		void setFixedRotation(bool enable);
@@ -73,23 +74,23 @@ namespace Phys {
 		void setTransform(const Vector& position, Radians angle);
 
 		void setPushable(bool p) {
-			pushable = p;
+			mPushable = p;
 		}
 
 		Group getGroup() const {
-			return group;
+			return mGroup;
 		}
 
 		optional_ref<b2Body> getB2Body() const {
-			return body;
+			return mBody;
 		}
 
 		bool isStatic() const {
-			return staticShape;
+			return mStaticShape;
 		}
 
 		bool isParticle() const {
-			return particleCollisionModel;
+			return mParticleCollisionModel;
 		}
 
 		void onSimulationPaused();
@@ -97,17 +98,17 @@ namespace Phys {
 		void updateObject();
 
 		World& getWorld() const {
-			return world;
+			return mWorld;
 		}
 
 		const Dojo::SmallSet<Shared<BodyPart>>& getParts() const {
-			return parts;
+			return mParts;
 		}
 
 		float getMinimumDistanceTo(const Vector& pos) const;
 
 		virtual void onDispose() override {
-			if (body.is_some()) {
+			if (mBody.is_some()) {
 				destroyPhysics();
 			}
 		}
@@ -116,25 +117,33 @@ namespace Phys {
 
 		virtual bool canDestroy() const override {
 			//wait until the World has really destroyed the body
-			return body.is_none();
+			return mBody.is_none();
 		}
 
 		bool isPushable() const;
 
+		const Dojo::SmallSet<Joint*> getJoints() const {
+			return mJoints;
+		}
+
+		void _registerJoint(Joint& joint);
+		void _removeJoint(Joint& joint);
+
 	protected:
-		World& world;
-		bool pushable = true;
+		World& mWorld;
+		bool mPushable = true;
 
-		optional_ref<b2Body> body;
-		Group group = Group::invalid();
-		bool staticShape = false;
+		optional_ref<b2Body> mBody;
+		Group mGroup = Group::invalid();
+		bool mStaticShape = false;
 
-		Dojo::SmallSet<Shared<BodyPart>> parts;
+		Dojo::SmallSet<Shared<BodyPart>> mParts;
+		Dojo::SmallSet<Joint*> mJoints;
 
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
 
 		b2Body& _waitForBody() const;
 	private:
-		bool particleCollisionModel = false;
+		bool mParticleCollisionModel = false;
 	};
 }

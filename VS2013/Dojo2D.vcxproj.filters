@@ -24,6 +24,7 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Material.cpp" />
+    <ClCompile Include="..\include\Dojo2D\Joint.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Dojo2D\Body.h">
@@ -61,6 +62,7 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\AABBQueryResult.h" />
+    <ClInclude Include="..\include\Dojo2D\Joint.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">

@@ -10,6 +10,7 @@
 namespace Phys {
 	class Body;
 	class BodyPart;
+	class Joint;
 
 	class World :
 		public b2ContactListener,
@@ -106,22 +107,25 @@ namespace Phys {
 		bool isWorkerThread() const;
 
 		b2World& getBox2D() {
-			return *box2D;
+			return *mBox2D;
 		}
 
 		const b2World& getBox2D() const {
-			return *box2D;
+			return *mBox2D;
 		}
 
 		void addBody(Body& body);
 		void removeBody(Body& body);
+
+		void addJoint(Unique<Joint> joint);
+		Unique<Joint> removeJoint(Joint& joint);
 
 		void pause();
 
 		void resume();
 
 		bool isPaused() const {
-			return simulationPaused;
+			return mSimulationPaused;
 		}
 
 		void startPhysics() {
@@ -130,28 +134,28 @@ namespace Phys {
 
 	protected:
 
-		std::thread thread;
+		std::thread mThread;
 
-		bool running = true;
+		bool mRunning = true;
+		bool mSimulationPaused = true;
 
-		Dojo::SmallSet<WorldListener*> listeners;
+		Dojo::SmallSet<WorldListener*> mListeners;
 
-		Unique<b2World> box2D;
+		Unique<b2World> mBox2D;
 
-		Unique<Dojo::Pipe<Job>> commands;
-		Unique<Dojo::Pipe<Command>> callbacks;
-		Unique<Dojo::Pipe<DeferredCollision>> deferredCollisions;
-		Unique<Dojo::Pipe<DeferredSensorCollision>> deferredSensorCollisions;
+		Unique<Dojo::Pipe<Job>> mCommands;
+		Unique<Dojo::Pipe<Command>> mCallbacks;
+		Unique<Dojo::Pipe<DeferredCollision>> mDeferredCollisions;
+		Unique<Dojo::Pipe<DeferredSensorCollision>> mDeferredSensorCollisions;
 
-		Dojo::SmallSet<Body*> bodies;
+		Dojo::SmallSet<Body*> mBodies;
+		Dojo::SmallSet<Unique<Joint>> mJoints;
 
 		static const int GROUP_COUNT = 256; //HACK
-		ContactMode collideMode[GROUP_COUNT][GROUP_COUNT];
+		ContactMode mCollideMode[GROUP_COUNT][GROUP_COUNT];
 		
-		float removeNextSound = 0;
-		std::deque<Vector> recentlyPlayedSoundPositions;
-
-		bool simulationPaused = true;
+		float mRemoveNextSound = 0;
+		std::deque<Vector> mRecentlyPlayedSoundPositions;
 
 		float _closestRecentlyPlayedSound(const Vector& point);
 	};
