@@ -44,10 +44,12 @@ Body::~Body() {
 }
 
 BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
-	auto elem = parts.emplace(make_unique<BodyPart>(self, material));
-
+	auto elem = parts.emplace(make_shared<BodyPart>(self, material));
+	
 	//TODO make the pointer Unique when at some point MSVC won't try to copy the lambda
 	auto& part = **elem;
+	part._notifySharedPtr(*elem);
+
 	auto f = [this, &part, &material, sensor, lshape = std::move(shape)]() {
 
 		b2FixtureDef fixtureDef;
@@ -70,7 +72,7 @@ BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material,
 }
 
 void Phys::Body::removeShape(BodyPart& part) {
-	auto elem = Dojo::SmallSet<Unique<BodyPart>>::find(parts, part);
+	auto elem = Dojo::SmallSet<Shared<BodyPart>>::find(parts, part);
 	DEBUG_ASSERT(elem != parts.end(), "Part already removed");
 
 	//remove the part from the parts known to this thread, give it to a lambda
@@ -138,14 +140,14 @@ BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensio
 }
 
 void Body::destroyPhysics() {
-	world._notifyDestroyed(self);
-
 	staticShape = false;
 	group = 0;
 	particleCollisionModel = false;
 
 	world.asyncCommand([&] {
 		if (body.is_some()) {
+			parts.clear(); //delete all parts
+
 			world.removeBody(self);
 			world.getBox2D().DestroyBody(body.to_raw_ptr());
 			body = {};

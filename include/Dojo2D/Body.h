@@ -100,6 +100,10 @@ namespace Phys {
 			return world;
 		}
 
+		const Dojo::SmallSet<Shared<BodyPart>>& getParts() const {
+			return parts;
+		}
+
 		float getMinimumDistanceTo(const Vector& pos) const;
 
 		virtual void onDispose() override {
@@ -125,7 +129,7 @@ namespace Phys {
 		Group group = Group::invalid();
 		bool staticShape = false;
 
-		Dojo::SmallSet<Unique<BodyPart>> parts;
+		Dojo::SmallSet<Shared<BodyPart>> parts;
 
 		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
 

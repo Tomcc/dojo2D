@@ -146,16 +146,16 @@ void World::sync() const {
 
 bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
-	auto& phA = getBodyForFixture(fixtureA);
-	auto& phB = getBodyForFixture(fixtureB);
+	auto& partA = getPartForFixture(fixtureA);
+	auto& partB = getPartForFixture(fixtureB);
 
-	auto cm = getContactModeFor(phA.getGroup(), phB.getGroup());
+	auto cm = getContactModeFor(partA.body.getGroup(), partB.body.getGroup());
 
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
 		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
-			deferredSensorCollisions->enqueue(phB, phA, *fixtureA);
-			deferredSensorCollisions->enqueue(phA, phB, *fixtureB);
+			deferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
+			deferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
 		}
 
 		return false;
@@ -163,19 +163,19 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
 	//check if the sensors should collide
 	if (fixtureA->IsSensor()) {
-		deferredSensorCollisions->enqueue(phB, phA, *fixtureA);
+		deferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
 	}
 
 	if (fixtureB->IsSensor()) {
-		deferredSensorCollisions->enqueue(phA, phB, *fixtureB);
+		deferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
 	}
 
 	if (fixtureA->IsSensor() && fixtureB->IsSensor()) {
 		return false;
 	}
 
-	bool odcA = phA.isParticle();
-	bool odcB = phB.isParticle();
+	bool odcA = partA.body.isParticle();
+	bool odcB = partB.body.isParticle();
 
 	if (odcA != odcB) { //only one!
 
@@ -241,7 +241,7 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	float force = F.Length();
 
 	if (force > 0.1f) {
-		deferredCollisions->enqueue(partA, partB, force, point);
+		deferredCollisions->enqueue(partA._getWeakPtr(), partB._getWeakPtr(), force, point);
 	}
 }
 
@@ -387,11 +387,10 @@ float World::_closestRecentlyPlayedSound(const Vector& point) {
 	return sqrt(minDist);
 }
 
-void World::playCollisionSound(const DeferredCollision& collision) {
+void Phys::World::playCollisionSound(const DeferredCollision& collision, const BodyPart& part) {
 	//TODO choose which sound to play... both? random? existing?
 	//TODO this code doesn't belong here too much, perhaps World shouldn't know about sounds
-	auto& part = *collision.A;
-
+	
 	if (collision.force > MIN_SOUND_FORCE) {
 		//ensure that the bodies are actually moving respect to each other
 		auto& impactSound = (collision.force > 5) ? part.material.impactHard : part.material.impactSoft;
@@ -433,13 +432,15 @@ void World::update(float dt) {
 	DeferredCollision c;
 
 	while (deferredCollisions->try_dequeue(c)) {
-		auto& bA = c.A->body;
-		auto& bB = c.B->body;
+		auto partA = c.A.lock();
+		auto partB = c.B.lock();
 
-		if (deletedBodies.contains(&bA) || deletedBodies.contains(&bB)) {
+		if(!partA || !partB) { //one of the parts was destroyed, remove
 			continue;
 		}
 
+		auto bA = partA->body;
+		auto bB = partB->body;
 		Vector p = asVec(c.point);
 
 		if (bA.collisionListener) {
@@ -450,20 +451,16 @@ void World::update(float dt) {
 			bB.collisionListener->onCollision(bB, bA, c.force, p);
 		}
 
-		playCollisionSound(c);
+		playCollisionSound(c, *partA);
 	}
 
 	DeferredSensorCollision sc;
 
 	while (deferredSensorCollisions->try_dequeue(sc)) {
-		auto& body = getBodyForFixture(sc.sensor);
+		auto part = sc.sensor.lock();
 
-		if (deletedBodies.contains(&body)) {
-			continue;
-		}
-
-		if (body.collisionListener) {
-			body.collisionListener->onSensorCollision(*sc.other, *sc.sensor);    //sensor collisions are not bidirectional
+		if (part && part->body.collisionListener) {
+			part->body.collisionListener->onSensorCollision(*sc.other, part->getFixture());    //sensor collisions are not bidirectional
 		}
 	}
 
@@ -474,14 +471,6 @@ void World::update(float dt) {
 	while (callbacks->try_dequeue(callback)) {
 		callback();
 	}
-
-	//by now, any stale pointer in the queues should have been cleaned
-	deletedBodies.clear();
-}
-
-void World::_notifyDestroyed(Body& body) {
-	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
-	deletedBodies.emplace(&body);
 }
 
 void World::addBody(Body& body) {

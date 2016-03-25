@@ -18,7 +18,19 @@ namespace Phys {
 		b2Fixture& getFixture() const;
 
 		float getMinimumDistanceTo(const Vector& pos) const;
+
+		//HACK is there a way to give a shared ptr to the collision system without enable_shared_from_this?
+		std::weak_ptr<BodyPart> _getWeakPtr() {
+			return mSelfWeakPtr;
+		}
+
 	protected:
 		b2Fixture* fixture = nullptr;
+		std::weak_ptr<BodyPart> mSelfWeakPtr;
+
+		//use this to notify the bodypart the shared ptr it's stored in
+		void _notifySharedPtr(Shared<BodyPart>& me) {
+			mSelfWeakPtr = me;
+		}
 	};
 }

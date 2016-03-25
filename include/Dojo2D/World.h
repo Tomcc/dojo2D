@@ -20,13 +20,13 @@ namespace Phys {
 
 	protected:
 		struct DeferredCollision {
-			BodyPart* A, *B;
+			std::weak_ptr<BodyPart> A, B;
 			float force;
 			b2Vec2 point;
 			DeferredCollision() {}
-			DeferredCollision(BodyPart& A, BodyPart& B, float force, const b2Vec2& point) :
-				A(&A),
-				B(&B),
+			DeferredCollision(std::weak_ptr<BodyPart> A, std::weak_ptr<BodyPart> B, float force, const b2Vec2& point) :
+				A(A),
+				B(B),
 				force(force),
 				point(point) {
 
@@ -35,12 +35,12 @@ namespace Phys {
 
 		struct DeferredSensorCollision {
 			Body* other, *me;
-			b2Fixture* sensor;
+			std::weak_ptr<BodyPart> sensor;
 			DeferredSensorCollision() {}
-			DeferredSensorCollision(Body& other, Body& me, b2Fixture& sensor) :
+			DeferredSensorCollision(Body& other, Body& me, std::weak_ptr<BodyPart> sensor) :
 				other(&other),
 				me(&me),
-				sensor(&sensor) {
+				sensor(sensor) {
 
 			}
 		};
@@ -87,15 +87,13 @@ namespace Phys {
 
 		Vector getGravity() const;
 
-		void playCollisionSound(const DeferredCollision& collision);
+		void playCollisionSound(const DeferredCollision& collision, const BodyPart& part);
 		std::future<RayResult> raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
 		std::future<AABBQueryResult> AABBQuery(const Dojo::AABB& area, Group group, uint8_t flags = 0) const;
 
 		void applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type);
 
 		void update(float dt);
-
-		void _notifyDestroyed(Body& body);
 
 		virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override;
 		virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) override;
@@ -145,7 +143,7 @@ namespace Phys {
 		Unique<Dojo::Pipe<DeferredCollision>> deferredCollisions;
 		Unique<Dojo::Pipe<DeferredSensorCollision>> deferredSensorCollisions;
 
-		Dojo::SmallSet<Body*> bodies, deletedBodies;
+		Dojo::SmallSet<Body*> bodies;
 
 		static const int GROUP_COUNT = 256; //HACK
 		ContactMode collideMode[GROUP_COUNT][GROUP_COUNT];
