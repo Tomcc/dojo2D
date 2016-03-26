@@ -419,16 +419,14 @@ void World::playCollisionSound(const DeferredCollision& collision, const BodyPar
 	}
 }
 
-
-
-void World::addJoint(Unique<Joint> joint) {
-
+Joint& World::addJoint(Unique<Joint> joint) {
 	auto& ref = *joint;
 	asyncCommand([this, &ref] {
 		ref._init(self);
 	});
 
 	mJoints.emplace(std::move(joint));
+	return ref;
 }
 
 void World::update(float dt) {

@@ -245,7 +245,7 @@ void Body::forceVelocity(const Vector& velocity) {
 }
 
 void Body::setDamping(float linear, float angular) {
-	mWorld.asyncCommand([ = ]() {
+	mWorld.asyncCommand([=]() {
 		mBody.unwrap().SetLinearDamping(linear);
 		mBody.unwrap().SetAngularDamping(angular);
 	});
@@ -291,6 +291,10 @@ Vector Body::getVelocity() const {
 
 Vector Body::getVelocityAtLocalPoint(const Vector& localPoint) const {
 	return asVec(_waitForBody().GetLinearVelocityFromLocalPoint(asB2Vec(localPoint)));
+}
+
+float Body::getAngularVelocity() const {
+	return _waitForBody().GetAngularVelocity();
 }
 
 float Body::getMinimumDistanceTo(const Vector& point) const {

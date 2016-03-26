@@ -117,7 +117,7 @@ namespace Phys {
 		void addBody(Body& body);
 		void removeBody(Body& body);
 
-		void addJoint(Unique<Joint> joint);
+		Joint& addJoint(Unique<Joint> joint);
 		Unique<Joint> removeJoint(Joint& joint);
 
 		void pause();

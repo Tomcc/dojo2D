@@ -19,6 +19,10 @@ namespace Phys {
 			return mJoint.is_some();
 		}
 
+		optional_ref<b2Joint> getB2Joint() {
+			return mJoint;
+		}
+
 		void _init(World& world);
 		void _deinit(World& world);
 
