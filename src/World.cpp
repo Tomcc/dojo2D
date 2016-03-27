@@ -35,10 +35,10 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 	mBox2D->SetContactListener(this);
 	mBox2D->SetContactFilter(this);
 
-	mCommands = make_unique<Dojo::Pipe<Job>>();
-	mCallbacks = make_unique<Dojo::Pipe<Command>>();
-	mDeferredCollisions = make_unique<Dojo::Pipe<DeferredCollision>>();
-	mDeferredSensorCollisions = make_unique<Dojo::Pipe<DeferredSensorCollision>>();
+	mCommands = make_unique<Dojo::SPSCQueue<Job>>();
+	mCallbacks = make_unique<Dojo::SPSCQueue<Command>>();
+	mDeferredCollisions = make_unique<Dojo::SPSCQueue<DeferredCollision>>();
+	mDeferredSensorCollisions = make_unique<Dojo::SPSCQueue<DeferredSensorCollision>>();
 
 	mThread = std::thread([ = ]() {
 		Dojo::Timer timer;

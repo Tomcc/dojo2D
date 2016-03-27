@@ -143,10 +143,10 @@ namespace Phys {
 
 		Unique<b2World> mBox2D;
 
-		Unique<Dojo::Pipe<Job>> mCommands;
-		Unique<Dojo::Pipe<Command>> mCallbacks;
-		Unique<Dojo::Pipe<DeferredCollision>> mDeferredCollisions;
-		Unique<Dojo::Pipe<DeferredSensorCollision>> mDeferredSensorCollisions;
+		Unique<Dojo::SPSCQueue<Job>> mCommands;
+		Unique<Dojo::SPSCQueue<Command>> mCallbacks;
+		Unique<Dojo::SPSCQueue<DeferredCollision>> mDeferredCollisions;
+		Unique<Dojo::SPSCQueue<DeferredSensorCollision>> mDeferredSensorCollisions;
 
 		Dojo::SmallSet<Body*> mBodies;
 		Dojo::SmallSet<Unique<Joint>> mJoints;
