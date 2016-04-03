@@ -108,12 +108,6 @@ namespace Phys {
 
 		float getMinimumDistanceTo(const Vector& pos) const;
 
-		virtual void onDispose() override {
-			if (mBody.is_some()) {
-				destroyPhysics();
-			}
-		}
-
 		virtual void onDestroy(Unique<Component> myself) override;
 
 		virtual bool canDestroy() const override {
