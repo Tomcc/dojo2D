@@ -29,3 +29,8 @@ float BodyPart::getMinimumDistanceTo(const Vector& pos) const {
 
 	return res;
 }
+
+b2Shape& Phys::BodyPart::getShape() const {
+	DEBUG_ASSERT(getFixture().GetShape(), "No shape available");
+	return *getFixture().GetShape();
+}

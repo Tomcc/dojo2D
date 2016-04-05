@@ -16,6 +16,7 @@ namespace Phys {
 		BodyPart(Body& body, const Material& material);
 
 		b2Fixture& getFixture() const;
+		b2Shape& getShape() const;
 
 		float getMinimumDistanceTo(const Vector& pos) const;
 
