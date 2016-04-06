@@ -24,7 +24,7 @@ namespace Phys {
 
 		Body(Dojo::Object& object, World& world, Group group, bool staticShape = false, bool inactive = false);
 
-		virtual ~Body();
+		~Body();
 
 		BodyPart& addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor = false);
 		BodyPart& addPolyShape(const Material& material, const std::vector<b2Vec2>& points, bool sensor = false);
@@ -108,9 +108,10 @@ namespace Phys {
 
 		float getMinimumDistanceTo(const Vector& pos) const;
 
-		virtual void onDestroy(Unique<Component> myself) override;
+		void onAttach() override;
+		void onDestroy(Unique<Component> myself) override;
 
-		virtual bool canDestroy() const override {
+		bool canDestroy() const override {
 			//wait until the World has really destroyed the body
 			return mBody.is_none();
 		}
@@ -131,6 +132,7 @@ namespace Phys {
 		optional_ref<b2Body> mBody;
 		Group mGroup = Group::invalid();
 		bool mStaticShape = false;
+		bool mAutoActivate;
 
 		Dojo::SmallSet<Shared<BodyPart>> mParts;
 		Dojo::SmallSet<Joint*> mJoints;

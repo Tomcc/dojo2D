@@ -9,7 +9,8 @@ using namespace Phys;
 Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bool inactive) 
 	: Component(object)
 	, mWorld(world)
-	, mGroup(group) {
+	, mGroup(group)
+	, mAutoActivate(!inactive) {
 
 	b2BodyDef bodyDef;
 	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
@@ -27,16 +28,20 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 		//bodyDef.bullet = true;
 	}
 
-	if (inactive) {
-		bodyDef.awake = bodyDef.active = false;
-	}
-
+	//only enable this on attach
+	bodyDef.awake = bodyDef.active = false;
 	bodyDef.userData = this;
 
 	world.asyncCommand([this, bodyDef, &world]() {
 		mBody = *world.getBox2D().CreateBody(&bodyDef);
 		world.addBody(self);
 	});
+}
+
+void Body::onAttach() {
+	if(mAutoActivate) {
+		setActive();
+	}
 }
 
 Body::~Body() {
