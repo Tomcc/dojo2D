@@ -111,11 +111,6 @@ namespace Phys {
 		void onAttach() override;
 		void onDestroy(Unique<Component> myself) override;
 
-		bool canDestroy() const override {
-			//wait until the World has really destroyed the body
-			return mBody.is_none();
-		}
-
 		bool isPushable() const;
 
 		const Dojo::SmallSet<Joint*> getJoints() const {
