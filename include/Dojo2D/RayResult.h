@@ -11,7 +11,7 @@ namespace Phys {
 		bool hit = false;
 		Vector position;
 		Vector normal;
-		Group group = 0;
+		Group group = Group::None;
 		float dist;
 
 		RayResult() {}

@@ -9,7 +9,7 @@ using namespace Phys;
 Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bool inactive) 
 	: Component(object)
 	, mWorld(world)
-	, mGroup(group)
+	, mDefaultGroup(group)
 	, mAutoActivate(!inactive) {
 
 	b2BodyDef bodyDef;
@@ -48,14 +48,18 @@ Body::~Body() {
 
 }
 
-BodyPart& Body::_addShape(Shared<b2Shape> shape, const Material& material, bool sensor) {
-	auto elem = mParts.emplace(make_shared<BodyPart>(self, material));
+Phys::BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& material, Group group, bool sensor) {
+	if(group == Group::None) {
+		group = mDefaultGroup;
+	}
+
+	auto elem = mParts.emplace(make_shared<BodyPart>(self, material, group));
 	
 	//TODO make the pointer Unique when at some point MSVC won't try to copy the lambda
 	auto& part = **elem;
 	part._notifySharedPtr(*elem);
 
-	auto f = [this, &part, &material, sensor, lshape = std::move(shape)]() {
+	auto f = [this, &part, &material, sensor, group, lshape = std::move(shape)]() {
 
 		b2FixtureDef fixtureDef;
 
@@ -64,7 +68,7 @@ BodyPart& Body::_addShape(Shared<b2Shape> shape, const Material& material, bool 
 		fixtureDef.friction = material.friction;
 		fixtureDef.restitution = material.restitution;
 		fixtureDef.filter = b2Filter();
-		fixtureDef.filter.groupIndex = mGroup;
+		fixtureDef.filter.groupIndex = group;
 		fixtureDef.isSensor = sensor;
 
 		fixtureDef.userData = (void*)&part;
@@ -91,7 +95,7 @@ void Body::removeShape(BodyPart& part) {
 	});
 }
 
-BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor /*= false*/) {
+BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, Group group, bool sensor /*= false*/) {
 
 	DEBUG_ASSERT(count > 0, "Wrong vertex count");
 	DEBUG_ASSERT(count < b2_maxPolygonVertices, "This box shape has too many vertices!");
@@ -99,14 +103,14 @@ BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int
 	auto shape = make_unique<b2PolygonShape>();
 	shape->Set(points, count);
 
-	return _addShape(std::move(shape), material, sensor);
+	return _addShape(std::move(shape), material, group, sensor);
 }
 
-BodyPart& Body::addPolyShape(const Material& material, const std::vector<b2Vec2>& points /*= nullptr*/, bool sensor /*= false */) {
-	return addPolyShape(material, points.data(), points.size(), sensor);
+BodyPart& Body::addPolyShape(const Material& material, const std::vector<b2Vec2>& points /*= nullptr*/, Group group, bool sensor /*= false */) {
+	return addPolyShape(material, points.data(), points.size(), group, sensor);
 }
 
-BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, const Vector& center /*= Vector::ZERO*/, bool sensor /*= false*/) {
+BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, const Vector& center /*= Vector::ZERO*/, Group group, bool sensor /*= false*/) {
 
 	DEBUG_ASSERT(dimensions.x >= 0 && dimensions.y >= 0, "Invalid dimensions");
 
@@ -120,10 +124,10 @@ BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, 
 		{max.x, min.y}
 	};
 
-	return addPolyShape(material, points, 4, sensor);
+	return addPolyShape(material, points, 4, group, sensor);
 }
 
-BodyPart& Body::addCircleShape(const Material& material, float radius, const Vector& center, bool sensor /*= false*/) {
+BodyPart& Body::addCircleShape(const Material& material, float radius, const Vector& center, Group group, bool sensor /*= false*/) {
 	DEBUG_ASSERT(radius > 0, "Invalid radius");
 
 	auto circle = make_unique<b2CircleShape>();
@@ -131,22 +135,22 @@ BodyPart& Body::addCircleShape(const Material& material, float radius, const Vec
 	circle->m_p.x = center.x;
 	circle->m_p.y = center.y;
 
-	return _addShape(std::move(circle), material, sensor);
+	return _addShape(std::move(circle), material, group, sensor);
 }
 
-BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center, bool sensor /*= false*/) {
+BodyPart& Body::addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center, Group group, bool sensor /*= false*/) {
 
 	Vector halfSize = dimensions * 0.5f;
 	Vector offset(0, halfSize.y - halfSize.x);
 
 	//create physics
-	addCircleShape(material, halfSize.x, center + offset, sensor);
-	return addCircleShape(material, halfSize.x, center - offset, sensor);
+	addCircleShape(material, halfSize.x, center + offset, group, sensor);
+	return addCircleShape(material, halfSize.x, center - offset, group, sensor);
 }
 
 void Body::destroyPhysics() {
 	mStaticShape = false;
-	mGroup = 0;
+	mDefaultGroup = Group::None;
 	mParticleCollisionModel = false;
 
 	mWorld.asyncCommand([&] {

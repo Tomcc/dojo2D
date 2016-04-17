@@ -12,7 +12,7 @@ namespace Phys {
 
 	class CollisionListener {
 	public:
-		virtual void onCollision(Phys::Body& me, Phys::Body& other, float force, const Vector& point) {}
+		virtual void onCollision(Phys::BodyPart& me, Phys::BodyPart& other, float force, const Vector& point) {}
 		virtual void onSensorCollision(Body& other, b2Fixture& sensor) {};
 	};
 
@@ -26,11 +26,11 @@ namespace Phys {
 
 		~Body();
 
-		BodyPart& addPolyShape(const Material& material, const b2Vec2* points, int count, bool sensor = false);
-		BodyPart& addPolyShape(const Material& material, const std::vector<b2Vec2>& points, bool sensor = false);
-		BodyPart& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, bool sensor = false);
-		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::Zero, bool sensor = false);
-		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, bool sensor = false);
+		BodyPart& addPolyShape(const Material& material, const b2Vec2* points, int count, Group group = Group::None, bool sensor = false);
+		BodyPart& addPolyShape(const Material& material, const std::vector<b2Vec2>& points, Group group = Group::None, bool sensor = false);
+		BodyPart& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, Group group = Group::None, bool sensor = false);
+		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::Zero, Group group = Group::None, bool sensor = false);
+		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, Group group = Group::None, bool sensor = false);
 
 		void removeShape(BodyPart& part);
 
@@ -78,8 +78,8 @@ namespace Phys {
 			mPushable = p;
 		}
 
-		Group getGroup() const {
-			return mGroup;
+		Group getDefaultGroup() const {
+			return mDefaultGroup;
 		}
 
 		optional_ref<b2Body> getB2Body() const {
@@ -125,14 +125,14 @@ namespace Phys {
 		bool mPushable = true;
 
 		optional_ref<b2Body> mBody;
-		Group mGroup = Group::invalid();
+		Group mDefaultGroup = Group::None;
 		bool mStaticShape = false;
 		bool mAutoActivate;
 
 		Dojo::SmallSet<Shared<BodyPart>> mParts;
 		Dojo::SmallSet<Joint*> mJoints;
 
-		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, bool sensor);
+		BodyPart& _addShape(Shared<b2Shape> shape, const Material& material, Group group, bool sensor);
 
 		b2Body& _waitForBody() const;
 	private:

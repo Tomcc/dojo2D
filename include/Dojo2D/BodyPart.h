@@ -12,8 +12,9 @@ namespace Phys {
 
 		const Material& material;
 		Body& body;
+		const Group group;
 
-		BodyPart(Body& body, const Material& material);
+		BodyPart(Body& body, const Material& material, Group group);
 
 		b2Fixture& getFixture() const;
 		b2Shape& getShape() const;

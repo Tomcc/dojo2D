@@ -8,6 +8,8 @@
 
 using namespace Phys;
 
+const Group Group::None = Group(0);
+
 const static b2Transform B2_IDENTITY = {b2Vec2(0.f, 0.f), b2Rot(0.f)};
 
 bool World::shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2) {
@@ -150,7 +152,7 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	auto& partA = getPartForFixture(fixtureA);
 	auto& partB = getPartForFixture(fixtureB);
 
-	auto cm = getContactModeFor(partA.body.getGroup(), partB.body.getGroup());
+	auto cm = getContactModeFor(partA.group, partB.group);
 
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
@@ -193,10 +195,10 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 }
 
 bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex) {
-	auto& body = getBodyForFixture(fixture);
+	auto& part = getPartForFixture(fixture);
 	auto& ps = ParticleSystem::getFor(particleSystem);
 
-	if (getContactModeFor(body.getGroup(), ps.group) != ContactMode::Normal) {
+	if (getContactModeFor(part.group, ps.group) != ContactMode::Normal) {
 		return false;
 	}
 	else {
@@ -291,9 +293,9 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 
 		auto report = [&](b2Fixture * fixture) {
 			if (!fixture->IsSensor()) {
-				auto& body = getBodyForFixture(fixture);
-				if (!(flags & QUERY_PUSHABLE_ONLY) || body.isPushable()) {
-					auto contactMode = getContactModeFor(group, body.getGroup());
+				auto& part = getPartForFixture(fixture);
+				if (!(flags & QUERY_PUSHABLE_ONLY) || part.body.isPushable()) {
+					auto contactMode = getContactModeFor(group, part.group);
 
 					if (contactMode == ContactMode::Normal) {
 
@@ -301,7 +303,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 							result.empty = false;
 
 							if (flags & QUERY_BODIES) {
-								result.bodies.insert(&body);
+								result.bodies.insert(&part.body);
 							}
 
 							else if (flags & QUERY_FIXTURES) {
@@ -457,11 +459,11 @@ void World::update(float dt) {
 		Vector p = asVec(c.point);
 
 		if (bA.collisionListener) {
-			bA.collisionListener->onCollision(bA, bB, c.force, p);
+			bA.collisionListener->onCollision(*partA, *partB, c.force, p);
 		}
 
 		if (bB.collisionListener) {
-			bB.collisionListener->onCollision(bB, bA, c.force, p);
+			bB.collisionListener->onCollision(*partB, *partA, c.force, p);
 		}
 
 		playCollisionSound(c, *partA);

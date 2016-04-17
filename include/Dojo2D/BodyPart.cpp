@@ -3,9 +3,10 @@
 
 using namespace Phys;
 
-BodyPart::BodyPart(Body& body, const Material& material) :
-	material(material),
-	body(body) {
+BodyPart::BodyPart(Body& body, const Material& material, Group group) 
+	: material(material)
+	, body(body)
+	, group(group) {
 
 }
 

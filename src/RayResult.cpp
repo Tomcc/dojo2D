@@ -11,7 +11,7 @@ float32 RayResult::ReportFixture(b2Fixture* fixture, const b2Vec2& P, const b2Ve
 		return -1;    //ignore
 	}
 
-	if (world.unwrap().getContactModeFor(getBodyForFixture(fixture).getGroup(), group) != ContactMode::Normal) {
+	if (world.unwrap().getContactModeFor(getPartForFixture(fixture).group, group) != ContactMode::Normal) {
 		return -1;    //ignore as these two groups can't see each other
 	}
 

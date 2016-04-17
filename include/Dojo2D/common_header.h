@@ -9,8 +9,14 @@
 namespace Phys {
 
 	struct Group : public Dojo::PseudoEnumClass<uint16_t> {
+		static const Group None;
+
 		template<typename T>
 		Group(T raw) : PseudoEnumClass(raw) {}
+
+		bool operator==(const Group& rhs) const {
+			return value == rhs.value;
+		}
 	};
 
 	//some reexports

@@ -89,7 +89,7 @@ namespace Phys {
 		Vector getGravity() const;
 
 		void playCollisionSound(const DeferredCollision& collision, const BodyPart& part);
-		std::future<RayResult> raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = 0) const;
+		std::future<RayResult> raycast(const Vector& start, const Vector& end, Phys::Group rayBelongsToGroup = Group::None) const;
 		std::future<AABBQueryResult> AABBQuery(const Dojo::AABB& area, Group group, uint8_t flags = 0) const;
 
 		void applyForceField(const Dojo::AABB& area, Group group, const Vector& force, FieldType type);
