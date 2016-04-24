@@ -13,7 +13,7 @@ namespace Phys {
 
 		Joint(Body& A, Body& B, bool collideConnected = false);
 
-		void setRevolute(const Vector& localAnchorA, const Vector& localAnchorB);
+		void setRevolute(const Vector& localAnchorA, const Vector& localAnchorB, float motorSpeed = FLT_MAX, float maxMotorTorque = FLT_MAX);
 
 		bool isInited() const {
 			return mJoint.is_some();
@@ -27,8 +27,11 @@ namespace Phys {
 		void _deinit(World& world);
 
 	protected:
-		//prismatic
+		//revolute
 		Vector mLocalAnchorA, mLocalAnchorB;
+		float mMotorSpeed, mMaxMotorTorque;
+
+		//generic
 
 		const bool mCollideConnected;
 		Body& mBodyA, &mBodyB;

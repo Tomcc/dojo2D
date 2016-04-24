@@ -13,12 +13,15 @@ mCollideConnected(collideConnected) {
 
 }
 
-void Joint::setRevolute(const Vector& localAnchorA, const Vector& localAnchorB) {
+void Phys::Joint::setRevolute(const Vector& localAnchorA, const Vector& localAnchorB, float motorSpeed /*= FLT_MAX*/, float maxMotorTorque /*= FLT_MAX*/) {
 	DEBUG_ASSERT(mJointType == Type::NotSet, "The joint is already initialized");
+	DEBUG_ASSERT(motorSpeed == FLT_MAX || maxMotorTorque < FLT_MAX, "When providing a motor speed, also provide a max torque");
 
 	mLocalAnchorA = localAnchorA;
 	mLocalAnchorB = localAnchorB;
 	mJointType = Type::Revolute;
+	mMotorSpeed = motorSpeed;
+	mMaxMotorTorque = maxMotorTorque;
 }
 
 void Joint::_init(World& world, b2JointDef& def) {
@@ -38,7 +41,13 @@ void Joint::_init(World& world) {
 		b2RevoluteJointDef def;
 		def.localAnchorA = asB2Vec(mLocalAnchorA);
 		def.localAnchorB = asB2Vec(mLocalAnchorB);
-		def.referenceAngle = 0;
+		def.referenceAngle = mBodyB.getB2Body().unwrap().GetAngle() - mBodyA.getB2Body().unwrap().GetAngle();
+
+		if(mMotorSpeed < FLT_MAX) {
+			def.enableMotor = true;
+			def.motorSpeed = mMotorSpeed;
+			def.maxMotorTorque = mMaxMotorTorque;
+		}
 
 		_init(world, def);
 		break;
