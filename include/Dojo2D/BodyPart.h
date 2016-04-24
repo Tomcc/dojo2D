@@ -16,6 +16,11 @@ namespace Phys {
 
 		BodyPart(Body& body, const Material& material, Group group);
 
+		BodyPart(const BodyPart&) = delete;
+		BodyPart(BodyPart&&) = delete;
+		BodyPart& operator=(const BodyPart&) = delete;
+		BodyPart& operator=(BodyPart&&) = delete;
+
 		b2Fixture& getFixture() const;
 		b2Shape& getShape() const;
 

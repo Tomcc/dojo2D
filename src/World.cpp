@@ -454,8 +454,8 @@ void World::update(float dt) {
 			continue;
 		}
 
-		auto bA = partA->body;
-		auto bB = partB->body;
+		auto& bA = partA->body;
+		auto& bB = partB->body;
 		Vector p = asVec(c.point);
 
 		if (bA.collisionListener) {
