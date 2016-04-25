@@ -488,17 +488,16 @@ void World::update(float dt) {
 	}
 }
 
-Unique<Joint> World::removeJoint(Joint& joint) {
-	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
+void World::removeJoint(Joint& joint) {
+	asyncCommand([this, &joint] {
+		auto elem = Dojo::SmallSet<Unique<Joint>>::find(mJoints, joint);
+		DEBUG_ASSERT(elem != mJoints.end(), "Cannot remove joint as it's already removed");
 
-	auto elem = Dojo::SmallSet<Unique<Joint>>::find(mJoints, joint);
-	DEBUG_ASSERT(elem != mJoints.end(), "Cannot remove joint as it's already removed");
+		auto ptr = std::move(*elem);
+		ptr->_deinit(self); //destroy the physics
 
-	auto ptr = std::move(*elem);
-	ptr->_deinit(self); //destroy the physics
-
-	mJoints.erase(elem);
-	return ptr;
+		mJoints.erase(elem);
+	});
 }
 
 void World::addBody(Body& body) {

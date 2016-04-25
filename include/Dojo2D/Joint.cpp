@@ -17,11 +17,22 @@ void Phys::Joint::setRevolute(const Vector& localAnchorA, const Vector& localAnc
 	DEBUG_ASSERT(mJointType == Type::NotSet, "The joint is already initialized");
 	DEBUG_ASSERT(motorSpeed == FLT_MAX || maxMotorTorque < FLT_MAX, "When providing a motor speed, also provide a max torque");
 
-	mLocalAnchorA = localAnchorA;
-	mLocalAnchorB = localAnchorB;
 	mJointType = Type::Revolute;
-	mMotorSpeed = motorSpeed;
-	mMaxMotorTorque = maxMotorTorque;
+	mDesc.revolute.mLocalAnchorA = localAnchorA;
+	mDesc.revolute.mLocalAnchorB = localAnchorB;
+	mDesc.revolute.mMotorSpeed = motorSpeed;
+	mDesc.revolute.mMaxMotorTorque = maxMotorTorque;
+}
+
+void Phys::Joint::setDistance(const Vector& worldAnchorA, const Vector& worldAnchorB, float naturalLenght, float dampingRatio /*= 0*/, float frequencyHz /*= 0*/) {
+	DEBUG_ASSERT(mJointType == Type::NotSet, "The joint is already initialized");
+
+	mJointType = Type::Distance;
+	mDesc.distance.worldAnchor[0] = worldAnchorA;
+	mDesc.distance.worldAnchor[1] = worldAnchorB;
+	mDesc.distance.dampingRatio = dampingRatio;
+	mDesc.distance.frequencyHz = frequencyHz;
+	mDesc.distance.naturalLenght = naturalLenght;
 }
 
 void Joint::_init(World& world, b2JointDef& def) {
@@ -39,15 +50,35 @@ void Joint::_init(World& world) {
 	{
 	case Joint::Type::Revolute: {
 		b2RevoluteJointDef def;
-		def.localAnchorA = asB2Vec(mLocalAnchorA);
-		def.localAnchorB = asB2Vec(mLocalAnchorB);
+		def.localAnchorA = asB2Vec(mDesc.revolute.mLocalAnchorA);
+		def.localAnchorB = asB2Vec(mDesc.revolute.mLocalAnchorB);
 		def.referenceAngle = mBodyB.getB2Body().unwrap().GetAngle() - mBodyA.getB2Body().unwrap().GetAngle();
 
-		if(mMotorSpeed < FLT_MAX) {
+		if(mDesc.revolute.mMotorSpeed < FLT_MAX) {
 			def.enableMotor = true;
-			def.motorSpeed = mMotorSpeed;
-			def.maxMotorTorque = mMaxMotorTorque;
+			def.motorSpeed = mDesc.revolute.mMotorSpeed;
+			def.maxMotorTorque = mDesc.revolute.mMaxMotorTorque;
 		}
+
+		_init(world, def);
+		break;
+	}
+	case Joint::Type::Distance: {
+		b2DistanceJointDef def;
+		def.Initialize(
+			&mBodyA.getB2Body().unwrap(),
+			&mBodyB.getB2Body().unwrap(),
+			asB2Vec(mDesc.distance.worldAnchor[0]),
+			asB2Vec(mDesc.distance.worldAnchor[1])
+		);
+
+		//override lenght if needed
+		if(mDesc.distance.naturalLenght) {
+			def.length = mDesc.distance.naturalLenght;
+		}
+
+		def.frequencyHz = mDesc.distance.frequencyHz;
+		def.dampingRatio = mDesc.distance.dampingRatio;
 
 		_init(world, def);
 		break;

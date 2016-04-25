@@ -8,12 +8,14 @@ namespace Phys {
 	public:
 		enum class Type {
 			NotSet,
-			Revolute
+			Revolute,
+			Distance
 		};
 
 		Joint(Body& A, Body& B, bool collideConnected = false);
 
 		void setRevolute(const Vector& localAnchorA, const Vector& localAnchorB, float motorSpeed = FLT_MAX, float maxMotorTorque = FLT_MAX);
+		void setDistance(const Vector& worldAnchorA, const Vector& worldAnchorB, float naturalLenght = 0, float dampingRatio = 0, float frequencyHz = 0);
 
 		bool isInited() const {
 			return mJoint.is_some();
@@ -28,8 +30,19 @@ namespace Phys {
 
 	protected:
 		//revolute
-		Vector mLocalAnchorA, mLocalAnchorB;
-		float mMotorSpeed, mMaxMotorTorque;
+		union Desc {
+			struct Revolute {
+				Vector mLocalAnchorA, mLocalAnchorB;
+				float mMotorSpeed, mMaxMotorTorque;
+			} revolute;
+
+			struct Distance {
+				Vector worldAnchor[2];
+				float dampingRatio, frequencyHz, naturalLenght;
+			} distance;
+
+			Desc() {}
+		} mDesc;
 
 		//generic
 
