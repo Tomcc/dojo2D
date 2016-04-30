@@ -99,8 +99,8 @@ void ParticleSystem::onPhysicsStep(float dt) {
 	auto& viewport = getGameState().getViewport().unwrap();
 
 	//suspend the particlesystem when it's too far from the player
-	mSimulating = (!autoDeactivate) || (viewport.isInViewRect(mSimulationAABB.grow(3)));
-	particleSystem->SetPaused(!mSimulating);
+	mSimulating = (not autoDeactivate) or (viewport.isInViewRect(mSimulationAABB.grow(3)));
+	particleSystem->SetPaused(not mSimulating);
 
 }
 

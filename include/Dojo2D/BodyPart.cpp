@@ -11,7 +11,7 @@ BodyPart::BodyPart(Body& body, const Material& material, Group group)
 }
 
 b2Fixture& BodyPart::getFixture() const {
-	while (!fixture) { //the fixture must be in flight on the other thread, wait for it
+	while (not fixture) { //the fixture must be in flight on the other thread, wait for it
 		std::this_thread::yield();
 	}
 

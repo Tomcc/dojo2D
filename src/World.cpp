@@ -49,7 +49,7 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 		while (mRunning) {
 
 			//process all available commands
-			while ((mSimulationPaused || timer.getElapsedTime() < timeStep) && mCommands->try_dequeue(job)) {
+			while ((mSimulationPaused or timer.getElapsedTime() < timeStep) and mCommands->try_dequeue(job)) {
 				job.command();
 
 				if (job.callback) {
@@ -57,14 +57,14 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 				}
 			}
 
-			if (!mSimulationPaused && timer.getElapsedTime() >= timeStep) {
+			if (not mSimulationPaused and timer.getElapsedTime() >= timeStep) {
 				auto step = static_cast<float>(timer.getElapsedTime());
 				timer.reset();
 				mBox2D->Step(step, velocityIterations, positionIterations, particleIterations);
 
 				for (auto&& b : mBodies) {
 					auto& body = b->getB2Body().unwrap();
-					if (body.IsAwake() && body.IsActive()) {
+					if (body.IsAwake() and body.IsActive()) {
 						b->updateObject();
 					}
 				}
@@ -135,13 +135,13 @@ void World::asyncCallback(const Command& callback) const {
 }
 
 void World::sync() const {
-	if (!isWorkerThread()) {
+	if (not isWorkerThread()) {
 		std::atomic<bool> done = false;
 		asyncCommand([&] {
 			done = true;
 		});
 
-		while (!done) {
+		while (not done) {
 			std::this_thread::yield();
 		}
 	}
@@ -156,7 +156,7 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 
 	if (cm != ContactMode::Normal) {
 		//a "ghost collision" acts like a two-way sensor
-		if (cm == ContactMode::Ghost && !fixtureA->IsSensor() && !fixtureB->IsSensor()) {
+		if (cm == ContactMode::Ghost and not fixtureA->IsSensor() and not fixtureB->IsSensor()) {
 			mDeferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
 			mDeferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
 		}
@@ -173,7 +173,7 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 		mDeferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
 	}
 
-	if (fixtureA->IsSensor() && fixtureB->IsSensor()) {
+	if (fixtureA->IsSensor() and fixtureB->IsSensor()) {
 		return false;
 	}
 
@@ -213,11 +213,11 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 	auto& partB = getPartForFixture(contact->GetFixtureB());
 	auto& bodyA = partA.body;
 	auto& bodyB = partB.body;
-	DEBUG_ASSERT(bodyA.isStatic() || bodyA.getMass() > 0, "HM");
-	DEBUG_ASSERT(bodyB.isStatic() || bodyB.getMass() > 0, "HM");
+	DEBUG_ASSERT(bodyA.isStatic() or bodyA.getMass() > 0, "HM");
+	DEBUG_ASSERT(bodyB.isStatic() or bodyB.getMass() > 0, "HM");
 
 	//don't report collisions between bodies with no listeners, duh
-	if (!bodyA.collisionListener && !bodyB.collisionListener) {
+	if (not bodyA.collisionListener and not bodyB.collisionListener) {
 		return;
 	}
 
@@ -263,7 +263,7 @@ std::future<RayResult> World::raycast(const Vector& start, const Vector& end, Gr
 			{ end.x, end.y }
 		);
 
-		if (!result.hit) {
+		if (not result.hit) {
 			result.position = end;
 		}
 
@@ -292,14 +292,14 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 		}
 
 		auto report = [&](b2Fixture * fixture) {
-			if (!fixture->IsSensor()) {
+			if (not fixture->IsSensor()) {
 				auto& part = getPartForFixture(fixture);
-				if (!(flags & QUERY_PUSHABLE_ONLY) || part.body.isPushable()) {
+				if (not (flags & QUERY_PUSHABLE_ONLY) or part.body.isPushable()) {
 					auto contactMode = getContactModeFor(group, part.group);
 
 					if (contactMode == ContactMode::Normal) {
 
-						if (!(flags & QUERY_PRECISE) || shapesOverlap(aabbShape, *fixture)) {
+						if (not (flags & QUERY_PRECISE) or shapesOverlap(aabbShape, *fixture)) {
 							result.empty = false;
 
 							if (flags & QUERY_BODIES) {
@@ -432,7 +432,7 @@ Joint& World::addJoint(Unique<Joint> joint) {
 }
 
 void World::update(float dt) {
-	DEBUG_ASSERT(!isWorkerThread(), "Wrong Thread");
+	DEBUG_ASSERT(not isWorkerThread(), "Wrong Thread");
 
 	//remove a recently played sound
 	if (mRecentlyPlayedSoundPositions.size() > 0) {
@@ -450,7 +450,7 @@ void World::update(float dt) {
 		auto partA = c.A.lock();
 		auto partB = c.B.lock();
 
-		if(!partA || !partB) { //one of the parts was destroyed, remove
+		if(not partA or not partB) { //one of the parts was destroyed, remove
 			continue;
 		}
 
@@ -474,7 +474,7 @@ void World::update(float dt) {
 	while (mDeferredSensorCollisions->try_dequeue(sc)) {
 		auto part = sc.sensor.lock();
 
-		if (part && part->body.collisionListener) {
+		if (part and part->body.collisionListener) {
 			part->body.collisionListener->onSensorCollision(*sc.other, part->getFixture());    //sensor collisions are not bidirectional
 		}
 	}
@@ -519,7 +519,7 @@ void World::removeBody(Body& body) {
 
 void World::pause() {
 	asyncCommand([this]() {
-		DEBUG_ASSERT(!mSimulationPaused, "Already paused");
+		DEBUG_ASSERT(not mSimulationPaused, "Already paused");
 		mSimulationPaused = true;
 
 		//tell all bodies they're being paused

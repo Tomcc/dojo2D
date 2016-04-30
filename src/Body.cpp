@@ -10,7 +10,7 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 	: Component(object)
 	, mWorld(world)
 	, mDefaultGroup(group)
-	, mAutoActivate(!inactive) {
+	, mAutoActivate(not inactive) {
 
 	b2BodyDef bodyDef;
 	bodyDef.type = staticShape ? b2_staticBody : b2_dynamicBody;
@@ -112,7 +112,7 @@ BodyPart& Body::addPolyShape(const Material& material, const std::vector<b2Vec2>
 
 BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, const Vector& center /*= Vector::ZERO*/, Group group, bool sensor /*= false*/) {
 
-	DEBUG_ASSERT(dimensions.x >= 0 && dimensions.y >= 0, "Invalid dimensions");
+	DEBUG_ASSERT(dimensions.x >= 0 and dimensions.y >= 0, "Invalid dimensions");
 
 	Vector min = center - dimensions * 0.5f;
 	Vector max = center + dimensions * 0.5f;
@@ -274,7 +274,7 @@ Dojo::Vector Body::getPosition() const {
 
 void Body::setActive() {
 	mWorld.asyncCommand([ = ]() {
-		if (!isStatic()) {
+		if (not isStatic()) {
 			mBody.unwrap().SetAwake(true);
 		}
 
@@ -326,7 +326,7 @@ b2Body& Body::_waitForBody() const {
 }
 
 void Body::_registerJoint(Joint& joint) {
-	DEBUG_ASSERT(!mJoints.contains(&joint), "Joint already registered");
+	DEBUG_ASSERT(not mJoints.contains(&joint), "Joint already registered");
 	mJoints.emplace(&joint);
 }
 
@@ -339,5 +339,5 @@ float Body::getWeight() const {
 }
 
 bool Body::isPushable() const {
-	return mPushable && _waitForBody().IsActive() && !isStatic();
+	return mPushable and _waitForBody().IsActive() and not isStatic();
 }

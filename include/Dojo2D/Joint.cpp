@@ -15,7 +15,7 @@ mCollideConnected(collideConnected) {
 
 void Phys::Joint::setRevolute(const Vector& localAnchorA, const Vector& localAnchorB, float motorSpeed /*= FLT_MAX*/, float maxMotorTorque /*= FLT_MAX*/) {
 	DEBUG_ASSERT(mJointType == Type::NotSet, "The joint is already initialized");
-	DEBUG_ASSERT(motorSpeed == FLT_MAX || maxMotorTorque < FLT_MAX, "When providing a motor speed, also provide a max torque");
+	DEBUG_ASSERT(motorSpeed == FLT_MAX or maxMotorTorque < FLT_MAX, "When providing a motor speed, also provide a max torque");
 
 	mJointType = Type::Revolute;
 	mDesc.revolute.mLocalAnchorA = localAnchorA;

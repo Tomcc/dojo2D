@@ -17,7 +17,7 @@ std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& poi
 	}
 
 	//cannot decompose, return an empty vector
-	if (!wholePolygon.IsSimple())
+	if (not wholePolygon.IsSimple())
 		return{};
 
 	const int MAX_PIECES = 100;

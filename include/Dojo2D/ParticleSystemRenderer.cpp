@@ -42,9 +42,9 @@ void ParticleSystemRenderer::update(float dt) {
 
 	auto& b2Particles = mParticleSystem.getParticleSystem();
 	//only show when active, visible and has particles
-	setVisible(simulating && viewport.isInViewRect(mParticleSystem.getSimulationAABB()) && b2Particles.GetParticleCount() > 0);
+	setVisible(simulating and viewport.isInViewRect(mParticleSystem.getSimulationAABB()) and b2Particles.GetParticleCount() > 0);
 
-	if (isVisible() && !rebuilding) {
+	if (isVisible() and not rebuilding) {
 		rebuilding = true;
 
 		mParticleSystem.getWorld().asyncCommand([this, &b2Particles, &viewport]() {
@@ -63,7 +63,7 @@ void ParticleSystemRenderer::update(float dt) {
 					auto baseIdx = mesh[1]->getVertexCount();
 
 					float r = b2Particles.GetRadius() * 1.5f;
-					// 			if (hash < 5 && hash > 0)
+					// 			if (hash < 5 and hash > 0)
 					// 				r -= 0.03f * hash;
 
 					mesh[1]->vertex({position->x - r, position->y - r});
@@ -85,7 +85,7 @@ void ParticleSystemRenderer::update(float dt) {
 		},
 		[this]() {
 			mesh[1]->end();
-			setVisible(isVisible() && mesh[1]->getVertexCount() > 0);
+			setVisible(isVisible() and mesh[1]->getVertexCount() > 0);
 
 			std::swap(mesh[0], mesh[1]);
 
