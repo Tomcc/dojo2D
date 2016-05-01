@@ -15,7 +15,7 @@ namespace Phys {
 		Joint(Body& A, Body& B, bool collideConnected = false);
 
 		void setRevolute(const Vector& localAnchorA, const Vector& localAnchorB, float motorSpeed = FLT_MAX, float maxMotorTorque = FLT_MAX);
-		void setDistance(const Vector& worldAnchorA, const Vector& worldAnchorB, float naturalLenght = 0, float dampingRatio = 0, float frequencyHz = 0);
+		void setDistance(const Vector& worldAnchorA, const Vector& worldAnchorB, float naturalLenght = 0, float dampingRatio = 0, float frequencyHz = 0, float yScale = 1.f);
 
 		bool isInited() const {
 			return mJoint.is_some();
@@ -24,6 +24,9 @@ namespace Phys {
 		optional_ref<b2Joint> getB2Joint() {
 			return mJoint;
 		}
+
+		float getDistanceJointLength() const;
+		void setDistanceJointLength(float l);
 
 		void _init(World& world);
 		void _deinit(World& world);
@@ -38,7 +41,7 @@ namespace Phys {
 
 			struct Distance {
 				Vector worldAnchor[2];
-				float dampingRatio, frequencyHz, naturalLenght;
+				float dampingRatio, frequencyHz, naturalLenght, yScale;
 			} distance;
 
 			Desc() {}

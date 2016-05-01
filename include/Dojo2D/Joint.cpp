@@ -18,21 +18,32 @@ void Phys::Joint::setRevolute(const Vector& localAnchorA, const Vector& localAnc
 	DEBUG_ASSERT(motorSpeed == FLT_MAX or maxMotorTorque < FLT_MAX, "When providing a motor speed, also provide a max torque");
 
 	mJointType = Type::Revolute;
-	mDesc.revolute.mLocalAnchorA = localAnchorA;
-	mDesc.revolute.mLocalAnchorB = localAnchorB;
-	mDesc.revolute.mMotorSpeed = motorSpeed;
-	mDesc.revolute.mMaxMotorTorque = maxMotorTorque;
+	mDesc.revolute = { localAnchorA, localAnchorB, motorSpeed, maxMotorTorque };
 }
 
-void Phys::Joint::setDistance(const Vector& worldAnchorA, const Vector& worldAnchorB, float naturalLenght, float dampingRatio /*= 0*/, float frequencyHz /*= 0*/) {
+void Phys::Joint::setDistance(const Vector& worldAnchorA, const Vector& worldAnchorB, float naturalLenght, float dampingRatio /*= 0*/, float frequencyHz /*= 0*/, float yScale) {
 	DEBUG_ASSERT(mJointType == Type::NotSet, "The joint is already initialized");
 
 	mJointType = Type::Distance;
-	mDesc.distance.worldAnchor[0] = worldAnchorA;
-	mDesc.distance.worldAnchor[1] = worldAnchorB;
-	mDesc.distance.dampingRatio = dampingRatio;
-	mDesc.distance.frequencyHz = frequencyHz;
-	mDesc.distance.naturalLenght = naturalLenght;
+	mDesc.distance = {
+		{ worldAnchorA, worldAnchorB },
+		dampingRatio,
+		frequencyHz,
+		naturalLenght,
+		yScale
+	};
+}
+
+float Phys::Joint::getDistanceJointLength() const {
+	DEBUG_ASSERT(mJointType == Type::Distance, "Invalid joint type");
+	return static_cast<b2DistanceJoint&>(mJoint.unwrap()).GetLength();
+}
+
+void Phys::Joint::setDistanceJointLength(float l) {
+	DEBUG_ASSERT(mJointType == Type::Distance, "Invalid joint type");
+	DEBUG_ASSERT(l > 0, "Invalid length");
+
+	static_cast<b2DistanceJoint&>(mJoint.unwrap()).SetLength(l);
 }
 
 void Joint::_init(World& world, b2JointDef& def) {
