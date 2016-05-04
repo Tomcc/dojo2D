@@ -95,10 +95,14 @@ void Body::removeShape(BodyPart& part) {
 	});
 }
 
-BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int count, Group group, bool sensor /*= false*/) {
-
+BodyPart& Body::addPolyShape(const Material& material, const Vector* vecs, size_t count, Group group, bool sensor /*= false*/) {
 	DEBUG_ASSERT(count > 0, "Wrong vertex count");
 	DEBUG_ASSERT(count < b2_maxPolygonVertices, "This box shape has too many vertices!");
+
+	b2Vec2 points[b2_maxPolygonVertices];
+	for(auto i : range(count)) {
+		points[i] = Phys::asB2Vec(vecs[i]);
+	}
 
 	auto shape = make_unique<b2PolygonShape>();
 	shape->Set(points, count);
@@ -106,7 +110,7 @@ BodyPart& Body::addPolyShape(const Material& material, const b2Vec2* points, int
 	return _addShape(std::move(shape), material, group, sensor);
 }
 
-BodyPart& Body::addPolyShape(const Material& material, const std::vector<b2Vec2>& points /*= nullptr*/, Group group, bool sensor /*= false */) {
+BodyPart& Body::addPolyShape(const Material& material, const std::vector<Vector>& points /*= nullptr*/, Group group, bool sensor /*= false */) {
 	return addPolyShape(material, points.data(), points.size(), group, sensor);
 }
 
@@ -117,7 +121,7 @@ BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, 
 	Vector min = center - dimensions * 0.5f;
 	Vector max = center + dimensions * 0.5f;
 
-	const b2Vec2 points[4] = {
+	const Vector points[4] = {
 		{min.x, min.y},
 		{min.x, max.y},
 		{max.x, max.y},
