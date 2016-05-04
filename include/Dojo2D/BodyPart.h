@@ -13,6 +13,7 @@ namespace Phys {
 		const Material& material;
 		Body& body;
 		const Group group;
+		optional_ref<Dojo::Object> attachedObject;
 
 		BodyPart(Body& body, const Material& material, Group group);
 
