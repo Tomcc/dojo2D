@@ -24,6 +24,7 @@ namespace Phys {
 
 		b2Fixture& getFixture() const;
 		b2Shape& getShape() const;
+		optional_ref<b2PolygonShape> getPolyShape() const;
 
 		float getMinimumDistanceTo(const Vector& pos) const;
 

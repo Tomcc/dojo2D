@@ -35,3 +35,10 @@ b2Shape& Phys::BodyPart::getShape() const {
 	DEBUG_ASSERT(getFixture().GetShape(), "No shape available");
 	return *getFixture().GetShape();
 }
+
+optional_ref<b2PolygonShape> Phys::BodyPart::getPolyShape() const {
+	if (getFixture().GetType() != b2Shape::e_polygon) {
+		return{};
+	}
+	return static_cast<b2PolygonShape&>(getShape());
+}
