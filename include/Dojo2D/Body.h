@@ -18,7 +18,7 @@ namespace Phys {
 
 	class Body : public Dojo::Component	{
 	public:
-		static const int ID = 1;
+		static const int ID = ComponentID::Body;
 
 		CollisionListener* collisionListener = nullptr;
 

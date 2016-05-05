@@ -27,4 +27,12 @@ namespace Phys {
 	using optional_ref = Dojo::optional_ref<T>;
 
 	typedef std::lock_guard<std::mutex> ScopedLock;
+
+	namespace ComponentID {
+		enum Enum {
+			Body = Dojo::ComponentID::_count,
+			ParticleSystemRenderer,
+			_count
+		};
+	}
 }

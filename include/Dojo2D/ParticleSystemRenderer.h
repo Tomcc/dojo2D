@@ -9,7 +9,7 @@ namespace Phys {
 
 	class ParticleSystemRenderer : public Dojo::Renderable {
 	public:
-		static const int ID = 4;
+		static const int ID = ComponentID::ParticleSystemRenderer;
 
 		ParticleSystemRenderer(ParticleSystem& ps, Dojo::RenderLayer::ID layer);
 
