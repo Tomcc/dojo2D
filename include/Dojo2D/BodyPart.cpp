@@ -42,3 +42,9 @@ optional_ref<b2PolygonShape> Phys::BodyPart::getPolyShape() const {
 	}
 	return static_cast<b2PolygonShape&>(getShape());
 }
+
+float Phys::BodyPart::getMass() const {
+	b2MassData data;
+	getFixture().GetMassData(&data);
+	return data.mass;
+}

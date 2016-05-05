@@ -26,6 +26,8 @@ namespace Phys {
 		b2Shape& getShape() const;
 		optional_ref<b2PolygonShape> getPolyShape() const;
 
+		float getMass() const;
+
 		float getMinimumDistanceTo(const Vector& pos) const;
 
 		//HACK is there a way to give a shared ptr to the collision system without enable_shared_from_this?
