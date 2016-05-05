@@ -116,6 +116,7 @@ namespace Phys {
 
 		void onAttach() override;
 		void onDestroy(Unique<Component> myself) override;
+		void onDispose() override;
 
 		bool isPushable() const;
 

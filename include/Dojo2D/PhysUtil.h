@@ -45,8 +45,6 @@ namespace Phys {
 
 	extern Dojo::Table serializeShape(const b2Shape& shape);
 
-	extern std::vector<Vector> getContour(const b2PolygonShape& shape);
-
 	std::vector<b2PolygonShape> decomposeConvex(const std::vector<Dojo::Vector>& points);
 }
 

@@ -18,15 +18,6 @@ extern Dojo::Table Phys::serializeShape(const b2Shape& shape) {
 	return t;
 }
 
-std::vector<Dojo::Vector> Phys::getContour(const b2PolygonShape& shape) {
-	std::vector<Vector> contour;
-	contour.reserve(shape.m_count);
-	for (auto i : range(shape.m_count)) {
-		contour.push_back(Phys::asVec(shape.m_vertices[i]));
-	}
-	return contour;
-}
-
 std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& points) {
 	b2Polygon wholePolygon;
 

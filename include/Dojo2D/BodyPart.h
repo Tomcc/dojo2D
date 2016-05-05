@@ -26,6 +26,8 @@ namespace Phys {
 		b2Shape& getShape() const;
 		optional_ref<b2PolygonShape> getPolyShape() const;
 
+		std::vector<Vector> getWorldContour() const;
+
 		float getMass() const;
 
 		float getMinimumDistanceTo(const Vector& pos) const;

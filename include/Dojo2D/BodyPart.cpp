@@ -19,10 +19,11 @@ b2Fixture& BodyPart::getFixture() const {
 }
 
 float BodyPart::getMinimumDistanceTo(const Vector& pos) const {
+	auto& fixture = getFixture();
 	b2Vec2 normal;
 	float res;
-	fixture->GetShape()->ComputeDistance(
-		fixture->GetBody()->GetTransform(),
+	fixture.GetShape()->ComputeDistance(
+		fixture.GetBody()->GetTransform(),
 		asB2Vec(pos),
 		&res,
 		&normal,
@@ -41,6 +42,20 @@ optional_ref<b2PolygonShape> Phys::BodyPart::getPolyShape() const {
 		return{};
 	}
 	return static_cast<b2PolygonShape&>(getShape());
+}
+
+std::vector<Vector> Phys::BodyPart::getWorldContour() const {
+	auto& shape = getPolyShape().unwrap();
+	auto body = getFixture().GetBody();
+
+	//TODO do without poly shape?
+
+	std::vector<Vector> contour;
+	contour.reserve(shape.m_count);
+	for (auto i : range(shape.m_count)) {
+		contour.push_back(Phys::asVec(body->GetWorldPoint(shape.m_vertices[i])));
+	}
+	return contour;
 }
 
 float Phys::BodyPart::getMass() const {

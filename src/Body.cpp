@@ -170,11 +170,19 @@ void Body::destroyPhysics() {
 
 void Body::onDestroy(Unique<Component> myself) {
 	if(mBody.is_some()) {
-		destroyPhysics();
+		destroyPhysics(); //it's safe to call this even if it was already happening because of onDispose()
+
 		//assign it to a task so that it can survive until it's destroyed
 		mWorld.asyncCommand([owned = Shared<Component>(std::move(myself))]() mutable {
 			owned = {};
 		});
+	}
+
+}
+
+void Body::onDispose() {
+	if (mBody.is_some()) {
+		destroyPhysics();
 	}
 }
 
