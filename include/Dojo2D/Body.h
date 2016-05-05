@@ -120,7 +120,7 @@ namespace Phys {
 
 		bool isPushable() const;
 
-		const Dojo::SmallSet<Joint*> getJoints() const {
+		const Dojo::SmallSet<Joint*>& getJoints() const {
 			return mJoints;
 		}
 

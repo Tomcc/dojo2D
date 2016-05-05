@@ -52,6 +52,9 @@ void Joint::_init(World& world, b2JointDef& def) {
 	def.bodyB = &mBodyB.getB2Body().unwrap();
 	def.collideConnected = mCollideConnected;
 
+	mBodyA._registerJoint(self);
+	mBodyB._registerJoint(self);
+
 	mJoint = *world.getBox2D().CreateJoint(&def);
 }
 

@@ -509,7 +509,7 @@ void World::removeBody(Body& body) {
 	DEBUG_ASSERT(isWorkerThread(), "Wrong Thread");
 
 	//go over all joints active on this body and deactivate them
-	auto joints = body.getJoints(); //copy because getjoints will remove the joints from the bodies
+	auto joints = body.getJoints(); //copy because getjoints will remove the joints from the vector
 	for(auto&& joint : joints) {
 		removeJoint(*joint);
 	}
