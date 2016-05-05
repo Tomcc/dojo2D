@@ -43,22 +43,9 @@ namespace Phys {
 		return *(BodyPart*)fixture->GetUserData();
 	}
 
-	inline Dojo::Table serializeShape(const b2Shape& shape) {
-		Dojo::Table t;
-		switch (shape.GetType())
-		{
-		case b2Shape::e_polygon: {
-			auto& poly = static_cast<const b2PolygonShape&>(shape);
-			for (auto i : range(poly.GetVertexCount())) {
-				t.set({}, asVec(poly.GetVertex(i)));
-			}
-			break;
-		}
-		default:
-			DEBUG_TODO;
-		}
-		return t;
-	}
+	extern Dojo::Table serializeShape(const b2Shape& shape);
+
+	extern std::vector<Vector> getContour(const b2PolygonShape& shape);
 
 	std::vector<b2PolygonShape> decomposeConvex(const std::vector<Dojo::Vector>& points);
 }
