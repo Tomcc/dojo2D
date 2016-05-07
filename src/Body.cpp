@@ -344,6 +344,11 @@ void Body::_registerJoint(Joint& joint) {
 
 void Body::_removeJoint(Joint& joint) {
 	mJoints.erase(&joint);
+	
+	//wake up
+	if (not isStatic()) {
+		mBody.unwrap().SetAwake(true);
+	}
 }
 
 float Body::getWeight() const {
