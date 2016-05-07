@@ -96,7 +96,7 @@ void Body::removeShape(BodyPart& part) {
 }
 
 BodyPart& Body::addPolyShape(const Material& material, const Vector* vecs, size_t count, Group group, bool sensor /*= false*/) {
-	DEBUG_ASSERT(count > 0, "Wrong vertex count");
+	DEBUG_ASSERT(count > 2, "Wrong vertex count");
 	DEBUG_ASSERT(count < b2_maxPolygonVertices, "This box shape has too many vertices!");
 
 	b2Vec2 points[b2_maxPolygonVertices];
@@ -115,7 +115,6 @@ BodyPart& Body::addPolyShape(const Material& material, const std::vector<Vector>
 }
 
 BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, const Vector& center /*= Vector::ZERO*/, Group group, bool sensor /*= false*/) {
-
 	DEBUG_ASSERT(dimensions.x >= 0 and dimensions.y >= 0, "Invalid dimensions");
 
 	Vector min = center - dimensions * 0.5f;
@@ -136,8 +135,7 @@ BodyPart& Body::addCircleShape(const Material& material, float radius, const Vec
 
 	auto circle = make_unique<b2CircleShape>();
 	circle->m_radius = radius;
-	circle->m_p.x = center.x;
-	circle->m_p.y = center.y;
+	circle->m_p = asB2Vec(center);
 
 	return _addShape(std::move(circle), material, group, sensor);
 }
