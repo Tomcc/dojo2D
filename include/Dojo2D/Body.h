@@ -59,7 +59,7 @@ namespace Phys {
 		void forceVelocity(const Vector& velocity);
 		void forceRotation(Radians angle);
 
-		void setActive();
+		void setActive(bool active);
 
 		float getMass() const;
 		float getWeight() const;

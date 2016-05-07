@@ -40,7 +40,7 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 
 void Body::onAttach() {
 	if(mAutoActivate) {
-		setActive();
+		setActive(true);
 	}
 }
 
@@ -182,7 +182,7 @@ void Body::onDestroy(Unique<Component> myself) {
 
 void Body::onDispose() {
 	if (mBody.is_some()) {
-		destroyPhysics();
+		setActive(false);
 	}
 }
 
@@ -284,13 +284,13 @@ Dojo::Vector Body::getPosition() const {
 	return asVec(_waitForBody().GetPosition());
 }
 
-void Body::setActive() {
-	mWorld.asyncCommand([ = ]() {
+void Phys::Body::setActive(bool active) {
+	mWorld.asyncCommand([this, active]() {
 		if (not isStatic()) {
-			mBody.unwrap().SetAwake(true);
+			mBody.unwrap().SetAwake(active);
 		}
 
-		mBody.unwrap().SetActive(true);
+		mBody.unwrap().SetActive(active);
 	});
 }
 
