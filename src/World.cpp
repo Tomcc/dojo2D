@@ -20,9 +20,45 @@ bool World::shapesOverlap(const b2Shape& shape, const b2Fixture& fixture) {
 	return shapesOverlap(shape, B2_IDENTITY, *fixture.GetShape(), fixture.GetBody()->GetTransform());
 }
 
+World::World() {
+	//private constructor
+}
 
-World::World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations) :
-	timeStep(timeStep) {
+Unique<World> Phys::World::createSimulationClone() {
+	auto clone = Unique<World>(new World()); //HACK must use new because make_unique doesn't see the private ctor
+
+	memcpy(clone->mCollideMode, mCollideMode, sizeof(mCollideMode));
+
+	clone->mBox2D = make_unique<b2World>(asB2Vec(getGravity()));
+	clone->mBox2D->SetContactFilter(clone.get());
+	clone->mBodiesStartActive = true;
+
+	//assume that this world will be simulated on this thread
+	clone->mWorkerID = std::this_thread::get_id();
+
+	return clone;
+}
+
+void World::simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations) {
+	//process all available commands
+	bool done = false;
+	Job job;
+	Command callback;
+
+	while (not done) {
+		mBox2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
+
+		done = true;
+		for (auto&& b : mBodies) {
+			auto& body = b->getB2Body().unwrap();
+			if (body.IsAwake() and body.IsActive() and not b->isStatic()) {
+				done = false;
+			}
+		}
+	}
+}
+
+World::World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations) {
 
 	DEBUG_ASSERT(timeStep > 0, "Invalid timestep");
 
@@ -34,17 +70,18 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 
 	//create the box 2D world
 	mBox2D = make_unique<b2World>(asB2Vec(gravity));
-	mBox2D->SetContactListener(this);
 	mBox2D->SetContactFilter(this);
+	mBox2D->SetContactListener(this);
 
 	mCommands = make_unique<Dojo::MPSCQueue<Job>>();
 	mCallbacks = make_unique<Dojo::SPSCQueue<Command>>();
 	mDeferredCollisions = make_unique<Dojo::SPSCQueue<DeferredCollision>>();
 	mDeferredSensorCollisions = make_unique<Dojo::SPSCQueue<DeferredSensorCollision>>();
 
-	mThread = std::thread([ = ]() {
+	mThread = std::thread([=]() {
 		Dojo::Timer timer;
 		Job job;
+		mWorkerID = std::this_thread::get_id();
 
 		while (mRunning) {
 
@@ -82,7 +119,9 @@ World::World(const Vector& gravity, float timeStep, int velocityIterations, int 
 
 World::~World() {
 	mRunning = false;
-	mThread.join();
+	if (mThread.joinable()) {
+		mThread.join();
+	}
 }
 
 void World::addListener(WorldListener& listener) {
@@ -111,9 +150,14 @@ ContactMode World::getContactModeFor(Group A, Group B) const {
 void World::asyncCommand(Command command, const Command& callback /*= Command()*/) const {
 	DEBUG_ASSERT(command, "Command can't be a NOP");
 
-	if (isWorkerThread()) {
+	if (not mCommands) {
 		command();
-
+		if(callback) {
+			callback();
+		}
+	}
+	else if (isWorkerThread()) {
+		command();
 		if (callback) {
 			mCallbacks->enqueue(callback);
 		}
@@ -277,7 +321,7 @@ std::future<RayResult> World::raycast(const Vector& start, const Vector& end, Gr
 }
 
 bool World::isWorkerThread() const {
-	return std::this_thread::get_id() == mThread.get_id();
+	return std::this_thread::get_id() == mWorkerID;
 }
 
 std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group group, uint8_t flags) const {

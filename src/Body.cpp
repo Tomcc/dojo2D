@@ -29,7 +29,7 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 	}
 
 	//only enable this on attach
-	bodyDef.awake = bodyDef.active = false;
+	bodyDef.awake = bodyDef.active = world.shouldCreateBodiesAsActive();
 	bodyDef.userData = this;
 
 	world.asyncCommand([this, bodyDef, &world]() {

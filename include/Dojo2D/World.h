@@ -71,8 +71,6 @@ namespace Phys {
 			QUERY_PUSHABLE_ONLY = 1 << 5
 		};
 
-		const float timeStep;
-
 		static bool shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2);
 		static bool shapesOverlap(const b2Shape& shape, const b2Fixture& fixture);
 
@@ -132,10 +130,19 @@ namespace Phys {
 			resume();
 		}
 
+		Unique<World> createSimulationClone();
+		void simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations);
+
+		bool shouldCreateBodiesAsActive() const {
+			return mBodiesStartActive;
+		}
+
 	protected:
 
 		std::thread mThread;
+		std::thread::id mWorkerID;
 
+		bool mBodiesStartActive = false;
 		bool mRunning = true;
 		bool mSimulationPaused = true;
 
@@ -158,6 +165,8 @@ namespace Phys {
 		std::deque<Vector> mRecentlyPlayedSoundPositions;
 
 		float _closestRecentlyPlayedSound(const Vector& point);
+
+		World();
 	};
 }
 
