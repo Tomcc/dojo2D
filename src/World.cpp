@@ -74,14 +74,20 @@ void Phys::World::mergeWorld(Unique<World> other) {
 	DEBUG_ASSERT(other, "Cannot merge a null world");
 
 	//place all bodies from the other world into this one with their fixtures and all
-
-	auto& otherBox2D = other->getBox2D();
-
-	DEBUG_ASSERT(otherBox2D.GetJointCount() == 0, "Not supported");
-
 	for(auto&& body : other->mBodies) {
 		body->changeWorld(self);
 	}
+
+	//remake all joints
+	for(auto&& joint : other->mJoints) {
+		auto& ref = *joint;
+		mJoints.emplace(std::move(joint));
+		asyncCommand([this, &ref] {
+			ref._init(self);
+		});
+	}
+	other->mJoints.clear();
+
 	sync(); //wait for all the merges to be done before letting the world be destroyed
 }
 

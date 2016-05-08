@@ -6,6 +6,14 @@ namespace Phys {
 
 	class Joint {
 	public:
+		union b2MultiJointDesc {
+			b2JointDef generic;
+			b2RevoluteJointDef revolute;
+			b2DistanceJointDef distance;
+
+			b2MultiJointDesc() {}
+		};
+
 		enum class Type {
 			NotSet,
 			Revolute,
@@ -14,7 +22,7 @@ namespace Phys {
 
 		Joint(Body& A, Body& B, bool collideConnected = false);
 
-		void setRevolute(const Vector& localAnchorA, const Vector& localAnchorB, float motorSpeed = FLT_MAX, float maxMotorTorque = FLT_MAX);
+		void setRevolute(const Vector& worldAnchor, float motorSpeed = FLT_MAX, float maxMotorTorque = FLT_MAX);
 		void setDistance(const Vector& worldAnchorA, const Vector& worldAnchorB, float naturalLenght = 0, float dampingRatio = 0, float frequencyHz = 0, float yScale = 1.f);
 
 		bool isInited() const {
@@ -28,6 +36,8 @@ namespace Phys {
 		float getDistanceJointLength() const;
 		void setDistanceJointLength(float l);
 
+		b2MultiJointDesc makeDefinition() const;
+
 		void _init(World& world);
 		void _deinit(World& world);
 
@@ -35,7 +45,7 @@ namespace Phys {
 		//revolute
 		union Desc {
 			struct Revolute {
-				Vector mLocalAnchorA, mLocalAnchorB;
+				Vector mWorldAnchor;
 				float mMotorSpeed, mMaxMotorTorque;
 			} revolute;
 
@@ -54,8 +64,6 @@ namespace Phys {
 		Type mJointType = Type::NotSet;
 
 		optional_ref<b2Joint> mJoint;
-
-		void _init(World& world, b2JointDef& def);
 	};
 }
 
