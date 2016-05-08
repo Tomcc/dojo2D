@@ -43,6 +43,9 @@ namespace Phys {
 		///Removes physical behaviors from this object
 		void destroyPhysics();
 
+		///moves this body to another physics world
+		void changeWorld(World& newWorld);
+
 		void enableParticleCollisions() {
 			mParticleCollisionModel = true;
 		}
@@ -105,7 +108,7 @@ namespace Phys {
 		void updateObject();
 
 		World& getWorld() const {
-			return mWorld;
+			return mWorld.unwrap();
 		}
 
 		const Dojo::SmallSet<Shared<BodyPart>>& getParts() const {
@@ -124,11 +127,13 @@ namespace Phys {
 			return mJoints;
 		}
 
+		b2BodyDef makeDefinition() const;
+
 		void _registerJoint(Joint& joint);
 		void _removeJoint(Joint& joint);
 
 	protected:
-		World& mWorld;
+		optional_ref<World> mWorld;
 		bool mPushable = true;
 
 		optional_ref<b2Body> mBody;

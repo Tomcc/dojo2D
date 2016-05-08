@@ -73,9 +73,9 @@ Phys::BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& mat
 
 		fixtureDef.userData = (void*)&part;
 
-		part.fixture = mBody.unwrap().CreateFixture(&fixtureDef);
+		part.fixture = *mBody.unwrap().CreateFixture(&fixtureDef);
 	};
-	mWorld.asyncCommand(std::move(f));
+	getWorld().asyncCommand(std::move(f));
 
 	return part;
 }
@@ -90,7 +90,7 @@ void Body::removeShape(BodyPart& part) {
 
 	Shared<BodyPart> temp = std::move(*elem);
 	mParts.erase(elem);
-	mWorld.asyncCommand([this, part = std::move(temp)] {
+	getWorld().asyncCommand([this, part = std::move(temp)] {
 		mBody.unwrap().DestroyFixture(&part->getFixture());
 	});
 }
@@ -155,12 +155,12 @@ void Body::destroyPhysics() {
 	mDefaultGroup = Group::None;
 	mParticleCollisionModel = false;
 
-	mWorld.asyncCommand([&] {
+	getWorld().asyncCommand([&] {
 		if (mBody.is_some()) {
 			mParts.clear(); //delete all parts
 
-			mWorld.removeBody(self);
-			mWorld.getBox2D().DestroyBody(mBody.to_raw_ptr());
+			getWorld().removeBody(self);
+			getWorld().getBox2D().DestroyBody(mBody.to_raw_ptr());
 			mBody = {};
 		}
 	});
@@ -171,7 +171,7 @@ void Body::onDestroy(Unique<Component> myself) {
 		destroyPhysics(); //it's safe to call this even if it was already happening because of onDispose()
 
 		//assign it to a task so that it can survive until it's destroyed
-		mWorld.asyncCommand([owned = Shared<Component>(std::move(myself))]() mutable {
+		getWorld().asyncCommand([owned = Shared<Component>(std::move(myself))]() mutable {
 			owned = {};
 		});
 	}
@@ -205,66 +205,66 @@ void Body::updateObject() {
 
 void Body::applyForce(const Vector& force) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		mBody.unwrap().ApplyForceToCenter(asB2Vec(force), true);
 	});
 }
 
 void Body::applyForceAtWorldPoint(const Vector& force, const Vector& worldPoint) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		mBody.unwrap().ApplyForce(asB2Vec(force), asB2Vec(worldPoint), true);
 	});
 }
 
 void Body::applyForceAtLocalPoint(const Vector& force, const Vector& localPoint) {
 	DEBUG_ASSERT(force.isValid(), "This will hang up b2d mang");
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		b2Vec2 worldPoint = mBody.unwrap().GetWorldPoint(asB2Vec(localPoint));
 		mBody.unwrap().ApplyForce(asB2Vec(force), worldPoint, true);
 	});
 }
 
 void Body::applyTorque(float t) {
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		mBody.unwrap().ApplyTorque(t, true);
 	});
 }
 
 void Body::setFixedRotation(bool enable) {
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		mBody.unwrap().SetFixedRotation(enable);
 	});
 }
 
 void Body::forcePosition(const Vector& position) {
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		auto t = mBody.unwrap().GetTransform();
 		mBody.unwrap().SetTransform(asB2Vec(position), t.q.GetAngle());
 	});
 }
 
 void Body::forceRotation(Radians angle) {
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		auto t = mBody.unwrap().GetTransform();
 		mBody.unwrap().SetTransform(t.p, angle);
 	});
 }
 
 void Body::setTransform(const Vector& position, Radians angle) {
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		mBody.unwrap().SetTransform(asB2Vec(position), angle);
 	});
 }
 
 void Body::forceVelocity(const Vector& velocity) {
-	mWorld.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		mBody.unwrap().SetLinearVelocity(asB2Vec(velocity));
 	});
 }
 
 void Body::setDamping(float linear, float angular) {
-	mWorld.asyncCommand([=]() {
+	getWorld().asyncCommand([=]() {
 		mBody.unwrap().SetLinearDamping(linear);
 		mBody.unwrap().SetAngularDamping(angular);
 	});
@@ -283,12 +283,51 @@ Dojo::Vector Body::getPosition() const {
 }
 
 void Phys::Body::setActive(bool active) {
-	mWorld.asyncCommand([this, active]() {
+	getWorld().asyncCommand([this, active]() {
 		if (not isStatic()) {
 			mBody.unwrap().SetAwake(active);
 		}
 
 		mBody.unwrap().SetActive(active);
+	});
+}
+
+b2BodyDef Body::makeDefinition() const {
+	auto& body = getB2Body().unwrap();
+	b2BodyDef def;
+	def.userData = body.GetUserData();
+	def.position = body.GetPosition();
+	def.angle = body.GetAngle();
+	def.linearVelocity = body.GetLinearVelocity();
+	def.angularVelocity = body.GetAngularVelocity();
+	def.linearDamping = body.GetLinearDamping();
+	def.angularDamping = body.GetAngularDamping();
+	def.allowSleep = body.IsSleepingAllowed();
+	def.awake = body.IsAwake();
+	def.fixedRotation = body.IsFixedRotation();
+	def.bullet = body.IsBullet();
+	def.type = body.GetType();
+	def.active = body.IsActive();
+	def.gravityScale = body.GetGravityScale();
+
+	return def;
+}
+
+void Phys::Body::changeWorld(World& newWorld) {
+	newWorld.asyncCommand([this, &newWorld] {
+		//recreate the body in the new world
+		auto def = makeDefinition();
+		mBody = *newWorld.getBox2D().CreateBody(&def);
+		newWorld.addBody(self);
+		mWorld = newWorld;
+
+		//also move over all the body parts
+		for(auto&& part : getParts()) {
+			auto fixtureDef = part->makeDefinition();
+			part->_resetFixture(*mBody.unwrap().CreateFixture(&fixtureDef));
+		}
+
+		//TODO remove the old body
 	});
 }
 
@@ -329,7 +368,7 @@ float Body::getMinimumDistanceTo(const Vector& point) const {
 b2Body& Body::_waitForBody() const {
 	//if the body is not yet here, assume it could be somewhere in the command pipeline
 	if (mBody.is_none()) {
-		mWorld.sync();
+		getWorld().sync();
 	}
 
 	return mBody.unwrap();
@@ -350,7 +389,7 @@ void Body::_removeJoint(Joint& joint) {
 }
 
 float Body::getWeight() const {
-	return mWorld.getGravity().length() * getMass();
+	return getWorld().getGravity().length() * getMass();
 }
 
 bool Body::isPushable() const {

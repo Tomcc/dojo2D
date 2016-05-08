@@ -100,8 +100,8 @@ namespace Phys {
 
 		void sync() const;
 
-		void asyncCommand(Command command, const Command& callback = {}) const;
-		void asyncCallback(const Command& callback) const;
+		void asyncCommand(Command command, Command callback = {}) const;
+		void asyncCallback(Command callback) const;
 		bool isWorkerThread() const;
 
 		b2World& getBox2D() {
@@ -130,8 +130,12 @@ namespace Phys {
 			resume();
 		}
 
+		void deactivateAllBodies();
+
 		Unique<World> createSimulationClone();
-		void simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations);
+		void simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations, uint32_t maxSteps = UINT_MAX);
+
+		void mergeWorld(Unique<World> other);
 
 		bool shouldCreateBodiesAsActive() const {
 			return mBodiesStartActive;

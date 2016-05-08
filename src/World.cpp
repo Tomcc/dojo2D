@@ -24,6 +24,12 @@ World::World() {
 	//private constructor
 }
 
+void Phys::World::deactivateAllBodies() {
+	for(auto&& body : mBodies) {
+		body->setActive(false);
+	}
+}
+
 Unique<World> Phys::World::createSimulationClone() {
 	auto clone = Unique<World>(new World()); //HACK must use new because make_unique doesn't see the private ctor
 
@@ -39,12 +45,13 @@ Unique<World> Phys::World::createSimulationClone() {
 	return clone;
 }
 
-void World::simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations) {
+void Phys::World::simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations, uint32_t maxSteps /*= UINT_MAX*/) {
 	//process all available commands
 	bool done = false;
 	Job job;
 	Command callback;
 
+	uint32_t step = 0;
 	while (not done) {
 		mBox2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
 
@@ -55,7 +62,25 @@ void World::simulateToInactivity(float timeStep, int velocityIterations, int pos
 				done = false;
 			}
 		}
+
+		++step;
+		DEBUG_ASSERT(step < maxSteps, "Too many steps"); //TODO delete all the bodies that didn't sleep
 	}
+}
+
+void Phys::World::mergeWorld(Unique<World> other) {
+	DEBUG_ASSERT(other, "Cannot merge a null world");
+
+	//place all bodies from the other world into this one with their fixtures and all
+
+	auto& otherBox2D = other->getBox2D();
+
+	DEBUG_ASSERT(otherBox2D.GetJointCount() == 0, "Not supported");
+
+	for(auto&& body : other->mBodies) {
+		body->changeWorld(self);
+	}
+	sync(); //wait for all the merges to be done before letting the world be destroyed
 }
 
 World::World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations) {
@@ -147,7 +172,7 @@ ContactMode World::getContactModeFor(Group A, Group B) const {
 	return std::min(modeA, modeB);
 }
 
-void World::asyncCommand(Command command, const Command& callback /*= Command()*/) const {
+void World::asyncCommand(Command command, Command callback) const {
 	DEBUG_ASSERT(command, "Command can't be a NOP");
 
 	if (not mCommands) {
@@ -159,19 +184,19 @@ void World::asyncCommand(Command command, const Command& callback /*= Command()*
 	else if (isWorkerThread()) {
 		command();
 		if (callback) {
-			mCallbacks->enqueue(callback);
+			mCallbacks->enqueue(std::move(callback));
 		}
 	}
 	else {
-		mCommands->enqueue(std::move(command), callback);
+		mCommands->enqueue(std::move(command), std::move(callback));
 	}
 }
 
-void World::asyncCallback(const Command& callback) const {
+void Phys::World::asyncCallback(Command callback) const {
 	DEBUG_ASSERT(callback, "Command can't be a NOP");
 
 	if (isWorkerThread()) {
-		mCallbacks->enqueue(callback);
+		mCallbacks->enqueue(std::move(callback));
 	}
 	else {
 		callback();

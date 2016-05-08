@@ -37,8 +37,12 @@ namespace Phys {
 			return mSelfWeakPtr;
 		}
 
+		b2FixtureDef makeDefinition() const;
+
+		void _resetFixture(b2Fixture& fix);
+
 	protected:
-		b2Fixture* fixture = nullptr;
+		optional_ref<b2Fixture> fixture;
 		std::weak_ptr<BodyPart> mSelfWeakPtr;
 
 		//use this to notify the bodypart the shared ptr it's stored in

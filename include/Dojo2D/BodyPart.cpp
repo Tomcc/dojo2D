@@ -11,11 +11,11 @@ BodyPart::BodyPart(Body& body, const Material& material, Group group)
 }
 
 b2Fixture& BodyPart::getFixture() const {
-	while (not fixture) { //the fixture must be in flight on the other thread, wait for it
+	while (fixture.is_none()) { //the fixture must be in flight on the other thread, wait for it
 		std::this_thread::yield();
 	}
 
-	return *fixture;
+	return fixture.unwrap();
 }
 
 float BodyPart::getMinimumDistanceTo(const Vector& pos) const {
@@ -62,4 +62,22 @@ float Phys::BodyPart::getMass() const {
 	b2MassData data;
 	getFixture().GetMassData(&data);
 	return data.mass;
+}
+
+b2FixtureDef Phys::BodyPart::makeDefinition() const {
+	auto& fixture = getFixture();
+
+	b2FixtureDef def;
+	def.shape = fixture.GetShape();
+	def.userData = fixture.GetUserData();
+	def.friction = fixture.GetFriction();
+	def.restitution = fixture.GetRestitution();
+	def.density = fixture.GetDensity();
+	def.isSensor = fixture.IsSensor();
+
+	return def;
+}
+
+void Phys::BodyPart::_resetFixture(b2Fixture& fix) {
+	fixture = fix;
 }
