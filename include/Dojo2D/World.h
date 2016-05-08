@@ -74,7 +74,7 @@ namespace Phys {
 		static bool shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2);
 		static bool shapesOverlap(const b2Shape& shape, const b2Fixture& fixture);
 
-		World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations);
+		World(const Vector& gravity, float damping, float angularDamping, float timeStep, int velocityIterations, int positionIterations, int particleIterations);
 
 		virtual ~World();
 
@@ -83,6 +83,16 @@ namespace Phys {
 
 		void setContactMode(Phys::Group A, Phys::Group B, ContactMode mode);
 		ContactMode getContactModeFor(Phys::Group A, Phys::Group B) const;
+
+		void setDefaultDamping(float linear, float angular);
+
+		float getDefaultLinearDamping() const {
+			return mDefaultLinearDamping;
+		}
+
+		float getDefaultAngularDamping() const {
+			return mDefaultAngularDamping;
+		}
 
 		Vector getGravity() const;
 
@@ -149,6 +159,9 @@ namespace Phys {
 		bool mBodiesStartActive = false;
 		bool mRunning = true;
 		bool mSimulationPaused = true;
+
+		float mDefaultLinearDamping;
+		float mDefaultAngularDamping;
 
 		Dojo::SmallSet<WorldListener*> mListeners;
 

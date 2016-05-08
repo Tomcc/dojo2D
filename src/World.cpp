@@ -34,6 +34,8 @@ Unique<World> Phys::World::createSimulationClone() {
 	auto clone = Unique<World>(new World()); //HACK must use new because make_unique doesn't see the private ctor
 
 	memcpy(clone->mCollideMode, mCollideMode, sizeof(mCollideMode));
+	clone->mDefaultLinearDamping = mDefaultLinearDamping;
+	clone->mDefaultAngularDamping = mDefaultAngularDamping;
 
 	clone->mBox2D = make_unique<b2World>(asB2Vec(getGravity()));
 	clone->mBox2D->SetContactFilter(clone.get());
@@ -83,7 +85,9 @@ void Phys::World::mergeWorld(Unique<World> other) {
 	sync(); //wait for all the merges to be done before letting the world be destroyed
 }
 
-World::World(const Vector& gravity, float timeStep, int velocityIterations, int positionIterations, int particleIterations) {
+World::World(const Vector& gravity, float damping, float angularDamping, float timeStep, int velocityIterations, int positionIterations, int particleIterations) {
+
+	setDefaultDamping(damping, angularDamping);
 
 	DEBUG_ASSERT(timeStep > 0, "Invalid timestep");
 
@@ -190,6 +194,13 @@ void World::asyncCommand(Command command, Command callback) const {
 	else {
 		mCommands->enqueue(std::move(command), std::move(callback));
 	}
+}
+
+void Phys::World::setDefaultDamping(float linear, float angular) {
+	DEBUG_ASSERT(linear >= 0 && angular >= 0, "Invalid damping value");
+
+	mDefaultLinearDamping = linear;
+	mDefaultAngularDamping = angular;
 }
 
 void Phys::World::asyncCallback(Command callback) const {

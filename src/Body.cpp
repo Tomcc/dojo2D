@@ -23,8 +23,8 @@ Body::Body(Dojo::Object& object, World& world, Group group, bool staticShape, bo
 		mStaticShape = staticShape;
 	}
 	else {
-		bodyDef.angularDamping = 0.1f;
-		bodyDef.linearDamping = 0.1f;
+		bodyDef.angularDamping = world.getDefaultAngularDamping();
+		bodyDef.linearDamping = world.getDefaultLinearDamping();
 		//bodyDef.bullet = true;
 	}
 
