@@ -16,7 +16,7 @@ namespace Phys {
 		struct Particle {
 			b2ParticleDef def;
 
-			Particle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime);
+			Particle(const Vector& pos, const Vector& velocity, const Dojo::Color& color, float lifetime = FLT_MAX);
 		};
 
 		typedef std::vector<Particle> ParticleList;
@@ -26,9 +26,7 @@ namespace Phys {
 
 		static const ParticleSystem& getFor(b2ParticleSystem* ps);
 
-		const float damping;
-
-		ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, float damping = 0);
+		ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, bool applyLifetime = true);
 		virtual ~ParticleSystem();
 
 		void addParticles(const ParticleList& particles);
@@ -41,13 +39,16 @@ namespace Phys {
 		}
 
 		World& getWorld() const {
-			return world;
+			return world.unwrap();
 		}
+
+		void changeWorld(World& newWorld);
 
 		bool isSimulating() const {
 			return mSimulating;
 		}
 
+		bool isAsleep() const;
 
 		const Dojo::AABB& getSimulationAABB() const {
 			return mSimulationAABB;
@@ -58,7 +59,7 @@ namespace Phys {
 	protected:
 		const Material& material;
 
-		World& world;
+		optional_ref<World> world;
 
 		Dojo::AABB mSimulationAABB;
 

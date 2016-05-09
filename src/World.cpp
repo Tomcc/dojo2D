@@ -24,6 +24,15 @@ World::World() {
 	//private constructor
 }
 
+void Phys::World::addParticleSystem(ParticleSystem& ps) {
+	DEBUG_ASSERT(not mParticleSystems.contains(&ps), "Already added");
+	mParticleSystems.emplace(&ps);
+}
+
+void Phys::World::removeParticleSystem(ParticleSystem& ps) {
+	mParticleSystems.erase(&ps);
+}
+
 void Phys::World::deactivateAllBodies() {
 	for(auto&& body : mBodies) {
 		body->setActive(false);
@@ -65,6 +74,12 @@ void Phys::World::simulateToInactivity(float timeStep, int velocityIterations, i
 			}
 		}
 
+		for (auto&& ps : mParticleSystems) {
+			if (not ps->isAsleep()) {
+				done = false;
+			}
+		}
+
 		++step;
 		DEBUG_ASSERT(step < maxSteps, "Too many steps"); //TODO delete all the bodies that didn't sleep
 	}
@@ -87,6 +102,12 @@ void Phys::World::mergeWorld(Unique<World> other) {
 		});
 	}
 	other->mJoints.clear();
+
+	for(auto&& ps : other->mParticleSystems) {
+		ps->changeWorld(self);
+		mParticleSystems.emplace(ps);
+	}
+	other->mParticleSystems.clear();
 
 	sync(); //wait for all the merges to be done before letting the world be destroyed
 }

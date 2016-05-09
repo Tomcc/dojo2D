@@ -15,13 +15,14 @@ const ParticleSystem& ParticleSystem::getFor(b2ParticleSystem* ps) {
 	return *(ParticleSystem*)ps->GetUserDataBuffer()[0];
 }
 
-ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, float damping /*= 0*/) :
+ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::ID layer, const Material& material, Group group, float particleSize, bool applyLifetime) :
 	Object(parent, Vector::Zero),
-	damping(damping),
 	world(world),
 	group(group),
 	material(material) {
 	DEBUG_ASSERT(particleSize > 0, "Invalid particle size");
+
+	getWorld().addParticleSystem(self);
 
 	addComponent([&] {
 		auto r = make_unique<ParticleSystemRenderer>(self, layer);
@@ -31,24 +32,24 @@ ParticleSystem::ParticleSystem(World& world, Object& parent, Dojo::RenderLayer::
 		return r;
 	}());
 
-	world.asyncCommand([this, damping, particleSize, &material, &world]() {
+	getWorld().asyncCommand([this, applyLifetime, particleSize, &material, &world]() {
 		b2ParticleSystemDef particleSystemDef;
 		particleSystemDef.radius = particleSize;
-		particleSystemDef.destroyByAge = true;
+		particleSystemDef.destroyByAge = applyLifetime;
 
 		particleSystemDef.density = material.density;
 		particleSystemDef.pressureStrength = material.pressure;
 		particleSystemDef.dampingStrength = material.friction;
 
-		particleSystem = world.getBox2D().CreateParticleSystem(&particleSystemDef);
-		particleSystem->SetDamping(damping);
-		world.addListener(self);
+		particleSystem = getWorld().getBox2D().CreateParticleSystem(&particleSystemDef);
+		getWorld().addListener(self);
 	});
 }
 
 ParticleSystem::~ParticleSystem() {
-	world.removeListener(self);
-	world.sync();
+	getWorld().removeParticleSystem(self);
+	getWorld().removeListener(self);
+	getWorld().sync();
 }
 
 ParticleSystem::Particle::Particle(const Dojo::Vector& pos, const Dojo::Vector& velocity, const Dojo::Color& color, float lifetime) {
@@ -63,7 +64,7 @@ ParticleSystem::Particle::Particle(const Dojo::Vector& pos, const Dojo::Vector& 
 }
 
 void ParticleSystem::addParticles(const ParticleList& particles) {
-	world.asyncCommand([ = ]() {
+	getWorld().asyncCommand([ = ]() {
 		for (auto&& particle : particles) {
 			particleSystem->CreateParticle(particle.def);
 		}
@@ -71,7 +72,7 @@ void ParticleSystem::addParticles(const ParticleList& particles) {
 }
 
 void ParticleSystem::addParticles(ParticleList&& rhs) {
-	world.asyncCommand([this, particles = std::move(rhs)]() {
+	getWorld().asyncCommand([this, particles = std::move(rhs)]() {
 		for (auto&& particle : particles) {
 			particleSystem->CreateParticle(particle.def);
 		}
@@ -79,7 +80,7 @@ void ParticleSystem::addParticles(ParticleList&& rhs) {
 }
 
 void ParticleSystem::applyForceField(const Dojo::Vector& force) {
-	world.asyncCommand([this, force] {
+	getWorld().asyncCommand([this, force] {
 		for (auto i : range(0, particleSystem->GetParticleCount())) {
 			particleSystem->ParticleApplyForce(i, asB2Vec(force));
 		}
@@ -102,5 +103,37 @@ void ParticleSystem::onPhysicsStep(float dt) {
 	mSimulating = (not autoDeactivate) or (viewport.isInViewRect(mSimulationAABB.grow(3)));
 	particleSystem->SetPaused(not mSimulating);
 
+}
+
+void Phys::ParticleSystem::changeWorld(World& newWorld) {
+	newWorld.asyncCommand([this, &newWorld] {
+
+		auto oldPS = particleSystem;
+		b2ParticleSystemDef psdef = particleSystem->GetDef();
+		particleSystem = newWorld.getBox2D().CreateParticleSystem(&psdef);
+		newWorld.addListener(self);
+
+		for (auto i : range(oldPS->GetParticleCount())) {
+			b2ParticleDef def;
+
+			def.flags = oldPS->GetFlagsBuffer()[i];
+			def.position = oldPS->GetPositionBuffer()[i];
+			def.velocity = oldPS->GetVelocityBuffer()[i];
+			def.color = oldPS->GetColorBuffer()[i];
+			def.lifetime = oldPS->GetParticleLifetime(i);
+			def.userData = oldPS->GetUserDataBuffer()[i];
+			def.group = oldPS->GetGroupBuffer()[i];
+
+			particleSystem->CreateParticle(def);
+		}
+		
+		getWorld().getBox2D().DestroyParticleSystem(oldPS);
+		world = newWorld;
+	});
+}
+
+bool Phys::ParticleSystem::isAsleep() const {
+	//TODO make fluid systems actually go to sleep
+	return true;
 }
 

@@ -11,6 +11,7 @@ namespace Phys {
 	class Body;
 	class BodyPart;
 	class Joint;
+	class ParticleSystem;
 
 	class World :
 		public b2ContactListener,
@@ -128,6 +129,9 @@ namespace Phys {
 		Joint& addJoint(Unique<Joint> joint);
 		void removeJoint(Joint& joint);
 
+		void addParticleSystem(ParticleSystem& ps);
+		void removeParticleSystem(ParticleSystem& ps);
+
 		void pause();
 
 		void resume();
@@ -174,6 +178,7 @@ namespace Phys {
 
 		Dojo::SmallSet<Body*> mBodies;
 		Dojo::SmallSet<Unique<Joint>> mJoints;
+		Dojo::SmallSet<ParticleSystem*> mParticleSystems;
 
 		static const int GROUP_COUNT = 256; //HACK
 		ContactMode mCollideMode[GROUP_COUNT][GROUP_COUNT];
