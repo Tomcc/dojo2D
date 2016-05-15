@@ -27,6 +27,8 @@ Phys::ParticleSystemRenderer::ParticleSystemRenderer(ParticleSystem& ps, Dojo::R
 
 	mesh[0] = _makeMesh();
 	mesh[1] = _makeMesh();
+
+	setBlending(BlendingMode::Multiply);
 }
 
 void ParticleSystemRenderer::setAABB(const AABB& box) {
