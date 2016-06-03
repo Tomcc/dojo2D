@@ -130,6 +130,22 @@ BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, 
 	return addPolyShape(material, points, 4, group, sensor);
 }
 
+BodyPart& Body::addNGonShape(const Material& material, float radius, uint32_t edges, const Vector& center, Group group /* = Group::None */, bool sensor /* = false */) {
+	DEBUG_ASSERT(radius > 0, "Invalid radius");
+	DEBUG_ASSERT(edges >= 3, "It doesn't make sense to create a shape with less than 3 sides");
+	
+	Vector points[b2_maxPolygonVertices];
+
+	Vector offset = Vector::UnitX * radius;
+	Radians alpha = Degrees(360) / (float)edges;
+	for (auto i : range(edges)) {
+		points[i] = center + offset;
+		offset = offset.roll(alpha);
+	}
+
+	return addPolyShape(material, points, edges, group, sensor);
+}
+
 BodyPart& Body::addCircleShape(const Material& material, float radius, const Vector& center, Group group, bool sensor /*= false*/) {
 	DEBUG_ASSERT(radius > 0, "Invalid radius");
 

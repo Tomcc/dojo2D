@@ -35,6 +35,7 @@ namespace Phys {
 		BodyPart& addPolyShape(const Material& material, const Vector* points, size_t count, Group group = Group::None, bool sensor = false);
 		BodyPart& addPolyShape(const Material& material, const std::vector<Vector>& points, Group group = Group::None, bool sensor = false);
 		BodyPart& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, Group group = Group::None, bool sensor = false);
+		BodyPart& addNGonShape(const Material& material, float radius, uint32_t edges, const Vector& center = Vector::Zero, Group group = Group::None, bool sensor = false);
 		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::Zero, Group group = Group::None, bool sensor = false);
 		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, Group group = Group::None, bool sensor = false);
 

@@ -22,6 +22,7 @@ namespace Phys {
 	//some reexports
 	using Vector = Dojo::Vector;
 	using Radians = Dojo::Radians;
+	using Degrees = Dojo::Degrees;
 	
 	template<typename T>
 	using optional_ref = Dojo::optional_ref<T>;
