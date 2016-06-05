@@ -147,7 +147,7 @@ namespace Phys {
 		void deactivateAllBodies();
 
 		Unique<World> createSimulationClone();
-		void simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations, uint32_t maxSteps = UINT_MAX);
+		void simulateToInactivity(float timeStep, uint32_t velocityIterations, uint32_t positionIterations, uint32_t particleIterations, uint32_t maxSteps = UINT_MAX);
 
 		void mergeWorld(Unique<World> other);
 

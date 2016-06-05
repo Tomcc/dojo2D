@@ -248,8 +248,14 @@ void Body::applyTorque(float t) {
 }
 
 void Body::setFixedRotation(bool enable) {
-	getWorld().asyncCommand([ = ]() {
+	getWorld().asyncCommand([=]() {
 		mBody.unwrap().SetFixedRotation(enable);
+	});
+}
+
+void Body::setSleepingAllowed(bool enable) {
+	getWorld().asyncCommand([=]() {
+		mBody.unwrap().SetSleepingAllowed(enable);
 	});
 }
 

@@ -52,6 +52,7 @@ namespace Phys {
 		}
 
 		void setFixedRotation(bool enable);
+		void setSleepingAllowed(bool allowed);
 
 		void applyForce(const Vector& force);
 		void applyForceAtWorldPoint(const Vector& force, const Vector& localPoint);

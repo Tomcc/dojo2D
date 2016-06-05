@@ -56,7 +56,7 @@ Unique<World> Phys::World::createSimulationClone() {
 	return clone;
 }
 
-void Phys::World::simulateToInactivity(float timeStep, int velocityIterations, int positionIterations, int particleIterations, uint32_t maxSteps /*= UINT_MAX*/) {
+void Phys::World::simulateToInactivity(float timeStep, uint32_t velocityIterations, uint32_t positionIterations, uint32_t particleIterations, uint32_t maxSteps /*= UINT_MAX*/) {
 	//process all available commands
 	bool done = false;
 	Job job;
@@ -69,7 +69,7 @@ void Phys::World::simulateToInactivity(float timeStep, int velocityIterations, i
 		done = true;
 		for (auto&& b : mBodies) {
 			auto& body = b->getB2Body().unwrap();
-			if (body.IsAwake() and body.IsActive() and not b->isStatic()) {
+			if (body.IsAwake() and (body.IsActive() and body.IsSleepingAllowed()) and not b->isStatic()) {
 				done = false;
 			}
 		}
