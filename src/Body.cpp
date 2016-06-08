@@ -259,6 +259,12 @@ void Body::setSleepingAllowed(bool enable) {
 	});
 }
 
+void Phys::Body::setGravityScale(float scale) {
+	getWorld().asyncCommand([=]() {
+		mBody.unwrap().SetGravityScale(scale);
+	});
+}
+
 void Body::forcePosition(const Vector& position) {
 	getWorld().asyncCommand([ = ]() {
 		auto t = mBody.unwrap().GetTransform();
