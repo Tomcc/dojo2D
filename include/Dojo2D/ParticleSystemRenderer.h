@@ -17,7 +17,7 @@ namespace Phys {
 
 		virtual void update(float dt) override;
 
-	protected:
+	private:
 		Unique<Dojo::Mesh> mesh[2];
 
 		std::atomic<bool> rebuilding = false;

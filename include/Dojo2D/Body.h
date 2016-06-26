@@ -135,7 +135,7 @@ namespace Phys {
 		void _registerJoint(Joint& joint);
 		void _removeJoint(Joint& joint);
 
-	protected:
+	private:
 		optional_ref<World> mWorld;
 		bool mPushable = true;
 

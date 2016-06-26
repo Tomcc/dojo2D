@@ -20,7 +20,7 @@ namespace Phys {
 		typedef std::function<void()> Command;
 		typedef std::function<float()> Controller;
 
-	protected:
+	private:
 		struct DeferredCollision {
 			std::weak_ptr<BodyPart> A, B;
 			float force;
@@ -155,7 +155,7 @@ namespace Phys {
 			return mBodiesStartActive;
 		}
 
-	protected:
+	private:
 
 		std::thread mThread;
 		std::thread::id mWorkerID;

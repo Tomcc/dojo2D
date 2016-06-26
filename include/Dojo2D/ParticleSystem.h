@@ -56,7 +56,7 @@ namespace Phys {
 
 		virtual void onPhysicsStep(float dt) override;
 
-	protected:
+	private:
 		const Material& material;
 
 		optional_ref<World> world;

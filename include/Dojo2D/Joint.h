@@ -41,7 +41,7 @@ namespace Phys {
 		void _init(World& world);
 		void _deinit(World& world);
 
-	protected:
+	private:
 		//revolute
 		union Desc {
 			struct Revolute {

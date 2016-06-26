@@ -41,7 +41,7 @@ namespace Phys {
 
 		void _resetFixture(b2Fixture& fix);
 
-	protected:
+	private:
 		optional_ref<b2Fixture> fixture;
 		std::weak_ptr<BodyPart> mSelfWeakPtr;
 

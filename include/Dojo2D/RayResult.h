@@ -37,7 +37,7 @@ namespace Phys {
 
 		virtual bool ShouldQueryParticleSystem(const b2ParticleSystem* particleSystem) override;
 
-	protected:
+	private:
 		optional_ref<b2Fixture> hitFixture;
 		optional_ref<const World> world;
 	};
