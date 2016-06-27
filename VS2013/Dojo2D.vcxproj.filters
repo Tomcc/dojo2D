@@ -25,6 +25,7 @@
     </ClCompile>
     <ClCompile Include="..\src\Material.cpp" />
     <ClCompile Include="..\include\Dojo2D\Joint.cpp" />
+    <ClCompile Include="..\include\Dojo2D\ForceField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Dojo2D\Body.h">
@@ -63,6 +64,8 @@
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\AABBQueryResult.h" />
     <ClInclude Include="..\include\Dojo2D\Joint.h" />
+    <ClInclude Include="..\include\Dojo2D\BodyPartType.h" />
+    <ClInclude Include="..\include\Dojo2D\ForceField.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">

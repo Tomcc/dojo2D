@@ -18,8 +18,10 @@
     <ClInclude Include="..\include\Dojo2D\AABBQueryResult.h" />
     <ClInclude Include="..\include\Dojo2D\Body.h" />
     <ClInclude Include="..\include\Dojo2D\BodyPart.h" />
+    <ClInclude Include="..\include\Dojo2D\BodyPartType.h" />
     <ClInclude Include="..\include\Dojo2D\common_header.h" />
     <ClInclude Include="..\include\Dojo2D\ContactMode.h" />
+    <ClInclude Include="..\include\Dojo2D\ForceField.h" />
     <ClInclude Include="..\include\Dojo2D\Joint.h" />
     <ClInclude Include="..\include\Dojo2D\ParticleSystem.h" />
     <ClInclude Include="..\include\Dojo2D\Material.h" />
@@ -32,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\Dojo2D\BodyPart.cpp" />
+    <ClCompile Include="..\include\Dojo2D\ForceField.cpp" />
     <ClCompile Include="..\include\Dojo2D\Joint.cpp" />
     <ClCompile Include="..\include\Dojo2D\ParticleSystemRenderer.cpp" />
     <ClCompile Include="..\include\Dojo2D\PhysUtil.cpp" />

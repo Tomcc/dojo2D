@@ -1,13 +1,18 @@
 #include "BodyPart.h"
 #include "PhysUtil.h"
+#include "ForceField.h"
 
 using namespace Phys;
 
-BodyPart::BodyPart(Body& body, const Material& material, Group group) 
+BodyPart::BodyPart(Body& body, const Material& material, Group group, BodyPartType type) 
 	: material(material)
 	, body(body)
-	, group(group) {
+	, group(group) 
+	, type(type) {
 
+	if(type == BodyPartType::ForceField) {
+		mForceField = make_unique<ForceField>();
+	}
 }
 
 b2Fixture& BodyPart::getFixture() const {
@@ -32,19 +37,19 @@ float BodyPart::getMinimumDistanceTo(const Vector& pos) const {
 	return res;
 }
 
-b2Shape& Phys::BodyPart::getShape() const {
+b2Shape& BodyPart::getShape() const {
 	DEBUG_ASSERT(getFixture().GetShape(), "No shape available");
 	return *getFixture().GetShape();
 }
 
-optional_ref<b2PolygonShape> Phys::BodyPart::getPolyShape() const {
+optional_ref<b2PolygonShape> BodyPart::getPolyShape() const {
 	if (getFixture().GetType() != b2Shape::e_polygon) {
 		return{};
 	}
 	return static_cast<b2PolygonShape&>(getShape());
 }
 
-std::vector<Vector> Phys::BodyPart::getWorldContour() const {
+std::vector<Vector> BodyPart::getWorldContour() const {
 	auto& shape = getPolyShape().unwrap();
 	auto body = getFixture().GetBody();
 
@@ -53,18 +58,32 @@ std::vector<Vector> Phys::BodyPart::getWorldContour() const {
 	std::vector<Vector> contour;
 	contour.reserve(shape.m_count);
 	for (auto i : range(shape.m_count)) {
-		contour.push_back(Phys::asVec(body->GetWorldPoint(shape.m_vertices[i])));
+		contour.push_back(asVec(body->GetWorldPoint(shape.m_vertices[i])));
 	}
 	return contour;
 }
 
-float Phys::BodyPart::getMass() const {
+optional_ref<ForceField> BodyPart::getForceField() {
+	if (mForceField) {
+		return *mForceField;
+	}
+	return{};
+}
+
+optional_ref<const ForceField> BodyPart::getForceField() const {
+	if (mForceField) {
+		return *mForceField;
+	}
+	return{};
+}
+
+float BodyPart::getMass() const {
 	b2MassData data;
 	getFixture().GetMassData(&data);
 	return data.mass;
 }
 
-b2FixtureDef Phys::BodyPart::makeDefinition() const {
+b2FixtureDef BodyPart::makeDefinition() const {
 	auto& fixture = getFixture();
 
 	b2FixtureDef def;
@@ -78,6 +97,7 @@ b2FixtureDef Phys::BodyPart::makeDefinition() const {
 	return def;
 }
 
-void Phys::BodyPart::_resetFixture(b2Fixture& fix) {
+void BodyPart::_resetFixture(b2Fixture& fix) {
 	fixture = fix;
 }
+

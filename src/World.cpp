@@ -5,12 +5,13 @@
 #include "ParticleSystem.h"
 #include "Material.h"
 #include "Joint.h"
+#include "ForceField.h"
 
 using namespace Phys;
 
 const Group Group::None = Group(0);
 
-const static b2Transform B2_IDENTITY = {b2Vec2(0.f, 0.f), b2Rot(0.f)};
+const static b2Transform B2_IDENTITY = { b2Vec2(0.f, 0.f), b2Rot(0.f) };
 
 bool World::shapesOverlap(const b2Shape& s1, const b2Transform& t1, const b2Shape& s2, const b2Transform& t2) {
 	return b2TestOverlap(&s1, 0, &s2, 0, t1, t2);
@@ -24,22 +25,22 @@ World::World() {
 	//private constructor
 }
 
-void Phys::World::addParticleSystem(ParticleSystem& ps) {
+void World::addParticleSystem(ParticleSystem& ps) {
 	DEBUG_ASSERT(not mParticleSystems.contains(&ps), "Already added");
 	mParticleSystems.emplace(&ps);
 }
 
-void Phys::World::removeParticleSystem(ParticleSystem& ps) {
+void World::removeParticleSystem(ParticleSystem& ps) {
 	mParticleSystems.erase(&ps);
 }
 
-void Phys::World::deactivateAllBodies() {
-	for(auto&& body : mBodies) {
+void World::deactivateAllBodies() {
+	for (auto&& body : mBodies) {
 		body->setActive(false);
 	}
 }
 
-Unique<World> Phys::World::createSimulationClone() {
+Unique<World> World::createSimulationClone() {
 	auto clone = Unique<World>(new World()); //HACK must use new because make_unique doesn't see the private ctor
 
 	memcpy(clone->mCollideMode, mCollideMode, sizeof(mCollideMode));
@@ -56,7 +57,7 @@ Unique<World> Phys::World::createSimulationClone() {
 	return clone;
 }
 
-void Phys::World::simulateToInactivity(float timeStep, uint32_t velocityIterations, uint32_t positionIterations, uint32_t particleIterations, uint32_t maxSteps /*= UINT_MAX*/) {
+void World::simulateToInactivity(float timeStep, uint32_t velocityIterations, uint32_t positionIterations, uint32_t particleIterations, uint32_t maxSteps /*= UINT_MAX*/) {
 	//process all available commands
 	bool done = false;
 	Job job;
@@ -85,16 +86,16 @@ void Phys::World::simulateToInactivity(float timeStep, uint32_t velocityIteratio
 	}
 }
 
-void Phys::World::mergeWorld(Unique<World> other) {
+void World::mergeWorld(Unique<World> other) {
 	DEBUG_ASSERT(other, "Cannot merge a null world");
 
 	//place all bodies from the other world into this one with their fixtures and all
-	for(auto&& body : other->mBodies) {
+	for (auto&& body : other->mBodies) {
 		body->changeWorld(self);
 	}
 
 	//remake all joints
-	for(auto&& joint : other->mJoints) {
+	for (auto&& joint : other->mJoints) {
 		auto& ref = *joint;
 		mJoints.emplace(std::move(joint));
 		asyncCommand([this, &ref] {
@@ -103,7 +104,7 @@ void Phys::World::mergeWorld(Unique<World> other) {
 	}
 	other->mJoints.clear();
 
-	for(auto&& ps : other->mParticleSystems) {
+	for (auto&& ps : other->mParticleSystems) {
 		ps->changeWorld(self);
 		mParticleSystems.emplace(ps);
 	}
@@ -208,7 +209,7 @@ void World::asyncCommand(Command command, Command callback) const {
 
 	if (not mCommands) {
 		command();
-		if(callback) {
+		if (callback) {
 			callback();
 		}
 	}
@@ -223,14 +224,14 @@ void World::asyncCommand(Command command, Command callback) const {
 	}
 }
 
-void Phys::World::setDefaultDamping(float linear, float angular) {
+void World::setDefaultDamping(float linear, float angular) {
 	DEBUG_ASSERT(linear >= 0 && angular >= 0, "Invalid damping value");
 
 	mDefaultLinearDamping = linear;
 	mDefaultAngularDamping = angular;
 }
 
-void Phys::World::asyncCallback(Command callback) const {
+void World::asyncCallback(Command callback) const {
 	DEBUG_ASSERT(callback, "Command can't be a NOP");
 
 	if (isWorkerThread()) {
@@ -254,7 +255,21 @@ void World::sync() const {
 	}
 }
 
+void Phys::World::_applySensorEffects(BodyPart& partA, const BodyPart& partB) {
+	//check if the sensors should collide
+	if (partA.type == BodyPartType::Sensor) {
+		mDeferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
+	}
+	else if (partA.type == BodyPartType::ForceField) {
+		partA.getForceField().unwrap().applyTo(partB, partA);
+	}
+}
+
 bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
+	//if both parts are sensors, do nothing
+	if (fixtureA->IsSensor() and fixtureB->IsSensor()) {
+		return false;
+	}
 
 	auto& partA = getPartForFixture(fixtureA);
 	auto& partB = getPartForFixture(fixtureB);
@@ -271,18 +286,8 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 		return false;
 	}
 
-	//check if the sensors should collide
-	if (fixtureA->IsSensor()) {
-		mDeferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
-	}
-
-	if (fixtureB->IsSensor()) {
-		mDeferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
-	}
-
-	if (fixtureA->IsSensor() and fixtureB->IsSensor()) {
-		return false;
-	}
+	_applySensorEffects(partA, partB);
+	_applySensorEffects(partB, partA);
 
 	bool odcA = partA.body.isParticle();
 	bool odcB = partB.body.isParticle();
@@ -342,7 +347,7 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 
 	auto& N = worldManifold.normal;
 	//	b2Vec2 T = { N.y, -N.x };
-	b2Vec2 F = {0, 0};
+	b2Vec2 F = { 0, 0 };
 
 	for (int i = 0; i < impulse->count; ++i) {
 		F += impulse->normalImpulses[i] * N;
@@ -392,7 +397,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 	asyncCommand([this, promise, flags, area, group] {
 		b2PolygonShape aabbShape;
 		AABBQueryResult result;
-		
+
 		if (flags & QUERY_PRECISE) {
 			Vector dim = area.getSize();
 			aabbShape.SetAsBox(dim.x, dim.y, asB2Vec(area.getCenter()), 0);
@@ -433,7 +438,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 			AABBQueryResult::ParticleList& particles;
 			bool queryParticles;
 
-			Query(const decltype(func)& f, AABBQueryResult::ParticleList& p, bool queryParticles) 
+			Query(const decltype(func)& f, AABBQueryResult::ParticleList& p, bool queryParticles)
 				: func(f)
 				, particles(p) {
 			}
@@ -445,7 +450,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 			virtual bool ReportParticle(b2ParticleSystem* particleSystem, int32 index) override {
 				//TODO //WARNING LiquidFun's particle reporting mechanics look like really inefficient
 				//jumbles of virtuals, this can probably be optimized
-				
+
 				particles[particleSystem].emplace_back(index);
 				return true;
 			}
@@ -464,7 +469,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 
 		promise->set_value(std::move(result));
 	});
-	
+
 	return promise->get_future();
 }
 
@@ -504,7 +509,7 @@ float World::_closestRecentlyPlayedSound(const Vector& point) {
 void World::playCollisionSound(const DeferredCollision& collision, const BodyPart& part) {
 	//TODO choose which sound to play... both? random? existing?
 	//TODO this code doesn't belong here too much, perhaps World shouldn't know about sounds
-	
+
 	if (collision.force > MIN_SOUND_FORCE) {
 		//ensure that the bodies are actually moving respect to each other
 		auto& impactSound = (collision.force > 5) ? part.material.impactHard : part.material.impactSoft;
@@ -557,7 +562,7 @@ void World::update(float dt) {
 		auto partA = c.A.lock();
 		auto partB = c.B.lock();
 
-		if(not partA or not partB) { //one of the parts was destroyed, remove
+		if (not partA or not partB) { //one of the parts was destroyed, remove
 			continue;
 		}
 
@@ -617,7 +622,7 @@ void World::removeBody(Body& body) {
 
 	//go over all joints active on this body and deactivate them
 	auto joints = body.getJoints(); //copy because getjoints will remove the joints from the vector
-	for(auto&& joint : joints) {
+	for (auto&& joint : joints) {
 		removeJoint(*joint);
 	}
 

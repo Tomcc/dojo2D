@@ -2,20 +2,24 @@
 
 #include "common_header.h"
 
+#include "BodyPartType.h"
+
 namespace Phys {
 	class Material;
 	class Body;
+	class ForceField;
 
 	class BodyPart {
 	public:
 		friend class Body;
 
 		const Material& material;
+		const BodyPartType type;
 		Body& body;
 		const Group group;
 		optional_ref<Dojo::Object> attachedObject;
 
-		BodyPart(Body& body, const Material& material, Group group);
+		BodyPart(Body& body, const Material& material, Group group, BodyPartType type);
 
 		BodyPart(const BodyPart&) = delete;
 		BodyPart(BodyPart&&) = delete;
@@ -27,6 +31,9 @@ namespace Phys {
 		optional_ref<b2PolygonShape> getPolyShape() const;
 
 		std::vector<Vector> getWorldContour() const;
+
+		optional_ref<const ForceField> getForceField() const;
+		optional_ref<ForceField> getForceField();
 
 		float getMass() const;
 
@@ -44,6 +51,7 @@ namespace Phys {
 	private:
 		optional_ref<b2Fixture> fixture;
 		std::weak_ptr<BodyPart> mSelfWeakPtr;
+		std::unique_ptr<ForceField> mForceField;
 
 		//use this to notify the bodypart the shared ptr it's stored in
 		void _notifySharedPtr(Shared<BodyPart>& me) {

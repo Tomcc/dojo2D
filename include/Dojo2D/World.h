@@ -6,6 +6,7 @@
 #include "ContactMode.h"
 #include "WorldListener.h"
 #include "AABBQueryResult.h"
+#include "ForceField.h"
 
 namespace Phys {
 	class Body;
@@ -58,11 +59,6 @@ namespace Phys {
 		};
 
 	public:
-
-		enum class FieldType {
-			ApplyToSurface,
-			ApplyToVolume
-		};
 
 		enum AABBQueryFlags {
 			QUERY_BODIES = 1 << 1,
@@ -186,7 +182,8 @@ namespace Phys {
 		float mRemoveNextSound = 0;
 		std::deque<Vector> mRecentlyPlayedSoundPositions;
 
-		float _closestRecentlyPlayedSound(const Vector& point);
+		float _closestRecentlyPlayedSound(const Vector& point);	
+		void _applySensorEffects(BodyPart& partA, const BodyPart& partB);
 
 		World();
 	};
