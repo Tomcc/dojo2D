@@ -101,7 +101,7 @@ namespace Phys {
 
 		void update(float dt);
 
-		virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override;
+		virtual void BeginContact(b2Contact* contact) override;
 		virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) override;
 		virtual bool ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex) override;
 
@@ -183,8 +183,7 @@ namespace Phys {
 		std::deque<Vector> mRecentlyPlayedSoundPositions;
 
 		float _closestRecentlyPlayedSound(const Vector& point);	
-		void _applySensorEffects(BodyPart& partA, const BodyPart& partB);
-
+		
 		World();
 	};
 }

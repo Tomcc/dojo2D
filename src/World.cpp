@@ -255,21 +255,7 @@ void World::sync() const {
 	}
 }
 
-void Phys::World::_applySensorEffects(BodyPart& partA, const BodyPart& partB) {
-	//check if the sensors should collide
-	if (partA.type == BodyPartType::Sensor) {
-		mDeferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
-	}
-	else if (partA.type == BodyPartType::ForceField) {
-		partA.getForceField().unwrap().applyTo(partB, partA);
-	}
-}
-
 bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
-	//if both parts are sensors, do nothing
-	if (fixtureA->IsSensor() and fixtureB->IsSensor()) {
-		return false;
-	}
 
 	auto& partA = getPartForFixture(fixtureA);
 	auto& partB = getPartForFixture(fixtureB);
@@ -286,8 +272,19 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 		return false;
 	}
 
-	_applySensorEffects(partA, partB);
-	_applySensorEffects(partB, partA);
+	//check if the sensors should collide
+	if (partA.type == BodyPartType::Sensor) {
+		mDeferredSensorCollisions->enqueue(partB.body, partA.body, partA._getWeakPtr());
+	}
+
+	if (partB.type == BodyPartType::Sensor) {
+		mDeferredSensorCollisions->enqueue(partA.body, partB.body, partB._getWeakPtr());
+	}
+
+	//if both are sensors of any kind, never collide, only report. If any is a actual Sensor, only report too
+	if (fixtureA->IsSensor() and fixtureB->IsSensor() or (partA.type == BodyPartType::Sensor or partB.type == BodyPartType::Sensor)) {
+		return false;
+	}
 
 	bool odcA = partA.body.isParticle();
 	bool odcB = partB.body.isParticle();
@@ -318,11 +315,26 @@ bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, 
 	}
 }
 
-void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
-	b2WorldManifold worldManifold;
+void _applySensorEffects(BodyPart& partA, const BodyPart& partB) {
+	if (partA.type == BodyPartType::ForceField) {
+		partA.getForceField().unwrap().applyTo(partB, partA);
+	}
+}
 
+void World::BeginContact(b2Contact* contact) {
 	auto& partA = getPartForFixture(contact->GetFixtureA());
 	auto& partB = getPartForFixture(contact->GetFixtureB());
+	DEBUG_ASSERT(partA.type == BodyPartType::Rigid or partB.type == BodyPartType::Rigid, "No rigid in the collision");
+
+	if (partA.type == BodyPartType::ForceField) {
+		partA.getForceField().unwrap().applyTo(partB, partA);
+		return;
+	}
+	if (partB.type == BodyPartType::ForceField) {
+		partB.getForceField().unwrap().applyTo(partA, partB);
+		return;
+	}
+
 	auto& bodyA = partA.body;
 	auto& bodyB = partB.body;
 	DEBUG_ASSERT(bodyA.isStatic() or bodyA.getMass() > 0, "HM");
@@ -333,6 +345,7 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 		return;
 	}
 
+	b2WorldManifold worldManifold;
 	contact->GetWorldManifold(&worldManifold);
 
 	b2Vec2 point;
@@ -344,20 +357,8 @@ void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 		point = (worldManifold.points[0] + worldManifold.points[1]) * 0.5f;
 	}
 
-
-	auto& N = worldManifold.normal;
-	//	b2Vec2 T = { N.y, -N.x };
-	b2Vec2 F = { 0, 0 };
-
-	for (int i = 0; i < impulse->count; ++i) {
-		F += impulse->normalImpulses[i] * N;
-	}
-
-	float force = F.Length();
-
-	if (force > 0.1f) {
-		mDeferredCollisions->enqueue(partA._getWeakPtr(), partB._getWeakPtr(), force, point);
-	}
+	float force = 0; //TODO extimate the force for sounds & damages
+	mDeferredCollisions->enqueue(partA._getWeakPtr(), partB._getWeakPtr(), force, point);
 }
 
 std::future<RayResult> World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup) const {
