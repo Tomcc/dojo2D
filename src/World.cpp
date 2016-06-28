@@ -156,6 +156,11 @@ World::World(const Vector& gravity, float damping, float angularDamping, float t
 				timer.reset();
 				mBox2D->Step(step, velocityIterations, positionIterations, particleIterations);
 
+				//update the force fields
+				for (auto&& fieldPart : mActiveForceFields) {
+					fieldPart->getForceField().unwrap().applyToAllContacts(*fieldPart);
+				}
+
 				for (auto&& b : mBodies) {
 					auto& body = b->getB2Body().unwrap();
 					if (body.IsAwake() and body.IsActive()) {
@@ -315,9 +320,12 @@ bool World::ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, 
 	}
 }
 
-void _applySensorEffects(BodyPart& partA, const BodyPart& partB) {
-	if (partA.type == BodyPartType::ForceField) {
-		partA.getForceField().unwrap().applyTo(partB, partA);
+void World::_beginFieldContact(BodyPart& partA, BodyPart& partB) {
+	auto& field = partA.getForceField().unwrap();
+	bool wasActive = field.isActive();
+	field.onContactBegin(partB);
+	if (not wasActive and field.isActive()) {
+		mActiveForceFields.emplace(&partA);
 	}
 }
 
@@ -327,12 +335,10 @@ void World::BeginContact(b2Contact* contact) {
 	DEBUG_ASSERT(partA.type == BodyPartType::Rigid or partB.type == BodyPartType::Rigid, "No rigid in the collision");
 
 	if (partA.type == BodyPartType::ForceField) {
-		partA.getForceField().unwrap().applyTo(partB, partA);
-		return;
+		return _beginFieldContact(partA, partB);
 	}
 	if (partB.type == BodyPartType::ForceField) {
-		partB.getForceField().unwrap().applyTo(partA, partB);
-		return;
+		return _beginFieldContact(partB, partA);
 	}
 
 	auto& bodyA = partA.body;
@@ -359,6 +365,26 @@ void World::BeginContact(b2Contact* contact) {
 
 	float force = 0; //TODO extimate the force for sounds & damages
 	mDeferredCollisions->enqueue(partA._getWeakPtr(), partB._getWeakPtr(), force, point);
+}
+
+void World::EndContact(b2Contact* contact) {
+	if (contact->GetFixtureA()->IsSensor() or contact->GetFixtureB()->IsSensor()) {
+		auto field = contact->GetFixtureA();
+		auto rigid = contact->GetFixtureB();
+
+		if (not field->IsSensor()) {
+			std::swap(field, rigid);
+		}
+
+		auto& fieldPart = getPartForFixture(field);
+		auto& ff = fieldPart.getForceField().unwrap();
+
+		ff.onContactEnd(getPartForFixture(rigid));
+		if (not ff.isActive()) {
+			// if it's not active anymore, don't update it
+			mActiveForceFields.erase(&fieldPart);
+		}
+	}
 }
 
 std::future<RayResult> World::raycast(const Vector& start, const Vector& end, Group rayBelongsToGroup) const {

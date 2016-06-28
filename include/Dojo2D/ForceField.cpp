@@ -4,10 +4,12 @@
 #include "Body.h"
 #include "World.h"
 
-Phys::Vector Phys::ForceField::getBaseForceFor(const BodyPart& part) const {
+using namespace Phys;
+
+Vector ForceField::getBaseForceFor(const BodyPart& part) const {
 	switch (mType)
 	{
-	case Phys::FieldType::Constant:
+	case FieldType::Constant:
 		return mConstantForce;
 	case FieldType::WeightProportional: {
 		Vector F = -part.body.getMass() * part.body.getWorld().getGravity() * mMultiplier;
@@ -23,7 +25,13 @@ Phys::Vector Phys::ForceField::getBaseForceFor(const BodyPart& part) const {
 
 }
 
-void Phys::ForceField::applyTo(const BodyPart& part, optional_ref<const BodyPart> relativeTo) const {
+void Phys::ForceField::applyToAllContacts(BodyPart& relativeTo) {
+	for (auto&& contact : mContacts) {
+		applyTo(*contact, relativeTo);
+	}
+}
+
+void Phys::ForceField::applyTo(const BodyPart& part, optional_ref<BodyPart> relativeTo) const {
 	auto F = getBaseForceFor(part);
 	if(F == Vector::Zero) {
 		return;
@@ -38,7 +46,9 @@ void Phys::ForceField::applyTo(const BodyPart& part, optional_ref<const BodyPart
 	//TODO apply to the center of the bodypart or something??
 	part.body.applyForce(F);
 
-	part.body.getObject().get<Dojo::Renderable>().startFade(Dojo::Color::Red, Dojo::Color::Gray, 0.1f);
-
+	//also push the relative body away
+	if(mRelative) {
+		relativeTo.unwrap().body.applyForce(-F);
+	}
 	//TODO particles!!!
 }

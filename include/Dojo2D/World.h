@@ -102,6 +102,7 @@ namespace Phys {
 		void update(float dt);
 
 		virtual void BeginContact(b2Contact* contact) override;
+		virtual void EndContact(b2Contact* contact) override;
 		virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) override;
 		virtual bool ShouldCollide(b2Fixture* fixture, b2ParticleSystem* particleSystem, int32 particleIndex) override;
 
@@ -182,8 +183,11 @@ namespace Phys {
 		float mRemoveNextSound = 0;
 		std::deque<Vector> mRecentlyPlayedSoundPositions;
 
+		std::unordered_set<BodyPart*> mActiveForceFields;
+
 		float _closestRecentlyPlayedSound(const Vector& point);	
-		
+		void _beginFieldContact(BodyPart& partA, BodyPart& partB);
+
 		World();
 	};
 }

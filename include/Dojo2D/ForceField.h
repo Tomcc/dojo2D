@@ -16,10 +16,24 @@ namespace Phys {
 		float mMaxForce = FLT_MAX;
 		float mMultiplier = 3.f;
 
-		void applyTo(const BodyPart& part, optional_ref<const BodyPart> relativeTo) const;
+		void onContactBegin(BodyPart& part) {
+			mContacts.emplace(&part);
+		}
+		void onContactEnd(BodyPart& part) {
+			mContacts.erase(&part);
+		}
+
+		bool isActive() const {
+			return mContacts.size() > 0;
+		}
 
 		Vector getBaseForceFor(const BodyPart& part) const;
+
+		void applyToAllContacts(BodyPart& relativeTo);
 	private:
+		Dojo::SmallSet<BodyPart*> mContacts;
+
+		void applyTo(const BodyPart& part, optional_ref<BodyPart> relativeTo) const;
 	};
 }
 
