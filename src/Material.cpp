@@ -2,8 +2,8 @@
 
 using namespace Phys;
 
-Material::Material(const utf::string& name, const Dojo::Table& desc, optional_ref<const Dojo::ResourceGroup> group) :
-	name(name) {
+Material::Material(utf::string_view name, const Dojo::Table& desc, optional_ref<const Dojo::ResourceGroup> group) :
+	name(name.copy()) {
 	DEBUG_ASSERT(name.not_empty(), "Invalid name");
 
 	density = desc.getNumber("density", density);
