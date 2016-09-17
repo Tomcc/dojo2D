@@ -273,7 +273,7 @@ void World::asyncCallback(Command callback) const {
 
 void World::sync() const {
 	if (not isWorkerThread()) {
-		std::atomic<bool> done = false;
+        std::atomic<bool> done = {false};
 		asyncCommand([&] {
 			done = true;
 		});
@@ -311,7 +311,7 @@ bool World::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB) {
 	}
 
 	//if both are sensors of any kind, never collide, only report. If any is a actual Sensor, only report too
-	if (fixtureA->IsSensor() and fixtureB->IsSensor() or (partA.type == BodyPartType::Sensor or partB.type == BodyPartType::Sensor)) {
+	if ((fixtureA->IsSensor() and fixtureB->IsSensor()) or (partA.type == BodyPartType::Sensor or partB.type == BodyPartType::Sensor)) {
 		return false;
 	}
 
@@ -489,7 +489,7 @@ std::future<AABBQueryResult> World::AABBQuery(const Dojo::AABB& area, Group grou
 			AABBQueryResult::ParticleList& particles;
 			bool queryParticles;
 
-			Query(const decltype(func)& f, AABBQueryResult::ParticleList& p, bool queryParticles)
+			Query(decltype(func)& f, AABBQueryResult::ParticleList& p, bool queryParticles)
 				: func(f)
 				, particles(p) {
 			}

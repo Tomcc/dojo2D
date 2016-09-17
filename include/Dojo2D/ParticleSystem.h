@@ -41,6 +41,11 @@ namespace Phys {
 		World& getWorld() const {
 			return world.unwrap();
 		}
+            
+        const Material& getMaterial() const
+        {
+            return material;
+        }
 
 		void changeWorld(World& newWorld);
 
@@ -65,8 +70,6 @@ namespace Phys {
 
 		b2ParticleSystem* particleSystem;
 
-		uintptr_t counter = 0;
-		std::atomic<bool> mSimulating = false;
-	private:
+        std::atomic<bool> mSimulating = {false};
 	};
 }

@@ -20,7 +20,7 @@ namespace Phys {
 	private:
 		Unique<Dojo::Mesh> mesh[2];
 
-		std::atomic<bool> rebuilding = false;
+        std::atomic<bool> rebuilding = {false};
 		ParticleSystem& mParticleSystem;
 	private:
 	};

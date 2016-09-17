@@ -20,3 +20,4 @@ lib/
 *.vcxproj.user
 
 VS2013/Publish/*
+bin/

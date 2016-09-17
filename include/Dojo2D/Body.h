@@ -3,6 +3,7 @@
 #include "common_header.h"
 
 #include "BodyPartType.h"
+#include "Material.h"
 
 namespace Phys {
 
@@ -11,6 +12,7 @@ namespace Phys {
 	class BodyPart;
 	class Body;
 	class Joint;
+    struct Group;
 
 	class CollisionListener {
 	public:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Dojo.h>
+#include <dojo.h>
 
 #include <Box2D/Box2D.h>
 #include <unordered_set>
