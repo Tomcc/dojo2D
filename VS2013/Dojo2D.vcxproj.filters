@@ -26,6 +26,7 @@
     <ClCompile Include="..\src\Material.cpp" />
     <ClCompile Include="..\include\Dojo2D\Joint.cpp" />
     <ClCompile Include="..\include\Dojo2D\ForceField.cpp" />
+    <ClCompile Include="..\include\Dojo2D\DebugDrawMeshBuilder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Dojo2D\Body.h">
@@ -66,6 +67,7 @@
     <ClInclude Include="..\include\Dojo2D\Joint.h" />
     <ClInclude Include="..\include\Dojo2D\BodyPartType.h" />
     <ClInclude Include="..\include\Dojo2D\ForceField.h" />
+    <ClInclude Include="..\include\Dojo2D\DebugDrawMeshBuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">

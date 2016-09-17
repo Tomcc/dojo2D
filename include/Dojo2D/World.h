@@ -13,6 +13,7 @@ namespace Phys {
 	class BodyPart;
 	class Joint;
 	class ParticleSystem;
+	class DebugDrawMeshBuilder;
 
 	class World :
 		public b2ContactListener,
@@ -152,6 +153,8 @@ namespace Phys {
 			return mBodiesStartActive;
 		}
 
+		DebugDrawMeshBuilder& createDebugDrawMesh();
+
 	private:
 
 		std::thread mThread;
@@ -184,6 +187,8 @@ namespace Phys {
 		std::deque<Vector> mRecentlyPlayedSoundPositions;
 
 		std::unordered_set<BodyPart*> mActiveForceFields;
+
+		Unique<DebugDrawMeshBuilder> mDebugMeshBuilder;
 
 		float _closestRecentlyPlayedSound(const Vector& point);	
 		void _beginFieldContact(BodyPart& partA, BodyPart& partB);

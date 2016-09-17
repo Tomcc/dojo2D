@@ -21,6 +21,7 @@
     <ClInclude Include="..\include\Dojo2D\BodyPartType.h" />
     <ClInclude Include="..\include\Dojo2D\common_header.h" />
     <ClInclude Include="..\include\Dojo2D\ContactMode.h" />
+    <ClInclude Include="..\include\Dojo2D\DebugDrawMeshBuilder.h" />
     <ClInclude Include="..\include\Dojo2D\ForceField.h" />
     <ClInclude Include="..\include\Dojo2D\Joint.h" />
     <ClInclude Include="..\include\Dojo2D\ParticleSystem.h" />
@@ -34,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\Dojo2D\BodyPart.cpp" />
+    <ClCompile Include="..\include\Dojo2D\DebugDrawMeshBuilder.cpp" />
     <ClCompile Include="..\include\Dojo2D\ForceField.cpp" />
     <ClCompile Include="..\include\Dojo2D\Joint.cpp" />
     <ClCompile Include="..\include\Dojo2D\ParticleSystemRenderer.cpp" />

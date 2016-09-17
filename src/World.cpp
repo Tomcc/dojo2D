@@ -6,6 +6,7 @@
 #include "Material.h"
 #include "Joint.h"
 #include "ForceField.h"
+#include "DebugDrawMeshBuilder.h"
 
 using namespace Phys;
 
@@ -625,6 +626,10 @@ void World::update(float dt) {
 	while (mCallbacks->try_dequeue(callback)) {
 		callback();
 	}
+
+	if(mDebugMeshBuilder) {
+		mDebugMeshBuilder->update(*mBox2D);
+	}
 }
 
 void World::removeJoint(Joint& joint) {
@@ -657,7 +662,7 @@ void World::removeBody(Body& body) {
 }
 
 void World::pause() {
-	asyncCommand([this]() {
+	asyncCommand([this] {
 		DEBUG_ASSERT(not mSimulationPaused, "Already paused");
 		mSimulationPaused = true;
 
@@ -669,8 +674,20 @@ void World::pause() {
 }
 
 void World::resume() {
-	asyncCommand([this]() {
+	asyncCommand([this] {
 		DEBUG_ASSERT(mSimulationPaused, "Already resumed");
 		mSimulationPaused = false;
 	});
+}
+
+Phys::DebugDrawMeshBuilder& Phys::World::createDebugDrawMesh() {
+	DEBUG_ASSERT(mDebugMeshBuilder == nullptr, "Already created");
+
+	mDebugMeshBuilder = make_unique<DebugDrawMeshBuilder>();
+
+	asyncCommand([this] {
+		mBox2D->SetDebugDraw(mDebugMeshBuilder.get());
+	});
+
+	return *mDebugMeshBuilder;
 }

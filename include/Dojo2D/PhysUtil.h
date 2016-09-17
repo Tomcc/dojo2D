@@ -11,6 +11,10 @@ namespace Phys {
 		return{ v.x, v.y };
 	}
 
+	inline Dojo::Color asColor(const b2Color& c) {
+		return{ c.r, c.g, c.b };
+	}
+
 	//transmute the reference to a b2vec2 reference
 	inline const b2Vec2& asB2Vec(const Dojo::Vector& v) {
 		return *(b2Vec2*)(&v);
