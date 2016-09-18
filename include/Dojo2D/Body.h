@@ -41,7 +41,8 @@ namespace Phys {
 		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::Zero, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
 		BodyPart& addCapsuleShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
 
-		void removeShape(BodyPart& part);
+		void removePart(BodyPart& part);
+		void removeAllParts();
 
 		///Removes physical behaviors from this object
 		void destroyPhysics();

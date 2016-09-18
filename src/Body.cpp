@@ -80,7 +80,7 @@ Phys::BodyPart& Phys::Body::_addShape(Shared<b2Shape> shape, const Material& mat
 	return part;
 }
 
-void Body::removeShape(BodyPart& part) {
+void Body::removePart(BodyPart& part) {
 	auto elem = Dojo::SmallSet<Shared<BodyPart>>::find(mParts, part);
 	DEBUG_ASSERT(elem != mParts.end(), "Part already removed");
 
@@ -92,6 +92,14 @@ void Body::removeShape(BodyPart& part) {
 	mParts.erase(elem);
 	getWorld().asyncCommand([this, part = std::move(temp)] {
 		mBody.unwrap().DestroyFixture(&part->getFixture());
+	});
+}
+
+void Phys::Body::removeAllParts() {
+	getWorld().asyncCommand([this, parts = std::move(mParts)]{
+		for (auto&& part : parts) {
+			mBody.unwrap().DestroyFixture(&part->getFixture());
+		}
 	});
 }
 
