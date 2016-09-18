@@ -680,6 +680,14 @@ void World::resume() {
 	});
 }
 
+float Phys::World::getBusyTime() const {
+	return 0;
+}
+
+float Phys::World::getSimulationTime() const {
+	return 0;
+}
+
 Phys::DebugDrawMeshBuilder& Phys::World::createDebugDrawMesh() {
 	DEBUG_ASSERT(mDebugMeshBuilder == nullptr, "Already created");
 

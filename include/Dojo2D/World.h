@@ -121,6 +121,9 @@ namespace Phys {
 			return *mBox2D;
 		}
 
+		float getBusyTime() const;
+		float getSimulationTime() const;
+
 		void addBody(Body& body);
 		void removeBody(Body& body);
 
