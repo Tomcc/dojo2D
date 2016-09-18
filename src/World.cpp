@@ -684,10 +684,7 @@ Phys::DebugDrawMeshBuilder& Phys::World::createDebugDrawMesh() {
 	DEBUG_ASSERT(mDebugMeshBuilder == nullptr, "Already created");
 
 	mDebugMeshBuilder = make_unique<DebugDrawMeshBuilder>();
-
-	asyncCommand([this] {
-		mBox2D->SetDebugDraw(mDebugMeshBuilder.get());
-	});
-
+	mBox2D->SetDebugDraw(mDebugMeshBuilder.get());
+	
 	return *mDebugMeshBuilder;
 }

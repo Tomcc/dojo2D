@@ -22,9 +22,18 @@ namespace Phys {
 			return *mMesh;
 		}
 
+		void setEnabled(bool enable) {
+			mEnabled = enable;
+		}
+
 	protected:
 
+		bool mEnabled = true;
 		Unique<Dojo::Mesh> mMesh;
+
+		std::vector<b2Vec2> mCircleBuffer;
+
+		void _updateCircleBuffer(const b2Vec2& center, float32 radius);
 	};
 }
 

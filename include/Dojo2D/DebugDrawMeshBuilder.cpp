@@ -14,11 +14,13 @@ namespace Phys {
 	}
 
 	void DebugDrawMeshBuilder::update(b2World& world) {
-		mMesh->begin();
+		if (mEnabled) {
+			mMesh->begin();
 
-		world.DrawDebugData();
+			world.DrawDebugData();
 
-		mMesh->end();
+			mMesh->end();
+		}
 	}
 
 	void DebugDrawMeshBuilder::DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
@@ -30,14 +32,34 @@ namespace Phys {
 
 	void DebugDrawMeshBuilder::DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
 		DrawPolygon(vertices, vertexCount, color);
+		DrawSegment(vertices[0], vertices[vertexCount / 2], color);
+		DrawSegment(vertices[vertexCount / 4], vertices[vertexCount - vertexCount / 4], color);
+	}
+
+	void DebugDrawMeshBuilder::_updateCircleBuffer(const b2Vec2& center, float32 radius) {
+		mCircleBuffer.clear();
+
+		const auto pointsPerM = 10.f;
+		auto c = radius * Math::TAU;
+		auto pointsCount = std::max(6u, (uint32_t)std::floor(c * pointsPerM));
+
+		const float angleInc = Math::TAU / (float)pointsCount;
+		for (auto i : range(pointsCount + 1)) {
+			mCircleBuffer.push_back({
+				center.x + std::cos(angleInc * i) * radius,
+				center.y + std::sin(angleInc * i) * radius
+			});
+		}
 	}
 
 	void DebugDrawMeshBuilder::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) {
-		
+		_updateCircleBuffer(center, radius);
+		DrawPolygon(mCircleBuffer.data(), mCircleBuffer.size(), color);
 	}
 
 	void DebugDrawMeshBuilder::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) {
-		DrawCircle(center, radius, color);
+		_updateCircleBuffer(center, radius);
+		DrawSolidPolygon(mCircleBuffer.data(), mCircleBuffer.size(), color);
 	}
 
 	void DebugDrawMeshBuilder::DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count) {
