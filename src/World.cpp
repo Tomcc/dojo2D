@@ -141,7 +141,11 @@ World::World(const Vector& gravity, float damping, float angularDamping, float t
 		Job job;
 		mWorkerID = std::this_thread::get_id();
 
+		using namespace std::chrono;
+		using namespace Dojo;
+
 		while (mRunning) {
+			auto startTime = high_resolution_clock::now();
 
 			//process all available commands
 			while ((mSimulationPaused or timer.getElapsedTime() < timeStep) and mCommands->try_dequeue(job)) {
@@ -152,7 +156,10 @@ World::World(const Vector& gravity, float damping, float angularDamping, float t
 				}
 			}
 
-			if (not mSimulationPaused and timer.getElapsedTime() >= timeStep) {
+			bool doSimulation = not mSimulationPaused and timer.getElapsedTime() >= timeStep;
+			if (doSimulation) {
+				auto simStartTime = high_resolution_clock::now();
+
 				auto step = static_cast<float>(timer.getElapsedTime());
 				timer.reset();
 				mBox2D->Step(step, velocityIterations, positionIterations, particleIterations);
@@ -169,11 +176,25 @@ World::World(const Vector& gravity, float damping, float angularDamping, float t
 					}
 				}
 
+#ifndef PUBLISH
+				mTotalSimulationTime += durationToSeconds(high_resolution_clock::now() - simStartTime);
+#endif
+
 				for (auto&& listener : mListeners) {
 					listener->onPhysicsStep(step);
 				}
+
+#ifndef PUBLISH
+				mTotalUsageTime += durationToSeconds(high_resolution_clock::now() - startTime);
+				mTotalIngameTime += timeStep;
+#endif
 			}
-			else {
+
+#ifndef PUBLISH
+			mTotalUsageTime += durationToSeconds(high_resolution_clock::now() - startTime);
+#endif
+
+			if(!doSimulation) {
 				std::this_thread::yield();
 			}
 		}
@@ -680,15 +701,20 @@ void World::resume() {
 	});
 }
 
-float Phys::World::getBusyTime() const {
-	return 0;
+#ifndef PUBLISH
+World::PerformanceInfo World::queryPerformanceInfo() {
+	auto info = PerformanceInfo{
+		float(mTotalUsageTime / mTotalIngameTime),
+		float(mTotalSimulationTime / mTotalIngameTime)
+	};
+
+	mTotalIngameTime = 0;
+	mTotalSimulationTime = mTotalUsageTime = 0;
+
+	return info;
 }
 
-float Phys::World::getSimulationTime() const {
-	return 0;
-}
-
-Phys::DebugDrawMeshBuilder& Phys::World::createDebugDrawMesh() {
+DebugDrawMeshBuilder& World::createDebugDrawMesh() {
 	DEBUG_ASSERT(mDebugMeshBuilder == nullptr, "Already created");
 
 	mDebugMeshBuilder = make_unique<DebugDrawMeshBuilder>();
@@ -696,3 +722,4 @@ Phys::DebugDrawMeshBuilder& Phys::World::createDebugDrawMesh() {
 	
 	return *mDebugMeshBuilder;
 }
+#endif

@@ -121,9 +121,6 @@ namespace Phys {
 			return *mBox2D;
 		}
 
-		float getBusyTime() const;
-		float getSimulationTime() const;
-
 		void addBody(Body& body);
 		void removeBody(Body& body);
 
@@ -156,7 +153,17 @@ namespace Phys {
 			return mBodiesStartActive;
 		}
 
+
+#ifndef PUBLISH
+		struct PerformanceInfo {
+			float timeStepUsageFraction;
+			float timeStepSimulationFraction;
+		};
+
+		PerformanceInfo queryPerformanceInfo();
+
 		DebugDrawMeshBuilder& createDebugDrawMesh();
+#endif
 
 	private:
 
@@ -169,6 +176,12 @@ namespace Phys {
 
 		float mDefaultLinearDamping;
 		float mDefaultAngularDamping;
+
+#ifndef PUBLISH
+		double mTotalIngameTime = 0;
+		double mTotalUsageTime = 0;
+		double mTotalSimulationTime = 0;
+#endif
 
 		Dojo::SmallSet<WorldListener*> mListeners;
 
