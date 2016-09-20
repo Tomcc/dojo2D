@@ -15,7 +15,7 @@ dependencies/win32/hqx/Release/
 dependencies/win32/hqx/Debug/
 *.sdf
 *.opensdf
-
+bin/
 lib/
 *.vcxproj.user
 
