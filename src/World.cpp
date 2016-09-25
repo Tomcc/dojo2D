@@ -144,6 +144,8 @@ World::World(const Vector& gravity, float damping, float angularDamping, float t
 		using namespace std::chrono;
 		using namespace Dojo;
 
+		const auto maxStep = 1.f / 30.f;
+
 		while (mRunning) {
 			auto startTime = high_resolution_clock::now();
 
@@ -160,7 +162,7 @@ World::World(const Vector& gravity, float damping, float angularDamping, float t
 			if (doSimulation) {
 				auto simStartTime = high_resolution_clock::now();
 
-				auto step = static_cast<float>(timer.getElapsedTime());
+				auto step = std::min(maxStep, static_cast<float>(timer.getElapsedTime()));
 				timer.reset();
 				mBox2D->Step(step, velocityIterations, positionIterations, particleIterations);
 
