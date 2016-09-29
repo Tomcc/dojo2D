@@ -21,3 +21,11 @@ lib/
 
 VS2013/Publish/*
 bin/
+
+*.cmake
+CMakeCache*
+CMakeFiles*
+cotire*
+*.a
+Makefile
+
