@@ -5,34 +5,73 @@
     <ClCompile Include="..\src\Body.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\BodyPart.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ForceField.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Joint.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Material.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ParticleSystem.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ParticleSystemRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\PhysUtil.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\RayResult.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\World.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ParticleSystem.cpp">
+    <ClCompile Include="..\src\DebugDrawMeshBuilder.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\Dojo2D\BodyPart.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\include\Dojo2D\ParticleSystemRenderer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\include\Dojo2D\PhysUtil.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Material.cpp" />
-    <ClCompile Include="..\include\Dojo2D\Joint.cpp" />
-    <ClCompile Include="..\include\Dojo2D\ForceField.cpp" />
-    <ClCompile Include="..\include\Dojo2D\DebugDrawMeshBuilder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\stdafx.h" />
+    <ClInclude Include="..\include\Dojo2D\AABBQueryResult.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\Dojo2D\Body.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\BodyPart.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\BodyPartType.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\Dojo2D\common_header.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\ContactMode.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\DebugDrawMeshBuilder.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\ForceField.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\Joint.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\Material.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\ParticleSystem.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dojo2D\ParticleSystemRenderer.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Dojo2D\PhysUtil.h">
@@ -44,30 +83,9 @@
     <ClInclude Include="..\include\Dojo2D\World.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Dojo2D\Material.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Dojo2D\ParticleSystem.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\stdafx.h" />
-    <ClInclude Include="..\include\Dojo2D\BodyPart.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Dojo2D\ContactMode.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Dojo2D\ParticleSystemRenderer.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Dojo2D\WorldListener.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Dojo2D\AABBQueryResult.h" />
-    <ClInclude Include="..\include\Dojo2D\Joint.h" />
-    <ClInclude Include="..\include\Dojo2D\BodyPartType.h" />
-    <ClInclude Include="..\include\Dojo2D\ForceField.h" />
-    <ClInclude Include="..\include\Dojo2D\DebugDrawMeshBuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
