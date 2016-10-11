@@ -27,6 +27,8 @@ namespace Phys {
 		optional_ref<Dojo::SoundSet> impactHard, impactSoft;
 
 		Material(utf::string_view name, const Dojo::Table& desc = Dojo::Table::Empty, optional_ref<const Dojo::ResourceGroup> group = {});
+		Material(const Material&) = delete;
+		Material& operator=(const Material&) = delete;
 	};
 }
 
