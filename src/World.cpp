@@ -58,8 +58,9 @@ Unique<World> World::createSimulationClone() {
 	return clone;
 }
 
-void World::simulateToInactivity(float timeStep, uint32_t velocityIterations, uint32_t positionIterations, uint32_t particleIterations, uint32_t maxSteps /*= UINT_MAX*/) {
+void Phys::World::simulateToInactivity(float timeStep, uint32_t velocityIterations, uint32_t positionIterations, uint32_t particleIterations, const Dojo::AABB& insideBounds, uint32_t maxSteps /*= UINT_MAX*/) {
 	//process all available commands
+	
 	bool done = false;
 	Job job;
 	Command callback;
@@ -72,13 +73,20 @@ void World::simulateToInactivity(float timeStep, uint32_t velocityIterations, ui
 		for (auto&& b : mBodies) {
 			auto& body = b->getB2Body().unwrap();
 			if (body.IsAwake() and (body.IsActive() and body.IsSleepingAllowed()) and not b->isStatic()) {
+				//check if the body center is in the allowed bounds, otherwise delete it
+				if (not insideBounds.contains(asVec(body.GetPosition()))) {
+					//delete this body and continue simulating
+					removeBody(*b);
+				}
 				done = false;
+				break;
 			}
 		}
 
 		for (auto&& ps : mParticleSystems) {
 			if (not ps->isAsleep()) {
 				done = false;
+				break;
 			}
 		}
 
