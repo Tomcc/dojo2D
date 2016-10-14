@@ -49,9 +49,9 @@ namespace Phys {
 
 	extern Dojo::Table serializeShape(const b2Shape& shape);
 
-	std::vector<b2PolygonShape> decomposeConvex(const std::vector<Dojo::Vector>& points);
+	std::vector<b2PolygonShape> decomposeConvex(vec_view<Dojo::Vector> points);
 
-	extern uint32_t vertexCountAfterWeld(const std::vector<Vector>& vertices);
+	extern uint32_t vertexCountAfterWeld(vec_view<Vector> vertices);
 }
 
 

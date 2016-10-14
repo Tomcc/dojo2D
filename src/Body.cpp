@@ -103,23 +103,19 @@ void Phys::Body::removeAllParts() {
 	});
 }
 
-BodyPart& Body::addPolyShape(const Material& material, const Vector* vecs, size_t count, Group group, BodyPartType type) {
-	DEBUG_ASSERT(count > 2, "Wrong vertex count");
-	DEBUG_ASSERT(count < b2_maxPolygonVertices, "This box shape has too many vertices!");
+BodyPart& Body::addPolyShape(const Material& material, vec_view<Vector> points /*= nullptr*/, Group group, BodyPartType type /*= false */) {
+	DEBUG_ASSERT(points.size() > 2, "Wrong vertex count");
+	DEBUG_ASSERT(points.size() < b2_maxPolygonVertices, "This box shape has too many vertices!");
 
-	b2Vec2 points[b2_maxPolygonVertices];
-	for(auto i : range(count)) {
-		points[i] = Phys::asB2Vec(vecs[i]);
+	b2Vec2 b2points[b2_maxPolygonVertices];
+	for (auto i : range(points.size())) {
+		b2points[i] = Phys::asB2Vec(points[i]);
 	}
 
 	auto shape = make_unique<b2PolygonShape>();
-	shape->Set(points, count);
+	shape->Set(b2points, points.size());
 
 	return _addShape(std::move(shape), material, group, type);
-}
-
-BodyPart& Body::addPolyShape(const Material& material, const std::vector<Vector>& points /*= nullptr*/, Group group, BodyPartType type /*= false */) {
-	return addPolyShape(material, points.data(), points.size(), group, type);
 }
 
 BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, const Vector& center /*= Vector::ZERO*/, Group group, BodyPartType type) {
@@ -135,13 +131,14 @@ BodyPart& Body::addBoxShape(const Material& material, const Vector& dimensions, 
 		{max.x, min.y}
 	};
 
-	return addPolyShape(material, points, 4, group, type);
+	return addPolyShape(material, points, group, type);
 }
 
 BodyPart& Body::addNGonShape(const Material& material, float radius, uint32_t edges, const Vector& center, Group group /* = Group::None */, BodyPartType type /* = false */) {
 	DEBUG_ASSERT(radius > 0, "Invalid radius");
 	DEBUG_ASSERT(edges >= 3, "It doesn't make sense to create a shape with less than 3 sides");
 	
+	//TODO use a static_vector or equivalent there
 	Vector points[b2_maxPolygonVertices];
 
 	Vector offset = Vector::UnitX * radius;
@@ -151,7 +148,7 @@ BodyPart& Body::addNGonShape(const Material& material, float radius, uint32_t ed
 		offset = offset.roll(alpha);
 	}
 
-	return addPolyShape(material, points, edges, group, type);
+	return addPolyShape(material, vec_view<Vector>(points).slice(0, edges), group, type);
 }
 
 BodyPart& Body::addCircleShape(const Material& material, float radius, const Vector& center, Group group, BodyPartType type) {

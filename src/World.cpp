@@ -61,38 +61,38 @@ Unique<World> World::createSimulationClone() {
 void Phys::World::simulateToInactivity(float timeStep, uint32_t velocityIterations, uint32_t positionIterations, uint32_t particleIterations, const Dojo::AABB& insideBounds, uint32_t maxSteps /*= UINT_MAX*/) {
 	//process all available commands
 	
-	bool done = false;
-	Job job;
-	Command callback;
-
-	uint32_t step = 0;
-	while (not done) {
-		mBox2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
-
-		done = true;
-		for (auto&& b : mBodies) {
-			auto& body = b->getB2Body().unwrap();
-			if (body.IsAwake() and (body.IsActive() and body.IsSleepingAllowed()) and not b->isStatic()) {
-				//check if the body center is in the allowed bounds, otherwise delete it
-				if (not insideBounds.contains(asVec(body.GetPosition()))) {
-					//delete this body and continue simulating
-					removeBody(*b);
-				}
-				done = false;
-				break;
-			}
-		}
-
-		for (auto&& ps : mParticleSystems) {
-			if (not ps->isAsleep()) {
-				done = false;
-				break;
-			}
-		}
-
-		++step;
-		DEBUG_ASSERT(step < maxSteps, "Too many steps"); //TODO delete all the bodies that didn't sleep
-	}
+// 	bool done = false;
+// 	Job job;
+// 	Command callback;
+// 
+// 	uint32_t step = 0;
+// 	while (not done) {
+// 		mBox2D->Step(timeStep, velocityIterations, positionIterations, particleIterations);
+// 
+// 		done = true;
+// 		for (auto&& b : mBodies) {
+// 			auto& body = b->getB2Body().unwrap();
+// 			if (body.IsAwake() and (body.IsActive() and body.IsSleepingAllowed()) and not b->isStatic()) {
+// 				//check if the body center is in the allowed bounds, otherwise delete it
+// 				if (not insideBounds.contains(asVec(body.GetPosition()))) {
+// 					//delete this body and continue simulating
+// 					removeBody(*b);
+// 				}
+// 				done = false;
+// 				break;
+// 			}
+// 		}
+// 
+// 		for (auto&& ps : mParticleSystems) {
+// 			if (not ps->isAsleep()) {
+// 				done = false;
+// 				break;
+// 			}
+// 		}
+// 
+// 		++step;
+// 		DEBUG_ASSERT(step < maxSteps, "Too many steps"); //TODO delete all the bodies that didn't sleep
+// 	}
 }
 
 void World::mergeWorld(Unique<World> other) {

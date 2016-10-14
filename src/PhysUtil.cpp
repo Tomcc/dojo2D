@@ -18,7 +18,7 @@ extern Dojo::Table Phys::serializeShape(const b2Shape& shape) {
 	return t;
 }
 
-extern uint32_t Phys::vertexCountAfterWeld(const std::vector<Vector>& vertices) {
+extern uint32_t Phys::vertexCountAfterWeld(vec_view<Vector> vertices) {
 	Vector ps[b2_maxPolygonVertices];
 	uint32_t tempCount = 0;
 	for(auto&& v : vertices) {
@@ -37,7 +37,7 @@ extern uint32_t Phys::vertexCountAfterWeld(const std::vector<Vector>& vertices) 
 	return tempCount;
 }
 
-std::vector<b2PolygonShape> Phys::decomposeConvex(const std::vector<Vector>& points) {
+std::vector<b2PolygonShape> Phys::decomposeConvex(vec_view<Vector> points) {
 	b2Polygon wholePolygon;
 
 	//warning: b2Polygon acquires x and y and frees with delete

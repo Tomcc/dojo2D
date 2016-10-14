@@ -29,3 +29,5 @@ cotire*
 *.a
 Makefile
 
+*.ninja
+.ninja*

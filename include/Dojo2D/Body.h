@@ -36,8 +36,7 @@ namespace Phys {
 		Body& operator=(const Body&) = delete;
 		Body& operator=(Body&&) = delete;
 
-		BodyPart& addPolyShape(const Material& material, const Vector* points, size_t count, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
-		BodyPart& addPolyShape(const Material& material, const std::vector<Vector>& points, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
+		BodyPart& addPolyShape(const Material& material, vec_view<Vector> points, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
 		BodyPart& addBoxShape(const Material& material, const Vector& dimensions, const Vector& center = Vector::Zero, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
 		BodyPart& addNGonShape(const Material& material, float radius, uint32_t edges, const Vector& center = Vector::Zero, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
 		BodyPart& addCircleShape(const Material& material, float radius, const Vector& center = Vector::Zero, Group group = Group::None, BodyPartType type = BodyPartType::Rigid);
