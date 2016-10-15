@@ -1,4 +1,8 @@
+add_subdirectory("dojo")
+add_subdirectory("Box2D/liquidfun/Box2D")
+
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 project("Dojo2D")
@@ -46,6 +50,8 @@ file(GLOB common_src
 set(dojo_SRC ${common_src} ${platform_src})
 
 add_library(Dojo2D ${dojo_SRC})
+
+target_link_libraries(Dojo2D Dojo Box2D)
 
 if (IWYU)
     find_program(iwyu_path NAMES include-what-you-use iwyu)
