@@ -10,10 +10,9 @@ project("Dojo2D")
 option(IWYU "IWYU" OFF)
 
 include(CheckCXXCompilerFlag)
+include(dojo/AddDojoIncludes.txt)
 
 include_directories("include/Dojo2D")
-include_directories("dojo/dependencies/include")
-include_directories("dojo/include")
 include_directories("Box2D/liquidfun/Box2D")
 
 if (WIN32)
