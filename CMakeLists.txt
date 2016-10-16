@@ -22,6 +22,8 @@ if (WIN32)
     add_definitions("-DNOMINMAX")
     add_definitions("-DWIN32_LEAN_AND_MEAN")
     add_definitions ("/WX")
+    add_definitions ("/WX")
+    add_definitions(/FI"${CMAKE_CURRENT_LIST_DIR}/stdafx.h")
 else() 
     CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 
