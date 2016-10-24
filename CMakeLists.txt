@@ -3,7 +3,7 @@ add_subdirectory("Box2D/liquidfun/Box2D")
 
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dojo")
 
 project("Dojo2D")
 
