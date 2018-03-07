@@ -113,7 +113,7 @@ BodyPart& Body::addPolyShape(const Material& material, vec_view<Vector> points /
 	}
 
 	auto shape = make_unique<b2PolygonShape>();
-	shape->Set(b2points, points.size());
+	shape->Set(b2points, static_cast<int32>(points.size()));
 
 	return _addShape(std::move(shape), material, group, type);
 }

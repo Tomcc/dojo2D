@@ -54,12 +54,12 @@ namespace Phys {
 
 	void DebugDrawMeshBuilder::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) {
 		_updateCircleBuffer(center, radius);
-		DrawPolygon(mCircleBuffer.data(), mCircleBuffer.size(), color);
+		DrawPolygon(mCircleBuffer.data(), static_cast<int32>(mCircleBuffer.size()), color);
 	}
 
 	void DebugDrawMeshBuilder::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) {
 		_updateCircleBuffer(center, radius);
-		DrawSolidPolygon(mCircleBuffer.data(), mCircleBuffer.size(), color);
+		DrawSolidPolygon(mCircleBuffer.data(), static_cast<int32>(mCircleBuffer.size()), color);
 	}
 
 	void DebugDrawMeshBuilder::DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count) {

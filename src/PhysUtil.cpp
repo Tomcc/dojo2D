@@ -44,7 +44,7 @@ std::vector<b2PolygonShape> Phys::decomposeConvex(vec_view<Vector> points) {
 	std::vector<float32> buffer(points.size() * 2);
 	wholePolygon.x = buffer.data();
 	wholePolygon.y = buffer.data() + points.size();
-	wholePolygon.nVertices = points.size();
+	wholePolygon.nVertices = static_cast<int32>(points.size());
 
 	for (size_t i = 0; i < points.size(); ++i) {
 		wholePolygon.x[i] = points[i].x;
